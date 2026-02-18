@@ -7,13 +7,14 @@ from django.utils.decorators import method_decorator
 from django.views.generic import View
 
 from silk.auth import login_possibly_required, permissions_possibly_required
-from silk.models import Request, Response
+from silk.models import Request, Response, SQLQuery
 from silk.request_filters import (
     BaseFilter,
     FiltersManager,
     TIME_RANGE_PRESETS,
     filters_from_request,
 )
+from silk.utils.n_plus_one import fingerprint_query
 from silk.utils.pagination import get_page
 
 __author__ = 'mtford'
@@ -205,6 +206,28 @@ class RequestsView(View):
 
         page_obj = get_page(request, qs, per_page)
 
+        # Batch N+1 detection for the current page (1 extra DB query)
+        page_request_ids = [r.pk for r in page_obj.object_list]
+        has_n1_on_page = False
+        if page_request_ids:
+            sql_rows = SQLQuery.objects.filter(
+                request_id__in=page_request_ids
+            ).values('request_id', 'query')
+            # Group by request, fingerprint, count occurrences
+            buckets = {}  # request_id -> fingerprint -> count
+            for row in sql_rows:
+                rid = row['request_id']
+                fp = fingerprint_query(row['query'])
+                buckets.setdefault(rid, {}).setdefault(fp, 0)
+                buckets[rid][fp] += 1
+            n1_request_ids = {
+                rid for rid, fps in buckets.items()
+                if any(cnt >= 3 for cnt in fps.values())
+            }
+            for r in page_obj.object_list:
+                r.has_n1 = r.pk in n1_request_ids
+            has_n1_on_page = bool(n1_request_ids)
+
         context = {
             'show': show,
             'per_page': per_page,
@@ -231,6 +254,7 @@ class RequestsView(View):
             ],
             'page_obj': page_obj,
             'results': page_obj.object_list,  # backward compat
+            'has_n1_on_page': has_n1_on_page,
         }
         context.update(csrf(request))
         if path:

@@ -592,6 +592,16 @@
   height: 13px;
 }
 
+/* ── N+1 row badge (queries list column) ── */
+.silk-n1-row-badge {
+  display: inline-flex;
+  align-items: center;
+  color: var(--silk-perf-ok);
+  margin-left: 4px;
+  vertical-align: middle;
+  cursor: default;
+}
+
 .silk-icon--large {
   width: 48px;
   height: 48px;

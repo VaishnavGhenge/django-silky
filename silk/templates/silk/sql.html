@@ -102,6 +102,25 @@
     </div>
     {% endif %}
 
+    {# ── N+1 detection banner ── #}
+    {% if n_plus_one and n_plus_one.has_n_plus_one %}
+    <div class="silk-n1-banner">
+        <div class="silk-n1-banner__header">
+            <i data-lucide="alert-triangle" class="silk-icon silk-icon--sm"></i>
+            <strong>N+1 Query Detected</strong>
+            <span class="silk-n1-badge">{{ n_plus_one.groups|length }} pattern{% if n_plus_one.groups|length != 1 %}s{% endif %}</span>
+        </div>
+        <ul class="silk-n1-list">
+            {% for group in n_plus_one.groups %}
+            <li class="silk-n1-query">
+                <span class="silk-n1-count">{{ group.count }}×</span>
+                <code class="silk-n1-fp">{{ group.fingerprint|truncatechars:120 }}</code>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
     {# ── SQL table ── #}
     {% if items %}
     <div class="silk-table-wrapper">
@@ -118,7 +137,7 @@
             <tbody>
                 {% for sql_query in items %}
                 {% sql_detail_url silk_request profile sql_query as detail_url %}
-                <tr class="silk-table__row" tabindex="0" onclick="location.href='{{ detail_url }}'">
+                <tr class="silk-table__row{% if n_plus_one_ids and sql_query.pk in n_plus_one_ids %} silk-table__row--n1{% endif %}" tabindex="0" onclick="location.href='{{ detail_url }}'">
                     <td class="silk-td silk-td--timestamp">+{{ sql_query.start_time_relative }}</td>
                     <td class="silk-td">{{ sql_query.first_keywords }}</td>
                     <td class="silk-td silk-td--path">{{ sql_query.tables_involved|join:", " }}</td>

@@ -52,6 +52,12 @@
                 <i data-lucide="database" class="silk-icon silk-icon--sm"></i>
                 {{ silk_request.num_sql_queries }} queries
             </span>
+            {% if n_plus_one and n_plus_one.has_n_plus_one %}
+            <a href="{% url 'silk:request_sql' request_id=silk_request.pk %}" class="silk-hero__metric silk-hero__metric--n1 silk-n1-link">
+                <i data-lucide="alert-triangle" class="silk-icon silk-icon--sm"></i>
+                N+1 ({{ n_plus_one.groups|length }})
+            </a>
+            {% endif %}
         </div>
     </div>
 

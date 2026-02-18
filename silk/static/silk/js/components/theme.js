@@ -32,6 +32,7 @@
     applyTheme(next);
     saveTheme(next);
     updateToggleButton(next);
+    document.dispatchEvent(new CustomEvent('silk-theme-changed'));
   }
 
   function updateToggleButton(theme) {

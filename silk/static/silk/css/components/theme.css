@@ -1,52 +1,52 @@
 @charset "UTF-8";
 /* Light mode tokens (default) */
 :root {
-  --silk-bg: #f3f3f3;
+  --silk-bg: #f0f2f7;
   --silk-surface: #ffffff;
-  --silk-border: #e0e0e8;
-  --silk-nav-bg: #333344;
-  --silk-nav-hover-bg: #f3f3f3;
-  --silk-nav-hover-text: #1a1a2e;
-  --silk-text-primary: #1a1a2e;
-  --silk-text-secondary: #555566;
-  --silk-text-muted: #888899;
-  --silk-text-nav: #ffffff;
-  --silk-card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  --silk-card-radius: 8px;
-  --silk-row-hover-bg: #eef0f8;
-  --silk-row-hover-text: #1a1a2e;
-  /* Performance color scale (5-stop: fast → slow) */
-  --silk-perf-very-good: #5a8a2a;
-  --silk-perf-good: #8a7a20;
-  --silk-perf-ok: #8a5820;
-  --silk-perf-bad: #8a2820;
-  --silk-perf-very-bad: #7a1428;
+  --silk-border: #d8dce8;
+  --silk-nav-bg: #1e2235;
+  --silk-nav-hover-bg: #2d3250;
+  --silk-nav-hover-text: #e8eaf6;
+  --silk-text-primary: #111827;
+  --silk-text-secondary: #374151;
+  --silk-text-muted: #6b7280;
+  --silk-text-nav: #e8eaf6;
+  --silk-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.10), 0 1px 8px rgba(0,0,0,0.06);
+  --silk-card-radius: 10px;
+  --silk-row-hover-bg: #eef1fb;
+  --silk-row-hover-text: #111827;
+  /* Performance color scale — vivid, accessible */
+  --silk-perf-very-good: #16a34a;
+  --silk-perf-good: #65a30d;
+  --silk-perf-ok: #d97706;
+  --silk-perf-bad: #dc2626;
+  --silk-perf-very-bad: #9f1239;
   /* Method badge colors */
-  --silk-method-get: #2a7a3a;
-  --silk-method-get-bg: #e8f5e9;
-  --silk-method-post: #1a4a8a;
-  --silk-method-post-bg: #e3edf7;
-  --silk-method-put: #8a5010;
-  --silk-method-put-bg: #fff3e0;
-  --silk-method-patch: #5a2080;
-  --silk-method-patch-bg: #f3e5f5;
-  --silk-method-delete: #8a1a1a;
-  --silk-method-delete-bg:#fce4ec;
+  --silk-method-get: #166534;
+  --silk-method-get-bg: #dcfce7;
+  --silk-method-post: #1e40af;
+  --silk-method-post-bg: #dbeafe;
+  --silk-method-put: #92400e;
+  --silk-method-put-bg: #fef3c7;
+  --silk-method-patch: #5b21b6;
+  --silk-method-patch-bg: #ede9fe;
+  --silk-method-delete: #991b1b;
+  --silk-method-delete-bg:#fee2e2;
   /* Status code colors */
-  --silk-status-2xx: #2a7a3a;
-  --silk-status-2xx-bg: #e8f5e9;
-  --silk-status-3xx: #1a4a8a;
-  --silk-status-3xx-bg: #e3edf7;
-  --silk-status-4xx: #8a5010;
-  --silk-status-4xx-bg: #fff3e0;
-  --silk-status-5xx: #8a1a1a;
-  --silk-status-5xx-bg: #fce4ec;
+  --silk-status-2xx: #166534;
+  --silk-status-2xx-bg: #dcfce7;
+  --silk-status-3xx: #1e40af;
+  --silk-status-3xx-bg: #dbeafe;
+  --silk-status-4xx: #92400e;
+  --silk-status-4xx-bg: #fef3c7;
+  --silk-status-5xx: #991b1b;
+  --silk-status-5xx-bg: #fee2e2;
   /* Input / form */
   --silk-input-bg: #ffffff;
-  --silk-input-border: #ccccdd;
+  --silk-input-border: #c8ccd8;
   /* Filter bar */
-  --silk-filter-bg: #f8f8fc;
-  --silk-filter-border: #e0e0ee;
+  --silk-filter-bg: #f5f7fb;
+  --silk-filter-border: #d8dce8;
 }
 
 /* Dark mode tokens */

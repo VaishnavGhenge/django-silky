@@ -177,3 +177,18 @@ pre {
   width: 13px;
   height: 13px;
 }
+
+/* ── N+1 hero metric pill ── */
+.silk-hero__metric--n1 {
+  color: var(--silk-perf-ok) !important;
+  font-weight: 600;
+}
+
+.silk-n1-link {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    color: var(--silk-perf-bad) !important;
+  }
+}

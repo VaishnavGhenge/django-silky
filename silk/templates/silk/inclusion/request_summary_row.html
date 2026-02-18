@@ -35,4 +35,9 @@
     <span class="silk-num {% if silk_request.num_sql_queries >= 50 %}silk-num--very-bad{% elif silk_request.num_sql_queries >= 20 %}silk-num--bad{% elif silk_request.num_sql_queries >= 10 %}silk-num--ok{% endif %}">
         {{ silk_request.num_sql_queries }}
     </span>
+    {% if silk_request.has_n1 %}
+    <span class="silk-n1-row-badge" title="N+1 query detected">
+        <i data-lucide="alert-triangle" class="silk-icon silk-icon--sm"></i>
+    </span>
+    {% endif %}
 </td>

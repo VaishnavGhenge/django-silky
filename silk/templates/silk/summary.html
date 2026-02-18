@@ -19,6 +19,7 @@
 {% endblock %}
 
 {% block js %}
+    <script src="{% static 'silk/lib/d3.min.js' %}"></script>
     <script src="{% static 'silk/js/pages/summary.js' %}"></script>
 {% endblock %}
 
@@ -174,6 +175,83 @@
         </div>
 
     </div>
+
+    {# ── Analytics Dashboard ── #}
+    <div class="silk-analytics">
+
+        {# Row 1: Activity timeline — full width #}
+        <div class="silk-analytics__header">
+            <h2 class="silk-analytics__title">
+                <i data-lucide="activity" class="silk-icon silk-icon--large-sm"></i>
+                Analytics
+            </h2>
+        </div>
+
+        <div class="silk-chart-card silk-chart-card--activity">
+            <div class="silk-chart-card__head">
+                <i data-lucide="trending-up" class="silk-icon silk-icon--sm"></i>
+                Request Activity
+            </div>
+            <svg id="silk-chart-activity" class="silk-chart-svg"></svg>
+        </div>
+
+        {# Row 2: Status donut + Method breakdown + RT histogram #}
+        <div class="silk-analytics-grid silk-analytics-grid--3">
+            <div class="silk-chart-card">
+                <div class="silk-chart-card__head">
+                    <i data-lucide="pie-chart" class="silk-icon silk-icon--sm"></i>
+                    Status Codes
+                </div>
+                <svg id="silk-chart-status" class="silk-chart-svg"></svg>
+            </div>
+            <div class="silk-chart-card">
+                <div class="silk-chart-card__head">
+                    <i data-lucide="git-branch" class="silk-icon silk-icon--sm"></i>
+                    HTTP Methods
+                </div>
+                <svg id="silk-chart-methods" class="silk-chart-svg"></svg>
+            </div>
+            <div class="silk-chart-card">
+                <div class="silk-chart-card__head">
+                    <i data-lucide="bar-chart-2" class="silk-icon silk-icon--sm"></i>
+                    Response Time Distribution
+                </div>
+                <svg id="silk-chart-rt-hist" class="silk-chart-svg"></svg>
+            </div>
+        </div>
+
+        {# Row 3: Latency percentile charts #}
+        <div class="silk-analytics-grid silk-analytics-grid--2">
+            <div class="silk-chart-card">
+                <div class="silk-chart-card__head">
+                    <i data-lucide="clock" class="silk-icon silk-icon--sm"></i>
+                    Request Latency Percentiles
+                </div>
+                <svg id="silk-chart-request" class="silk-chart-svg"></svg>
+                <div class="silk-chart-legend">
+                    {% for p, v in request_percentiles.items %}
+                    <span class="silk-pct-pill silk-pct-pill--p{{ p }}">p{{ p }} <strong>{{ v|floatformat:0 }}ms</strong></span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="silk-chart-card">
+                <div class="silk-chart-card__head">
+                    <i data-lucide="database" class="silk-icon silk-icon--sm"></i>
+                    SQL Query Latency Percentiles
+                </div>
+                <svg id="silk-chart-query" class="silk-chart-svg"></svg>
+                <div class="silk-chart-legend">
+                    {% for p, v in sql_percentiles.items %}
+                    <span class="silk-pct-pill silk-pct-pill--p{{ p }}">p{{ p }} <strong>{{ v|floatformat:0 }}ms</strong></span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# Chart data for D3 (safe — only numbers, no user input) #}
+    <script type="application/json" id="silk-chart-data">{{ chart_json|safe }}</script>
 
     {% else %}
     <div class="silk-empty">

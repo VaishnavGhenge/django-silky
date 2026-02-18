@@ -7,7 +7,8 @@ from django.views.generic import View
 from silk.auth import login_possibly_required, permissions_possibly_required
 from silk.code_generation.curl import curl_cmd
 from silk.code_generation.django_test_client import gen
-from silk.models import Request
+from silk.models import Request, SQLQuery
+from silk.utils.n_plus_one import detect_n_plus_one
 
 
 class RequestView(View):
@@ -42,5 +43,9 @@ class RequestView(View):
                                     query_params=query_params,
                                     data=body,
                                     content_type=silk_request.content_type)
+
+        if silk_request.num_sql_queries > 0:
+            all_queries = list(SQLQuery.objects.filter(request=silk_request))
+            context['n_plus_one'] = detect_n_plus_one(all_queries)
 
         return render(request, 'silk/request.html', context)

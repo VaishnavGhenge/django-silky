@@ -4,6 +4,7 @@ from django.views.generic import View
 
 from silk.auth import login_possibly_required, permissions_possibly_required
 from silk.models import Profile, Request, SQLQuery
+from silk.utils.n_plus_one import detect_n_plus_one
 from silk.utils.pagination import _page
 
 __author__ = 'mtford'
@@ -37,11 +38,14 @@ class SQLView(View):
         }
         if request_id:
             silk_request = Request.objects.get(id=request_id)
-            query_set = SQLQuery.objects.filter(request=silk_request).order_by('-start_time')
-            for q in query_set:
+            all_queries = list(SQLQuery.objects.filter(request=silk_request).order_by('-start_time'))
+            for q in all_queries:
                 q.start_time_relative = q.start_time - silk_request.start_time
-            page = _page(request, query_set, per_page)
+            n_plus_one = detect_n_plus_one(all_queries)
+            page = _page(request, all_queries, per_page)
             context['silk_request'] = silk_request
+            context['n_plus_one'] = n_plus_one
+            context['n_plus_one_ids'] = n_plus_one.flagged_query_ids
         if profile_id:
             p = Profile.objects.get(id=profile_id)
             page = _page(request, p.queries.order_by('-start_time').all(), per_page)

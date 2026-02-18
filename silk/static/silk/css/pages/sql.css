@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /* sql.html inherits silk-table, silk-hero, silk-pagination, silk-empty from request.css.
    Only SQL-list-specific overrides live here. */
 .silk-page .silk-hero {
@@ -6,4 +7,72 @@
 
 .silk-page .silk-table-wrapper {
   margin-top: 1.25rem;
+}
+
+/* ── N+1 detection banner ── */
+.silk-n1-banner {
+  margin-top: 1rem;
+  border: 1px solid var(--silk-perf-ok);
+  border-radius: var(--silk-card-radius, 8px);
+  background: color-mix(in srgb, var(--silk-perf-ok) 8%, var(--silk-surface));
+  overflow: hidden;
+}
+.silk-n1-banner__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--silk-perf-ok);
+  border-bottom: 1px solid color-mix(in srgb, var(--silk-perf-ok) 20%, transparent);
+}
+
+.silk-n1-badge {
+  margin-left: auto;
+  background: var(--silk-perf-ok);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+
+.silk-n1-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+.silk-n1-query {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 14px;
+  font-size: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--silk-perf-ok) 10%, transparent);
+}
+.silk-n1-query:last-child {
+  border-bottom: none;
+}
+
+.silk-n1-count {
+  font-weight: 700;
+  color: var(--silk-perf-ok);
+  white-space: nowrap;
+  min-width: 28px;
+}
+
+.silk-n1-fp {
+  font-family: Fantasque, monospace;
+  font-size: 11px;
+  color: var(--silk-text-secondary);
+  word-break: break-all;
+}
+
+/* ── N+1 highlighted table row ── */
+.silk-table__row--n1 td {
+  background: color-mix(in srgb, var(--silk-perf-ok) 6%, transparent) !important;
+}
+.silk-table__row--n1:hover td {
+  background: color-mix(in srgb, var(--silk-perf-ok) 12%, transparent) !important;
 }

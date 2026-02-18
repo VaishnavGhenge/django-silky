@@ -257,3 +257,139 @@
   padding: 1rem 1.2rem;
   margin: 0;
 }
+
+/* ════════════════════════════════════════
+   Analytics Dashboard
+   ════════════════════════════════════════ */
+.silk-analytics {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.silk-analytics__header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--silk-border);
+}
+.silk-analytics__title {
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--silk-text-primary);
+}
+
+/* ── Grids ── */
+.silk-analytics-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+.silk-analytics-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.silk-analytics-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 860px) {
+  .silk-analytics-grid--3 {
+    grid-template-columns: 1fr;
+  }
+  .silk-analytics-grid--2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Chart card ── */
+.silk-chart-card {
+  background: var(--silk-surface);
+  border: 1px solid var(--silk-border);
+  border-radius: var(--silk-card-radius, 8px);
+  box-shadow: var(--silk-card-shadow);
+  padding: 0;
+  overflow: hidden;
+}
+.silk-chart-card--activity {
+  /* activity spans full width by default */
+}
+.silk-chart-card__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--silk-text-muted);
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--silk-border);
+  background: var(--silk-filter-bg);
+}
+
+.silk-chart-svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+/* ── Legend pills ── */
+.silk-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 14px 10px;
+  border-top: 1px solid var(--silk-border);
+}
+
+.silk-pct-pill {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--silk-border);
+  background: var(--silk-surface);
+  color: var(--silk-text-secondary);
+  white-space: nowrap;
+}
+.silk-pct-pill strong {
+  font-weight: 700;
+}
+.silk-pct-pill--p25 {
+  color: var(--silk-perf-very-good);
+  border-color: color-mix(in srgb, var(--silk-perf-very-good) 40%, transparent);
+}
+.silk-pct-pill--p50 {
+  color: var(--silk-perf-good);
+  border-color: color-mix(in srgb, var(--silk-perf-good) 40%, transparent);
+}
+.silk-pct-pill--p75 {
+  color: var(--silk-perf-ok);
+  border-color: color-mix(in srgb, var(--silk-perf-ok) 40%, transparent);
+}
+.silk-pct-pill--p95 {
+  color: var(--silk-perf-bad);
+  border-color: color-mix(in srgb, var(--silk-perf-bad) 40%, transparent);
+}
+.silk-pct-pill--p99 {
+  color: var(--silk-perf-very-bad);
+  border-color: color-mix(in srgb, var(--silk-perf-very-bad) 40%, transparent);
+}
+
+/* ── D3 tooltip ── */
+.silk-d3-tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--silk-nav-bg);
+  color: var(--silk-text-nav);
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  opacity: 0;
+  transition: opacity 0.1s;
+  z-index: 9999;
+  line-height: 1.5;
+}
