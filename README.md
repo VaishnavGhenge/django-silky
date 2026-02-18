@@ -25,6 +25,32 @@ It keeps 100 % of the original functionality (request/response recording, SQL in
 
 ---
 
+## Screenshots
+
+<table>
+<tr>
+<td><img src="screenshots/1.png" alt="Summary dashboard – dark mode" width="420"/><br/><sub><b>Summary dashboard</b> — metric cards, top-N tables, and analytics overview</sub></td>
+<td><img src="screenshots/2.png" alt="Analytics charts – dark mode" width="420"/><br/><sub><b>Analytics</b> — activity timeline, status donut, method lollipop, RT histogram, latency percentiles</sub></td>
+</tr>
+<tr>
+<td><img src="screenshots/3.png" alt="Requests list – dark mode" width="420"/><br/><sub><b>Requests list</b> — filterable, multi-sort, paginated table with method/status badges</sub></td>
+<td><img src="screenshots/4.png" alt="Requests list with filter bar" width="420"/><br/><sub><b>Inline filter bar</b> — date range, method, status, path, sort chips</sub></td>
+</tr>
+<tr>
+<td><img src="screenshots/5.png" alt="Request detail – light mode" width="420"/><br/><sub><b>Request detail</b> — hero bar with timing pills, headers, response body</sub></td>
+<td><img src="screenshots/6.png" alt="SQL query list – dark mode" width="420"/><br/><sub><b>SQL queries</b> — per-request query table with timing colour scale</sub></td>
+</tr>
+<tr>
+<td><img src="screenshots/7.png" alt="N+1 detection badge" width="420"/><br/><sub><b>N+1 detection</b> — warning pill in the hero bar when repeated queries are found</sub></td>
+<td><img src="screenshots/8.png" alt="N+1 banner and highlighted rows" width="420"/><br/><sub><b>N+1 banner</b> — pattern count, real SQL preview, and highlighted offending rows</sub></td>
+</tr>
+<tr>
+<td colspan="2"><img src="screenshots/9.png" alt="SQL detail – EXPLAIN plan and traceback" width="420"/><br/><sub><b>SQL detail</b> — full query text, EXPLAIN plan, and Python stack trace</sub></td>
+</tr>
+</table>
+
+---
+
 ## Migrating from django-silk
 
 `django-silky` is a drop-in replacement — same app label (`silk`), same
