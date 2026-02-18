@@ -76,7 +76,7 @@
       .filter(function (r) { return r.t; });
     if (data.length === 0) { emptyState(el, 'No data', 140); return; }
 
-    var accent     = css('--silk-nav-bg')        || '#333344';
+    var accent     = css('--silk-chart-accent')  || '#4f46e5';
     var gridColor  = css('--silk-border');
     var textColor  = css('--silk-text-secondary');
     var surfColor  = css('--silk-surface');

@@ -114,7 +114,7 @@
             {% for group in n_plus_one.groups %}
             <li class="silk-n1-query">
                 <span class="silk-n1-count">{{ group.count }}×</span>
-                <code class="silk-n1-fp">{{ group.fingerprint|truncatechars:120 }}</code>
+                <code class="silk-n1-fp">{{ group.representative.query|truncatechars:140 }}</code>
             </li>
             {% endfor %}
         </ul>

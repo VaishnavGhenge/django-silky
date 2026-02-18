@@ -47,6 +47,8 @@
   /* Filter bar */
   --silk-filter-bg: #f5f7fb;
   --silk-filter-border: #d8dce8;
+  /* Chart accent — visible on light background */
+  --silk-chart-accent: #4f46e5;
 }
 
 /* Dark mode tokens */
@@ -96,4 +98,6 @@
   /* Filter bar */
   --silk-filter-bg: #1a1a30;
   --silk-filter-border: #2e2e48;
+  /* Chart accent — bright on dark background */
+  --silk-chart-accent: #818cf8;
 }
