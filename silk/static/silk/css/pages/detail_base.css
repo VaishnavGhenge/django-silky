@@ -24,7 +24,7 @@
 }
 
 .the-line {
-  background-color: #c3c3c3;
+  background-color: var(--silk-border);
 }
 
 pre {

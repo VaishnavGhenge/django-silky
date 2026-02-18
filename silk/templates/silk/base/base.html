@@ -1,8 +1,14 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html id="silk-root" data-theme="light">
 <head>
     <title>{% block pagetitle %}Silky{% endblock %}</title>
+    {# Anti-flash: apply saved theme before paint #}
+    <script>
+      (function(){try{var t=localStorage.getItem('silk-theme');if(t)document.getElementById('silk-root').setAttribute('data-theme',t);}catch(e){}}());
+    </script>
+    <link rel="stylesheet" href="{% static "silk/css/components/theme.css" %}"/>
+    <link rel="stylesheet" href="{% static "silk/css/components/theme_toggle.css" %}"/>
     <link rel="stylesheet" href="{% static "silk/css/components/fonts.css" %}"/>
     <link rel="stylesheet" href="{% static "silk/css/components/colors.css" %}"/>
     <link rel="stylesheet" href="{% static "silk/lib/jquery-ui-1.13.2.min.css" %}"/>
@@ -15,6 +21,9 @@
     <script src="{% static 'silk/lib/jquery-ui-1.13.2.min.js' %}"></script>
     <script src="{% static 'silk/js/components/cell.js' %}"></script>
     <script src="{% static 'silk/js/pages/base.js' %}"></script>
+    <script src="{% static 'silk/lib/lucide.min.js' %}"></script>
+    <script src="{% static 'silk/js/components/theme.js' %}"></script>
+    <script src="{% static 'silk/js/components/timeago.js' %}"></script>
     {% block js %}
     {% endblock %}
 
@@ -33,6 +42,12 @@
         <div id="filter" class="menu">
             {% block filter %}
             {% endblock %}
+            <div class="menu-item" style="display:inline-flex;align-items:center;">
+                <button id="silk-theme-toggle" class="silk-theme-toggle" aria-label="Toggle dark mode">
+                    <i data-lucide="moon" class="silk-icon"></i>
+                    <span class="silk-theme-label">Dark</span>
+                </button>
+            </div>
         </div>
     </div>
     <div id="data">

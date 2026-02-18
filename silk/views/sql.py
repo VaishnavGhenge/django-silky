@@ -18,10 +18,18 @@ class SQLView(View):
     def get(self, request, *_, **kwargs):
         request_id = kwargs.get('request_id')
         profile_id = kwargs.get('profile_id')
-        try:
-            per_page = int(request.GET.get('per_page', self.default_page_size))
-        except (TypeError, ValueError):
-            per_page = self.default_page_size
+        per_page_param = request.GET.get('per_page')
+        if per_page_param is not None:
+            try:
+                per_page = int(per_page_param)
+            except (TypeError, ValueError):
+                per_page = self.default_page_size
+            request.session['silk_sql_per_page'] = per_page
+        else:
+            try:
+                per_page = int(request.session.get('silk_sql_per_page', self.default_page_size))
+            except (TypeError, ValueError):
+                per_page = self.default_page_size
         context = {
             'request': request,
             'options_page_size': self.page_sizes,

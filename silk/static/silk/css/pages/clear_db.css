@@ -1,41 +1,153 @@
-.wrapper {
-  width: 100%;
-  margin-bottom: 20px;
+@charset "UTF-8";
+.silk-cleardb {
+  max-width: 520px;
+  margin: 2rem auto;
+  padding: 0 1.5rem 3rem;
 }
 
-.inner {
-  margin: auto;
-  width: 960px;
+/* ── Header ── */
+.silk-cleardb__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0.4rem;
 }
 
-.cleardb-form .cleardb-form-wrapper {
-  margin-bottom: 20px;
+.silk-cleardb__icon {
+  width: 22px;
+  height: 22px;
+  color: var(--silk-perf-bad);
+  flex-shrink: 0;
 }
 
-.cleardb-form label {
-  display: block;
-  margin-bottom: 8px;
+.silk-cleardb__title {
+  font-size: 1.25rem;
+  font-weight: normal;
+  color: var(--silk-text-primary);
+  margin: 0;
 }
 
-.cleardb-form .btn {
-  background: #333344;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 2px;
+.silk-cleardb__desc {
+  font-size: 13px;
+  color: var(--silk-text-secondary);
+  margin: 0 0 1.5rem;
+  font-weight: normal;
+}
+
+/* ── Options ── */
+.silk-cleardb__options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.silk-cleardb__option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--silk-border);
+  border-radius: var(--silk-card-radius, 8px);
+  background: var(--silk-surface);
   cursor: pointer;
-  box-shadow: none;
-  font-size: 16px;
-  line-height: 20px;
-  border: 0;
-  min-width: 150px;
-  text-align: center;
+  font-weight: normal;
+  transition: border-color 0.15s, background 0.15s;
+}
+.silk-cleardb__option input[type=checkbox] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--silk-perf-bad);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.silk-cleardb__option--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.silk-cleardb__option--disabled input[type=checkbox] {
+  cursor: not-allowed;
+}
+.silk-cleardb__option:not(.silk-cleardb__option--disabled):hover {
+  border-color: var(--silk-perf-bad);
+  background: var(--silk-row-hover-bg);
+}
+.silk-cleardb__option:has(input:checked) {
+  border-color: var(--silk-perf-bad);
+  background: var(--silk-filter-bg);
 }
 
-.cleardb-form label :last-child {
-  margin-bottom: 0;
+.silk-cleardb__option-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--silk-text-primary);
+}
+.silk-cleardb__option-body .silk-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--silk-text-secondary);
+  flex-shrink: 0;
 }
 
-.msg {
-  margin-top: 20px;
-  color: #bac54b;
+.silk-cleardb__option-name {
+  font-size: 13px;
+  color: var(--silk-text-primary);
+  font-weight: normal;
+}
+
+.silk-cleardb__option-hint {
+  font-size: 11px;
+  color: var(--silk-text-muted);
+  margin-top: 1px;
+  font-weight: lighter;
+}
+
+/* ── Submit button ── */
+.silk-cleardb__btn {
+  font-family: FiraSans, "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--silk-perf-bad);
+  color: #fff;
+  transition: opacity 0.15s;
+}
+.silk-cleardb__btn .silk-icon {
+  width: 14px;
+  height: 14px;
+}
+.silk-cleardb__btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+.silk-cleardb__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Success message ── */
+.silk-cleardb__msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1.25rem;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: var(--silk-filter-bg);
+  border: 1px solid var(--silk-border);
+  font-size: 13px;
+  color: var(--silk-perf-good);
+  font-style: italic;
+}
+.silk-cleardb__msg .silk-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
 }

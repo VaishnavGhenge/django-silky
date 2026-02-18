@@ -1,4 +1,4 @@
-{% extends 'silk/base/root_base.html' %}
+{% extends 'silk/base/base.html' %}
 {% load silk_inclusion %}
 {% load static %}
 {% block pagetitle %}Silky - Clear DB{% endblock %}
@@ -8,42 +8,98 @@
 {% endblock %}
 
 {% block style %}
-    {{ block.super }}
     <link rel="stylesheet" href="{% static 'silk/css/pages/clear_db.css' %}"/>
 {% endblock %}
 
-{% block js %}
-    {{ block.super }}
-    <script src="{% static 'silk/js/pages/clear_db.js' %}"></script>
-{% endblock %}
 {% block data %}
-    <div class="wrapper">
-        <div class="inner">
-            <h2>Silk Clear DB</h2>
-            <form class="cleardb-form" action="." method="post">
-                {% csrf_token %}
-                <div class="cleardb-form-wrapper">
-                    <label>
-                        <input type="checkbox" name="clear_requests" disabled="disabled"/>
-                        Requests
-                    </label>
-                    <label>
-                        <input type="checkbox" name="clear_profiling" disabled="disabled"/>
-                        Profiling
-                    </label>
-                    <label>
-                        <input type="checkbox" name="clear_all"/>
-                        All
-                    </label>
-                </div>
-                <button class="btn">Clear</button>
-            </form>
-            <div class="msg">{{ msg|linebreaks }}</div>
-        </div>
+<div class="silk-cleardb">
+
+    <div class="silk-cleardb__header">
+        <i data-lucide="trash-2" class="silk-icon silk-cleardb__icon"></i>
+        <h2 class="silk-cleardb__title">Clear Database</h2>
     </div>
+    <p class="silk-cleardb__desc">Permanently delete Silk profiling data. This cannot be undone.</p>
 
+    <form class="silk-cleardb__form" action="." method="post">
+        {% csrf_token %}
+
+        <div class="silk-cleardb__options">
+            <label class="silk-cleardb__option" id="silk-cleardb-all-label">
+                <input type="checkbox" name="clear_all" id="silk-cleardb-all">
+                <div class="silk-cleardb__option-body">
+                    <i data-lucide="database" class="silk-icon"></i>
+                    <div>
+                        <div class="silk-cleardb__option-name">All data</div>
+                        <div class="silk-cleardb__option-hint">Requests, profiles, SQL queries &amp; responses</div>
+                    </div>
+                </div>
+            </label>
+            <label class="silk-cleardb__option" id="silk-cleardb-requests-label">
+                <input type="checkbox" name="clear_requests" id="silk-cleardb-requests">
+                <div class="silk-cleardb__option-body">
+                    <i data-lucide="layers" class="silk-icon"></i>
+                    <div>
+                        <div class="silk-cleardb__option-name">Requests</div>
+                        <div class="silk-cleardb__option-hint">HTTP requests, responses &amp; SQL queries</div>
+                    </div>
+                </div>
+            </label>
+            <label class="silk-cleardb__option" id="silk-cleardb-profiling-label">
+                <input type="checkbox" name="clear_profiling" id="silk-cleardb-profiling">
+                <div class="silk-cleardb__option-body">
+                    <i data-lucide="cpu" class="silk-icon"></i>
+                    <div>
+                        <div class="silk-cleardb__option-name">Profiling</div>
+                        <div class="silk-cleardb__option-hint">Python profiler data &amp; profile files</div>
+                    </div>
+                </div>
+            </label>
+        </div>
+
+        <button type="submit" class="silk-cleardb__btn" id="silk-cleardb-submit" disabled>
+            <i data-lucide="trash-2" class="silk-icon"></i>
+            Clear selected data
+        </button>
+    </form>
+
+    {% if msg %}
+    <div class="silk-cleardb__msg">
+        <i data-lucide="check-circle" class="silk-icon"></i>
+        {{ msg|linebreaksbr }}
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+  (function () {
+    if (window.lucide) lucide.createIcons();
+    var cbAll = document.getElementById('silk-cleardb-all');
+    var cbReq = document.getElementById('silk-cleardb-requests');
+    var cbProf = document.getElementById('silk-cleardb-profiling');
+    var btn = document.getElementById('silk-cleardb-submit');
+    var checkboxes = [cbAll, cbReq, cbProf];
+
+    function updateBtn() {
+      btn.disabled = !checkboxes.some(function (cb) { return cb.checked; });
+    }
+
+    // "All data" toggles the individual checkboxes off (they're redundant when all is selected)
+    cbAll.addEventListener('change', function () {
+      if (this.checked) {
+        cbReq.checked = false;
+        cbProf.checked = false;
+      }
+      updateBtn();
+    });
+
+    // Individual checkboxes uncheck "All data" if it was on
+    [cbReq, cbProf].forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        if (this.checked) cbAll.checked = false;
+        updateBtn();
+      });
+    });
+  }());
+</script>
 {% endblock %}
-
-{# Hide filter hamburger menu #}
-{% block top %}{% endblock %}
-{% block filter %}{% endblock %}

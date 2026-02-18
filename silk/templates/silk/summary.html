@@ -1,148 +1,187 @@
-{% extends 'silk/base/root_base.html' %}
+{% extends 'silk/base/base.html' %}
 {% load silk_inclusion %}
+{% load silk_nav %}
 {% load static %}
-{% block menu %}
-    {% root_menu request %}
-{% endblock %}
 
 {% block pagetitle %}Silky - Summary{% endblock %}
 
 {% block style %}
-    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'silk/css/components/fonts.css' %}"/>
     <link rel="stylesheet" href="{% static 'silk/css/pages/summary.css' %}"/>
 {% endblock %}
 
+{% block menu %}
+    {% root_menu request %}
+{% endblock %}
+
+{% block filter %}
+    {# theme toggle injected by base.html #}
+{% endblock %}
+
 {% block js %}
-    {{ block.super }}
     <script src="{% static 'silk/js/pages/summary.js' %}"></script>
 {% endblock %}
+
 {% block data %}
-    <div class="wrapper">
-        <div class="inner">
-            <div id="filters">
-                <form action="." name="filter-form" id="filter-form" method="post">
-                    {% csrf_token %}
-                </form>
-                <table id="filter-table">
-                    <tr>
-                        <td>
-                            <img id="filter-image" src="{% static 'silk/filter2.png' %}">
+<div class="silk-page">
 
-                        </td>
-                        <td id="filter-cell">
-                            <div class="resizing-input">
-                                Using requests that executed
-                                <input form="filter-form"
-                                       class="typ"
-                                       type="hidden"
-                                       value="SecondsFilter"
-                                       name="filter-seconds-typ">
-                                <input type="text"
-                                       placeholder="seconds"
-                                       form="filter-form"
-                                       name="filter-seconds-value"
-                                       value="{{ filters.seconds.value }}"
-                                        >
-                                seconds ago,
-                                <span style="display:none"></span>
-                            </div>
-                            <div class="resizing-input">
-                                before
-                                <input form="filter-form"
-                                       class="typ"
-                                       type="hidden"
-                                       value="BeforeDateFilter"
-                                       name="filter-beforedate-typ">
-                                <input class="datetimepicker"
-                                       type="text"
-                                       placeholder="date"
-                                       form="filter-form"
-                                       name="filter-beforedate-value"
-                                       value="{{ filters.beforedate.value }}"
-                                        />,
-                                <span style="display:none"></span>
-                            </div>
-                            <div class="resizing-input">
-                                and after
-                                <input form="filter-form"
-                                       class="typ"
-                                       type="hidden"
-                                       value="AfterDateFilter"
-                                       name="filter-afterdate-typ">
-                                <input class="datetimepicker"
-                                       type="text"
-                                       placeholder="date"
-                                       form="filter-form"
-                                       name="filter-afterdate-value"
-                                       value="{{ filters.afterdate.value }}"
-                                        >.
-                                <span style="display:none"></span>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+    {# ── Page heading ── #}
+    <div class="silk-summary-header">
+        <h1 class="silk-summary-title">
+            <i data-lucide="activity" class="silk-icon silk-icon--large-sm"></i>
+            Summary
+        </h1>
 
-            </div>
-            <h2>Summary</h2>
-            {% if num_requests %}
-                <div class="summary-cell">
-                    <div class="num"><span class="numeric">{{ num_requests }}</span></div>
-                    <div class="desc">Requests</div>
-                </div>
-                <div class="summary-cell">
-                    <div class="num"><span class="numeric">{{ num_profiles }}</span></div>
-                    <div class="desc">Profiles</div>
-                </div>
-                <div class="summary-cell">
-                    <div class="num"><span class="numeric">{{ avg_overall_time | floatformat:0 }}<span class="unit">ms</span></span></div>
-                    <div class="desc">Avg. Time</div>
-                </div>
-                <div class="summary-cell">
-                    <div class="num"><span class="numeric">{{ avg_num_queries | floatformat:2 }}</span></div>
-                    <div class="desc">Avg. #Queries</div>
-                </div>
-                <div class="summary-cell">
-                    <div class="num"><span class="numeric">{{ avg_time_spent_on_queries |floatformat:0 }}<span class="unit">ms</span></span></div>
-                    <div class="desc">Avg. DB Time</div>
-                </div>
-            {% else %}
-                <p class="no-data">No data</p>
-            {% endif %}
-            <h2>Most Time Overall</h2>
-            {% if longest_queries_by_view %}
-                {% for x in longest_queries_by_view %}
-                    <a href="{% url "silk:request_detail" request_id=x.pk %}">
-                        {% request_summary x %}
-                    </a>
-                {% endfor %}
-            {% else %}
-                <p class="no-data">No data</p>
-            {% endif %}
-            <h2>Most Time Spent in Database</h2>
-            {% if most_time_spent_in_db %}
-                {% for x in most_time_spent_in_db %}
-                    <a href="{% url "silk:request_detail" request_id=x.pk %}">
-                        {% request_summary x %}
-                    </a>
-                {% endfor %}
-            {% else %}
-                <p class="no-data">No data</p>
-            {% endif %}
-            <h2>Most Database Queries</h2>
-            {% if most_queries %}
-                {% for x in most_queries %}
-                    <a href="{% url "silk:request_detail" request_id=x.pk %}">
-                        {% request_summary x %}
-                    </a>
-                {% endfor %}
-            {% else %}
-                <p class="no-data">No data</p>
-            {% endif %}
+        {# Time-range preset strip #}
+        <form class="silk-preset-strip" action="." method="post">
+            {% csrf_token %}
+            <span class="silk-filter-label">Range:</span>
+            <button type="submit" name="clear_filters" value="1"
+                    class="silk-preset-btn {% if not active_preset %}silk-preset-btn--active{% endif %}">
+                All time
+            </button>
+            {% for preset in time_presets %}
+            <button type="submit" name="time_preset" value="{{ preset.key }}"
+                    class="silk-preset-btn {% if active_preset == preset.seconds %}silk-preset-btn--active{% endif %}">
+                {{ preset.label }}
+            </button>
+            {% endfor %}
+        </form>
+    </div>
+
+    {% if has_data %}
+
+    {# ── Metric cards ── #}
+    <div class="silk-metric-row">
+        <div class="silk-metric-card">
+            <div class="silk-metric-card__icon"><i data-lucide="layers" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__value">{{ num_requests }}</div>
+            <div class="silk-metric-card__label">Requests</div>
+        </div>
+        <div class="silk-metric-card">
+            <div class="silk-metric-card__icon"><i data-lucide="cpu" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__value">{{ num_profiles }}</div>
+            <div class="silk-metric-card__label">Profiles</div>
+        </div>
+        <div class="silk-metric-card {% if avg_overall_time >= 2000 %}silk-metric-card--bad{% elif avg_overall_time >= 500 %}silk-metric-card--warn{% endif %}">
+            <div class="silk-metric-card__icon"><i data-lucide="clock" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__value">{{ avg_overall_time|floatformat:0 }}<span class="silk-unit">ms</span></div>
+            <div class="silk-metric-card__label">Avg Response Time</div>
+        </div>
+        <div class="silk-metric-card {% if avg_num_queries >= 50 %}silk-metric-card--bad{% elif avg_num_queries >= 20 %}silk-metric-card--warn{% endif %}">
+            <div class="silk-metric-card__icon"><i data-lucide="database" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__value">{{ avg_num_queries|floatformat:1 }}</div>
+            <div class="silk-metric-card__label">Avg Queries</div>
+        </div>
+        <div class="silk-metric-card {% if avg_time_spent_on_queries >= 1000 %}silk-metric-card--bad{% elif avg_time_spent_on_queries >= 200 %}silk-metric-card--warn{% endif %}">
+            <div class="silk-metric-card__icon"><i data-lucide="database" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__value">{{ avg_time_spent_on_queries|floatformat:0 }}<span class="silk-unit">ms</span></div>
+            <div class="silk-metric-card__label">Avg DB Time</div>
         </div>
     </div>
 
-{% endblock %}
+    {# ── Top tables ── #}
+    <div class="silk-top-tables">
 
-{# Hide filter hamburger menu #}
-{% block top %}{% endblock %}
-{% block filter %}{% endblock %}
+        <div class="silk-top-table">
+            <h2 class="silk-top-table__heading">
+                <i data-lucide="clock" class="silk-icon"></i> Most Time Overall
+            </h2>
+            {% if longest_queries_by_view %}
+            <table class="silk-table">
+                <thead>
+                    <tr>
+                        <th class="silk-th">Path</th>
+                        <th class="silk-th silk-th--numeric">Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for x in longest_queries_by_view %}
+                    <tr class="silk-table__row" onclick="window.location='{% url "silk:request_detail" request_id=x.pk %}'">
+                        <td class="silk-td silk-td--path">{{ x.path }}</td>
+                        <td class="silk-td silk-td--numeric">
+                            <span class="silk-num {% if x.time_taken >= 2000 %}silk-num--very-bad{% elif x.time_taken >= 1000 %}silk-num--bad{% elif x.time_taken >= 400 %}silk-num--ok{% endif %}">
+                                {{ x.time_taken|floatformat:0 }}<span class="silk-unit">ms</span>
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="silk-no-data">No data</p>
+            {% endif %}
+        </div>
+
+        <div class="silk-top-table">
+            <h2 class="silk-top-table__heading">
+                <i data-lucide="database" class="silk-icon"></i> Most DB Time
+            </h2>
+            {% if most_time_spent_in_db %}
+            <table class="silk-table">
+                <thead>
+                    <tr>
+                        <th class="silk-th">Path</th>
+                        <th class="silk-th silk-th--numeric">DB Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for x in most_time_spent_in_db %}
+                    <tr class="silk-table__row" onclick="window.location='{% url "silk:request_detail" request_id=x.pk %}'">
+                        <td class="silk-td silk-td--path">{{ x.path }}</td>
+                        <td class="silk-td silk-td--numeric">
+                            <span class="silk-num {% if x.t >= 1000 %}silk-num--very-bad{% elif x.t >= 200 %}silk-num--bad{% endif %}">
+                                {{ x.t|floatformat:0 }}<span class="silk-unit">ms</span>
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="silk-no-data">No data</p>
+            {% endif %}
+        </div>
+
+        <div class="silk-top-table">
+            <h2 class="silk-top-table__heading">
+                <i data-lucide="database" class="silk-icon"></i> Most DB Queries
+            </h2>
+            {% if most_queries %}
+            <table class="silk-table">
+                <thead>
+                    <tr>
+                        <th class="silk-th">Path</th>
+                        <th class="silk-th silk-th--numeric">Queries</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for x in most_queries %}
+                    <tr class="silk-table__row" onclick="window.location='{% url "silk:request_detail" request_id=x.pk %}'">
+                        <td class="silk-td silk-td--path">{{ x.path }}</td>
+                        <td class="silk-td silk-td--numeric">
+                            <span class="silk-num {% if x.t >= 50 %}silk-num--very-bad{% elif x.t >= 20 %}silk-num--bad{% elif x.t >= 10 %}silk-num--ok{% endif %}">
+                                {{ x.t }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="silk-no-data">No data</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    {% else %}
+    <div class="silk-empty">
+        <div class="silk-empty__icon"><i data-lucide="activity" class="silk-icon silk-icon--large"></i></div>
+        <h2 class="silk-empty__title">No data yet</h2>
+        <p class="silk-empty__desc">Make some requests to your Django app to start seeing performance data here.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

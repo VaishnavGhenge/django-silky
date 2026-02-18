@@ -4,6 +4,13 @@ Django queryset filters used by the requests view
 import logging
 from datetime import datetime, timedelta
 
+TIME_RANGE_PRESETS = {
+    '1h': 3600,
+    '6h': 21600,
+    '24h': 86400,
+    '7d': 604800,
+}
+
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 
@@ -217,6 +224,33 @@ def filters_from_request(request):
             if ident not in raw_filters:
                 raw_filters[ident] = {}
             raw_filters[ident][typ] = request.POST[key]
+    filters = {}
+    for ident, raw_filter in raw_filters.items():
+        value = raw_filter.get('value', '')
+        if value.strip():
+            typ = raw_filter['typ']
+            module = _get_module('silk.request_filters')
+            filter_class = getattr(module, typ)
+            try:
+                f = filter_class(value)
+                filters[ident] = f
+            except FilterValidationError:
+                logger.warning(f'Validation error when processing filter {typ}({value})')
+    return filters
+
+
+def filters_from_data(data):
+    """Same logic as filters_from_request but accepts a plain dict (e.g. request.POST or
+    request.session data) instead of a Django request object."""
+    raw_filters = {}
+    for key in data:
+        splt = key.split('-')
+        if splt[0].startswith('filter'):
+            ident = splt[1]
+            typ = splt[2]
+            if ident not in raw_filters:
+                raw_filters[ident] = {}
+            raw_filters[ident][typ] = data[key]
     filters = {}
     for ident, raw_filter in raw_filters.items():
         value = raw_filter.get('value', '')

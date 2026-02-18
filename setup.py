@@ -6,19 +6,26 @@ from setuptools import setup
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name='django-silk',
+    name='django-silky',
     use_scm_version=True,
     packages=['silk'],
     include_package_data=True,
     license='MIT License',
-    description='Silky smooth profiling for the Django Framework',
+    description='Silky smooth profiling for the Django Framework — modernized UI fork of django-silk',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/jazzband/django-silk',
+    url='https://github.com/VaishnavGhenge/django-silky',
     author='Michael Ford',
     author_email='mtford@gmail.com',
+    maintainer='Vaishnav Ghenge',
+    project_urls={
+        'Source': 'https://github.com/VaishnavGhenge/django-silky',
+        'Bug Tracker': 'https://github.com/VaishnavGhenge/django-silky/issues',
+        'Migration Guide': 'https://github.com/VaishnavGhenge/django-silky/blob/master/MIGRATING.md',
+        'Upstream': 'https://github.com/jazzband/django-silk',
+    },
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Framework :: Django :: 4.2',
@@ -26,6 +33,7 @@ setup(
         'Framework :: Django :: 5.2',
         'Framework :: Django :: 6.0',
         'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.10',

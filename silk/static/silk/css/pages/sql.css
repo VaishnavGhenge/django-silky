@@ -1,53 +1,9 @@
-.right-aligned {
-  text-align: right;
+/* sql.html inherits silk-table, silk-hero, silk-pagination, silk-empty from request.css.
+   Only SQL-list-specific overrides live here. */
+.silk-page .silk-hero {
+  padding-top: 1.25rem;
 }
 
-.center-aligned {
-  text-align: center;
-}
-
-.left-aligned {
-  text-align: left;
-}
-
-#table-pagination {
-  text-align: center;
-  margin: 20px;
-}
-
-table {
-  border-spacing: 0;
-  margin: auto;
-  max-width: 920px;
-}
-
-tr {
-  height: 20px;
-}
-
-tr.data-row:hover {
-  background-color: rgb(51, 51, 68);
-  color: white;
-  cursor: pointer;
-}
-
-td {
-  padding: 5px;
-  padding-left: 20px;
-  padding-right: 20px;
-}
-
-th {
-  height: 40px;
-  padding-left: 20px;
-  padding-right: 20px;
-}
-
-#table-div {
-  width: 100%;
-  margin-top: 40px;
-}
-
-#table-pagination div {
-  padding: 5px;
+.silk-page .silk-table-wrapper {
+  margin-top: 1.25rem;
 }

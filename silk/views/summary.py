@@ -6,7 +6,12 @@ from django.views.generic import View
 
 from silk import models
 from silk.auth import login_possibly_required, permissions_possibly_required
-from silk.request_filters import BaseFilter, FiltersManager, filters_from_request
+from silk.request_filters import (
+    BaseFilter,
+    FiltersManager,
+    TIME_RANGE_PRESETS,
+    filters_from_request,
+)
 
 
 class SummaryView(View):
@@ -58,9 +63,11 @@ class SummaryView(View):
         raw_filters = self.filters_manager.get(request)
         filters = [BaseFilter.from_dict(filter_d) for _, filter_d in raw_filters.items()]
         avg_overall_time = self._avg_num_queries(filters)
+        num_requests = models.Request.objects.filter(*filters).count()
+        active_preset = raw_filters.get('time_preset', {}).get('value')
         c = {
             'request': request,
-            'num_requests': models.Request.objects.filter(*filters).count(),
+            'num_requests': num_requests,
             'num_profiles': models.Profile.objects.filter(*filters).count(),
             'avg_num_queries': avg_overall_time,
             'avg_time_spent_on_queries': self._avg_time_spent_on_queries(filters),
@@ -68,7 +75,12 @@ class SummaryView(View):
             'longest_queries_by_view': self._longest_query_by_view(filters),
             'most_time_spent_in_db': self._time_spent_in_db_by_view(filters),
             'most_queries': self._num_queries_by_view(filters),
-            'filters': raw_filters
+            'filters': raw_filters,
+            'has_data': num_requests > 0,
+            'time_presets': [
+                {'key': k, 'seconds': v, 'label': k} for k, v in TIME_RANGE_PRESETS.items()
+            ],
+            'active_preset': active_preset,
         }
         c.update(csrf(request))
         return c
@@ -82,6 +94,16 @@ class SummaryView(View):
     @method_decorator(login_possibly_required)
     @method_decorator(permissions_possibly_required)
     def post(self, request):
-        filters = {ident: f.as_dict() for ident, f in filters_from_request(request).items()}
+        # Handle time preset shortcut
+        preset_key = request.POST.get('time_preset', '')
+        if preset_key in TIME_RANGE_PRESETS:
+            from silk.request_filters import SecondsFilter
+            seconds = TIME_RANGE_PRESETS[preset_key]
+            f = SecondsFilter(seconds)
+            filters = {'time_preset': f.as_dict()}
+        elif 'clear_filters' in request.POST:
+            filters = {}
+        else:
+            filters = {ident: f.as_dict() for ident, f in filters_from_request(request).items()}
         self.filters_manager.save(request, filters)
         return render(request, 'silk/summary.html', self._create_context(request))

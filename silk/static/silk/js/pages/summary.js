@@ -1,7 +1,8 @@
-$(document).ready(function () {
-    initFilters();
-    var $inputs = $('.resizing-input');
-    $inputs.focusout(function () {
-        $('#filter-form').submit();
-    });
-});
+(function () {
+  'use strict';
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  });
+}());

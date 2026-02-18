@@ -1,0 +1,84 @@
+{% comment %}
+Inline collapsible filter bar — replaces the old CBP drawer.
+Must be placed inside a <form> element that POSTs to the current URL.
+{% endcomment %}
+<div class="silk-filter-bar" id="silk-filter-bar" hidden>
+    <div class="silk-filter-bar__body">
+
+        {# Time presets — stored as a standard SecondsFilter (filter-seconds-*) #}
+        <div class="silk-filter-row">
+            <span class="silk-filter-label">Time:</span>
+            <div class="silk-filter-presets">
+                <button type="button"
+                        class="silk-preset-btn {% if not filters.seconds.value %}silk-preset-btn--active{% endif %}"
+                        onclick="silkSetSeconds(this, '')">All</button>
+                {% for preset in time_presets %}
+                <button type="button"
+                        class="silk-preset-btn {% if filters.seconds.value == preset.seconds %}silk-preset-btn--active{% endif %}"
+                        onclick="silkSetSeconds(this, '{{ preset.seconds }}')">{{ preset.label }}</button>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="filter-seconds-typ" value="SecondsFilter">
+            <input type="hidden" name="filter-seconds-value" id="silk-seconds-val"
+                   value="{{ filters.seconds.value }}">
+        </div>
+
+        {# Method toggles #}
+        <div class="silk-filter-row">
+            <span class="silk-filter-label">Method:</span>
+            <div class="silk-filter-methods">
+                {% for method in options_methods %}
+                <button type="button"
+                        class="silk-method-btn silk-method-btn--{{ method|lower }} {% if filters.method.value == method %}silk-method-btn--active{% endif %}"
+                        onclick="silkFilterMethod(this, '{{ method }}')">
+                    {{ method }}
+                </button>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="filter-method-typ" value="MethodFilter">
+            <input type="hidden" name="filter-method-value" id="silk-method-value"
+                   value="{{ filters.method.value }}">
+        </div>
+
+        {# Path / Status / Thresholds #}
+        <div class="silk-filter-row">
+            <label class="silk-filter-label">Status:
+                <select name="filter-status_code-value" class="silk-filter-select">
+                    <option value="">Any</option>
+                    {% for sc in options_status_codes %}
+                    <option {% if sc|stringformat:"s" == filters.status_code.value|stringformat:"s" %}selected{% endif %}>{{ sc }}</option>
+                    {% endfor %}
+                </select>
+                <input type="hidden" name="filter-status_code-typ" value="StatusCodeFilter">
+            </label>
+
+            <label class="silk-filter-label">Path:
+                <select name="filter-path-value" class="silk-filter-select">
+                    <option value="">Any</option>
+                    {% for p in options_paths %}
+                    <option {% if p == filters.path.value %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+                <input type="hidden" name="filter-path-typ" value="PathFilter">
+            </label>
+
+            <label class="silk-filter-label">Min time:
+                <input type="number" name="filter-overalltime-value" class="silk-filter-input"
+                       placeholder="ms" value="{{ filters.overalltime.value }}" min="0">
+                <input type="hidden" name="filter-overalltime-typ" value="OverallTimeFilter">
+            </label>
+
+            <label class="silk-filter-label">Queries ≥:
+                <input type="number" name="filter-numqueriesfilter-value" class="silk-filter-input"
+                       placeholder="n" value="{{ filters.numqueriesfilter.value }}" min="0">
+                <input type="hidden" name="filter-numqueriesfilter-typ" value="NumQueriesFilter">
+            </label>
+        </div>
+
+        {# Actions #}
+        <div class="silk-filter-row silk-filter-row--actions">
+            <button type="submit" class="silk-btn silk-btn--primary">Apply</button>
+            <button type="submit" name="clear_filters" value="1" class="silk-btn silk-btn--ghost">Clear all</button>
+        </div>
+    </div>
+</div>

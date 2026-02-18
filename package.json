@@ -22,7 +22,8 @@
   "homepage": "https://github.com/jazzband/django-silk",
   "devDependencies": {
     "gulp": "^4.0.2",
-    "gulp-sass": "^4.0.2"
-  },
-  "dependencies": {}
+    "gulp-sass": "^5.1.0",
+    "lucide": "^0.574.0",
+    "sass": "^1.85.1"
+  }
 }

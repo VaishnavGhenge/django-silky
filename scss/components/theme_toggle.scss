@@ -1,0 +1,26 @@
+.silk-theme-toggle {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  color: var(--silk-text-nav);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-family: FiraSans, "Helvetica Neue", Arial, sans-serif;
+  transition: background-color 0.2s, border-color 0.2s;
+  vertical-align: middle;
+  height: 30px;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+
+  .silk-icon {
+    width: 14px;
+    height: 14px;
+  }
+}
