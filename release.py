@@ -111,17 +111,20 @@ def step_preflight(version: str, args) -> None:
         )
     ok(f"Tag v{version} is available")
 
-    # Required tools
-    for tool in ("git", "twine"):
-        if not shutil.which(tool):
-            die(f"'{tool}' not found in PATH — install it and retry.")
-        ok(f"Found: {tool}")
+    # git must be a system binary
+    if not shutil.which("git"):
+        die("'git' not found in PATH — install it and retry.")
+    ok("Found: git")
 
-    # build module
-    result = py("-c", "import build", capture=True, check=False)
-    if result.returncode != 0:
-        die("'build' package not installed.\n  Run: pip install build")
-    ok("Found: build")
+    # twine and build are Python packages — check via the current interpreter
+    for module, install_name in [("twine", "twine"), ("build", "build")]:
+        result = py("-c", f"import {module}", capture=True, check=False)
+        if result.returncode != 0:
+            die(
+                f"'{module}' not installed in current Python environment.\n"
+                f"  Run: {sys.executable} -m pip install {install_name}"
+            )
+        ok(f"Found: {module}")
 
 
 def step_tests(args) -> None:
@@ -211,13 +214,10 @@ def step_check(dist_dir: Path, args) -> None:
     heading("Step 5 / 6 — Check distributions")
 
     if args.dry_run:
-        info("[dry-run] twine check dist/*")
+        info("[dry-run] python -m twine check dist/*")
         return
 
-    result = run(
-        ["twine", "check", *dist_dir.glob("*")],
-        check=False,
-    )
+    result = py("-m", "twine", "check", *dist_dir.glob("*"), check=False)
     if result.returncode != 0:
         die("twine check failed — fix the issues above before uploading.")
     ok("twine check passed")
@@ -228,9 +228,9 @@ def step_upload(version: str, dist_dir: Path, args) -> None:
 
     if args.dry_run:
         if args.test_pypi or args.test_pypi_only:
-            info("[dry-run] twine upload --repository testpypi dist/*")
+            info("[dry-run] python -m twine upload --repository testpypi dist/*")
         if not args.test_pypi_only:
-            info("[dry-run] twine upload dist/*")
+            info("[dry-run] python -m twine upload dist/*")
         return
 
     files = list(dist_dir.glob("*"))
@@ -238,7 +238,7 @@ def step_upload(version: str, dist_dir: Path, args) -> None:
     # TestPyPI first
     if args.test_pypi or args.test_pypi_only:
         info("Uploading to TestPyPI …")
-        run(["twine", "upload", "--repository", "testpypi", *files])
+        py("-m", "twine", "upload", "--repository", "testpypi", *files)
         ok(f"https://test.pypi.org/project/django-silky/{version}/")
 
         if args.test_pypi_only:
@@ -249,7 +249,7 @@ def step_upload(version: str, dist_dir: Path, args) -> None:
 
     # Production PyPI
     info("Uploading to PyPI …")
-    run(["twine", "upload", *files])
+    py("-m", "twine", "upload", *files)
     ok(f"https://pypi.org/project/django-silky/{version}/")
 
 
