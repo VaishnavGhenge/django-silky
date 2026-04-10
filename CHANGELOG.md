@@ -5,6 +5,18 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.1.2](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.1.2) (2026-04-10)
+
+### Bug Fixes
+
+- **Requests page filter serialization no longer depends on Django's removed/optional `l10n` template filter library** — the filter bar now loads a local `unlocalize` filter so hidden numeric inputs continue posting raw values without triggering `TemplateSyntaxError: Invalid filter: 'unlocalize'` on Django 5.2/6.0.
+
+### CI / Tooling
+
+- **Test matrix trimmed to supported Django branches** — removed Django 4.2 and 5.1 from `tox.ini`; current supported targets are Django 5.2 LTS, 6.0, and `main`.
+
+---
+
 ## [1.1.1](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.1.1) (2026-04-08)
 
 ### Documentation
