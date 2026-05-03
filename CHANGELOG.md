@@ -5,6 +5,15 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.2.1](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.2.1) (2026-05-03)
+
+### Bug Fixes
+
+- **JS content type filter** — `application/javascript`, `text/javascript`, and `application/x-javascript` responses that cannot be parsed as JSON no longer emit spurious `WARNING` log entries. Only `application/json` / `text/x-json` responses that fail to parse will warn. Cherry-picked from upstream [jazzband/django-silk#868](https://github.com/jazzband/django-silk/pull/868).
+- **`ResponseModelFactory` warning safety** — guard against `self.request` being `None` (e.g. in tests or outside an active request context) when formatting the unparseable-body warning.
+
+---
+
 ## [1.2.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.2.0) (2026-04-17)
 
 ### BREAKING CHANGES
