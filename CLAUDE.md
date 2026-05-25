@@ -38,3 +38,5 @@
 ## Execution
 - Run tests with: `DB_ENGINE=sqlite3 .venv/bin/python -m pytest project/tests/ -q`
 - Run demo project with: `DB_ENGINE=sqlite3 .venv/bin/python project/manage.py runserver`
+- Build SCSS (one-shot): `npm run build`
+- Watch SCSS (dev): `npm run watch`

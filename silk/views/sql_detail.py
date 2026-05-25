@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
@@ -10,6 +11,14 @@ from django.views.generic import View
 from silk.auth import login_possibly_required, permissions_possibly_required
 from silk.models import Profile, Request, SQLQuery
 from silk.views.code import _code
+
+
+def _is_lib_frame(line):
+    s = str(line)
+    if 'site-packages' in s:
+        return True
+    lib_path = os.environ.get('VIRTUAL_ENV') or sys.prefix
+    return bool(lib_path and lib_path in s)
 
 
 class SQLDetailView(View):
@@ -54,12 +63,11 @@ class SQLDetailView(View):
         tb = [mark_safe(x) for x in str.split('\n')]
         context = {
             'sql_query': sql_query,
-            'traceback': tb,
+            'traceback': [(ln, _is_lib_frame(ln)) for ln in tb],
             'pos': pos,
             'line_num': line_num,
             'file_path': file_path,
             'analysis': analysis,
-            'virtualenv_path': os.environ.get('VIRTUAL_ENV') or '',
         }
         if request_id:
             context['silk_request'] = get_object_or_404(Request, pk=request_id)

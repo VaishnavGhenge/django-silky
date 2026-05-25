@@ -12,8 +12,9 @@ can be exercised in development:
 import json
 import os
 import random
-import traceback
+import sys
 from datetime import timedelta
+from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -101,6 +102,54 @@ FUNC_NAMES = [
 ]
 
 FILE_PATH = os.path.realpath(__file__)
+
+# ── Realistic traceback generation ──────────────────────────────────────────
+#
+# traceback.format_stack() called from inside a management command produces a
+# management-command call stack, which looks nothing like a real request.
+# Instead we construct a traceback that mirrors what Silk actually captures
+# during a live request: Django middleware / ORM frames (library, under
+# site-packages) interleaved with the user's view code.
+#
+# _is_lib_frame() in sql_detail.py classifies a frame as library when
+# 'site-packages' appears in the path, so we embed sys.prefix (which resolves
+# to the venv root) to make the library paths realistic and classifiable.
+
+_PY_VER = f"python{sys.version_info.major}.{sys.version_info.minor}"
+_SP = str(Path(sys.prefix) / "lib" / _PY_VER / "site-packages")
+# Real path to example_app/views.py so the user-code frame actually exists
+_APP_VIEWS = str(
+    Path(__file__).resolve().parents[3] / "project" / "example_app" / "views.py"
+)
+
+_VIEW_SCENARIOS = [
+    # (view_func_name, line_number, source_snippet)
+    ("api_blind_list",   42, "qs = models.Blind.objects.filter(**filters)"),
+    ("api_blind_detail", 56, "blind = get_object_or_404(models.Blind, pk=pk)"),
+    ("api_blind_stats",  70, "total = models.Blind.objects.count()"),
+    ("api_blind_stats",  74, "child_safe_count = models.Blind.objects.filter(child_safe=True).count()"),
+    ("index",            14, "blinds = models.Blind.objects.all()"),
+]
+
+
+def _make_realistic_traceback() -> str:
+    """Return a traceback string that mixes Django library frames with user-code frames."""
+    view_func, lineno, snippet = random.choice(_VIEW_SCENARIOS)
+    frames = [
+        (_SP + "/django/core/handlers/exception.py",  55, "inner",            "response = get_response(request)"),
+        (_SP + "/django/core/handlers/base.py",       197, "_get_response",   "response = wrapped_callback(request, *callback_args, **callback_kwargs)"),
+        (_APP_VIEWS,                                   lineno, view_func,      snippet),
+        (_SP + "/django/db/models/manager.py",         87, "manager_method",  "return getattr(self.get_queryset(), name)(*args, **kwargs)"),
+        (_SP + "/django/db/models/query.py",          350, "__iter__",        "self._fetch_all()"),
+        (_SP + "/django/db/models/sql/compiler.py",   1547, "execute_sql",    "cursor.execute(sql, params)"),
+        (_SP + "/django/db/backends/utils.py",         67, "execute",         "return self.cursor.execute(sql, params)"),
+        (_SP + "/django/db/backends/sqlite3/base.py", 357, "execute",         "return Database.Cursor.execute(self, query, params_T)"),
+    ]
+    lines = []
+    for filepath, lineno_, funcname, code in frames:
+        lines.append(f'  File "{filepath}", line {lineno_}, in {funcname}')
+        lines.append(f"    {code}")
+    return "\n".join(lines)
 
 SQL_TEMPLATES = [
     'SELECT "auth_user"."id", "auth_user"."username", "auth_user"."email" FROM "auth_user" WHERE "auth_user"."id" = %s',
@@ -194,7 +243,7 @@ def _make_sql(request=None, profile=None, n=1, force_query=None) -> list:
         duration_ms = random.randint(1, 150)
         start = now - timedelta(milliseconds=random.randint(0, 5000))
         end = start + timedelta(milliseconds=duration_ms)
-        tb = "".join(reversed(traceback.format_stack()))
+        tb = _make_realistic_traceback()
         q = SQLQuery.objects.create(
             query=force_query or random.choice(SQL_TEMPLATES[:-1]),
             start_time=start,

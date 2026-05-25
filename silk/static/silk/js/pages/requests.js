@@ -409,6 +409,21 @@
     silkMsInit('silk-status-ms');
     silkMsInit('silk-path-ms');
 
+    // Auto-open filter bar when arriving with a pre-selected path or view filter
+    // (e.g. clicking a hot-path link on the summary page)
+    (function () {
+      var bar = document.getElementById('silk-filter-bar');
+      if (!bar || !bar.hasAttribute('hidden')) return;
+      var pathVal = document.getElementById('silk-path-value');
+      var viewVal = document.getElementById('silk-view-value');
+      if ((pathVal && pathVal.value) || (viewVal && viewVal.value)) {
+        bar.removeAttribute('hidden');
+        var btn = document.getElementById('silk-filter-toggle');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+        try { localStorage.setItem('silk-filter-open', '1'); } catch (e) {}
+      }
+    }());
+
     // Mark dirty on number/text input changes within the filter bar
     var filterBar = document.getElementById('silk-filter-bar');
     if (filterBar) {

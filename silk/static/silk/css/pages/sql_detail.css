@@ -28,9 +28,15 @@
   color: var(--silk-text-primary);
   font-weight: normal;
 }
+.silk-traceback__line--app a {
+  color: inherit;
+}
 
 /* Third-party / library: muted */
 .silk-traceback__line--lib {
   color: var(--silk-text-muted);
   font-weight: lighter;
+}
+.silk-traceback__line--lib a {
+  color: inherit;
 }

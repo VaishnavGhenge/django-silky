@@ -294,6 +294,13 @@ class RequestsView(View):
             if request.GET.get('view'):
                 from silk.request_filters import ViewNameFilter
                 filters['view'] = ViewNameFilter(request.GET['view']).as_dict()
+            # ?path= from hot-path links on summary page — save as a MultiPathFilter in session
+            if request.GET.get('path'):
+                from silk.request_filters import MultiPathFilter
+                try:
+                    filters['path'] = MultiPathFilter(request.GET['path']).as_dict()
+                except Exception:
+                    pass
             self.filters_manager.save(request, filters)
         return render(request, 'silk/requests.html', self._create_context(request))
 
