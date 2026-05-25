@@ -5,7 +5,7 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
-## [1.3.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.3.0) (2026-05-26)
+## [1.2.2](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.2.2) (2026-05-26)
 
 ### Bug Fixes
 
