@@ -1,5 +1,6 @@
 from functools import WRAPPER_ASSIGNMENTS, wraps
 
+from django.contrib.auth.views import redirect_to_login
 from django.http import Http404
 
 from silk.config import SilkyConfig
@@ -12,7 +13,7 @@ def login_possibly_required(function=None, **kwargs):
     @wraps(function, assigned=WRAPPER_ASSIGNMENTS)
     def _wrapped_view(request, *args, **kw):
         if not request.user.is_authenticated:
-            raise Http404
+            return redirect_to_login(request.get_full_path())
         return function(request, *args, **kw)
 
     return _wrapped_view
