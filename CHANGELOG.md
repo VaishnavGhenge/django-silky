@@ -5,6 +5,29 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.3.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.3.0) (2026-05-26)
+
+### Bug Fixes
+
+- **Traceback frame highlighting** ([#12](https://github.com/VaishnavGhenge/django-silky/issues/12)) — SQL detail traceback now visually distinguishes your application code (normal weight, primary colour) from third-party/library frames (muted, lighter weight). Previously the `virtualenv_path` template check was always falsy when `VIRTUAL_ENV` was unset, so all frames rendered identically. Classification moved to Python (`_is_lib_frame`) using `site-packages` substring detection with `sys.prefix` as fallback; traceback links inside muted frames now inherit the muted colour instead of reverting to the global link colour.
+- **Unauthenticated access redirects to login** — visiting `/silk/` while unauthenticated now returns **302 → `/login/?next=…`** instead of 404. Matches standard Django auth UX; `SILKY_AUTHENTICATION = False` still disables the check entirely.
+- **Hot-path links pre-select filters** ([#10](https://github.com/VaishnavGhenge/django-silky/issues/10)) — clicking a path or view name on the Summary page now arrives on the Requests list with the corresponding filter chip pre-selected and the filter bar auto-opened. Previously `?path=` was applied to the queryset but never saved to session, so the filter UI showed "Any" even though results were already filtered.
+
+### Upstream changes (cherry-picked from jazzband/django-silk)
+
+- **`finalise()` TypeError fix** ([upstream #872](https://github.com/jazzband/django-silk/pull/872)) — `finalise()` no longer raises `TypeError` on retry when a `'model'` key is already present in the query dict.
+- **`SILKY_ANALYZE_QUERIES` docs** ([upstream #875](https://github.com/jazzband/django-silk/pull/875)) — configuration documentation now includes a warning about the performance impact of `SILKY_ANALYZE_QUERIES`.
+
+### Build / Tooling
+
+- **npm `watch` and `build` scripts** — `npm run build` and `npm run watch` now compile SCSS directly via the `sass` CLI, replacing the gulp dependency for day-to-day UI work.
+
+### Tests
+
+- Test baseline: **289 passed, 1 skipped**.
+
+---
+
 ## [1.2.1](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.2.1) (2026-05-03)
 
 ### Bug Fixes
