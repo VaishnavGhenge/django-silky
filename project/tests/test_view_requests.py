@@ -269,3 +269,56 @@ class TestNPlusOneViewFilter(TestCase):
         self.assertEqual(response.status_code, 200)
         result_pks = [str(r.pk) for r in response.context['results']]
         self.assertIn(str(self.clean_request.pk), result_pks)
+
+
+class TestHotPathLinkFilters(TestCase):
+    """?path= and ?view= URL params from summary hot-path links should pre-select filters."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        now = django_timezone.now()
+        cls.target = models.Request.objects.create(
+            method='GET', path='/api/target/', num_sql_queries=0,
+            view_name='example_app.views.target',
+            start_time=now, end_time=now, time_taken=5,
+        )
+        models.Response.objects.create(
+            request=cls.target, status_code=200, encoded_headers='{}', body='',
+        )
+        cls.other = models.Request.objects.create(
+            method='GET', path='/api/other/', num_sql_queries=0,
+            start_time=now, end_time=now, time_taken=5,
+        )
+        models.Response.objects.create(
+            request=cls.other, status_code=200, encoded_headers='{}', body='',
+        )
+
+    def test_path_param_saves_filter_to_session(self):
+        """GET ?path= saves a MultiPathFilter to session so the filter UI reflects it."""
+        response = self.client.get(silky_reverse('requests'), {'path': '/api/target/'})
+        self.assertEqual(response.status_code, 200)
+        filters = response.context['filters']
+        self.assertTrue(
+            any(f.get('typ') == 'MultiPathFilter' for f in filters.values()),
+            'MultiPathFilter not found in context filters after ?path= GET',
+        )
+
+    def test_path_param_filters_results(self):
+        """GET ?path= limits results to requests with that path."""
+        response = self.client.get(silky_reverse('requests'), {'path': '/api/target/'})
+        result_pks = [str(r.pk) for r in response.context['results']]
+        self.assertIn(str(self.target.pk), result_pks)
+        self.assertNotIn(str(self.other.pk), result_pks)
+
+    def test_view_param_saves_filter_to_session(self):
+        """GET ?view= saves a ViewNameFilter to session so the filter UI reflects it."""
+        response = self.client.get(
+            silky_reverse('requests'), {'view': 'example_app.views.target'}
+        )
+        self.assertEqual(response.status_code, 200)
+        filters = response.context['filters']
+        self.assertTrue(
+            any(f.get('typ') == 'ViewNameFilter' for f in filters.values()),
+            'ViewNameFilter not found in context filters after ?view= GET',
+        )
