@@ -74,9 +74,9 @@
         </h3>
         <p class="silk-detail-note">Python stack trace leading to this SQL query. Your code is highlighted; library frames are muted.</p>
         <div class="silk-traceback">
-            {% for ln in traceback %}
+            {% for ln, is_lib in traceback %}
                 {% if ln %}
-                <div class="silk-traceback__line {% if virtualenv_path not in ln %}silk-traceback__line--app not-third-party{% else %}silk-traceback__line--lib is-third-party{% endif %}">{{ ln }}</div>
+                <div class="silk-traceback__line {% if is_lib %}silk-traceback__line--lib{% else %}silk-traceback__line--app{% endif %}">{{ ln }}</div>
                 {% if forloop.counter == pos %}{% code code actual_line %}{% endif %}
                 {% endif %}
             {% endfor %}
