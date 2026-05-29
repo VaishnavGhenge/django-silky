@@ -20,105 +20,209 @@
     </div>
 
     {# ── Appearance ─────────────────────────────────────────────── #}
-    <section class="silk-settings__section">
+    <section class="silk-settings__section is-active">
         <div class="silk-settings__section-head">
             <i data-lucide="palette" class="silk-icon"></i>
             <div>
                 <h2 class="silk-settings__section-title">Appearance</h2>
                 <p class="silk-settings__section-desc">Choose a colour scheme. Your choice is saved in the browser.</p>
             </div>
+            <div class="silk-settings__section-head-toggle">
+                <i data-lucide="chevron-down" class="silk-icon silk-icon--large"></i>
+            </div>
         </div>
 
-        <div class="silk-scheme-grid">
-
-            <button class="silk-scheme-card" data-scheme="light" onclick="silkApplyScheme('light')">
-                <div class="silk-scheme-card__preview">
-                    <div class="silk-scheme-card__nav" style="background:#1e2235"></div>
-                    <div class="silk-scheme-card__body" style="background:#f0f2f7">
-                        <div class="silk-scheme-card__surface" style="background:#ffffff">
-                            <span style="background:#111827"></span>
-                            <span style="background:#6b7280"></span>
-                            <span style="background:#4f46e5; width:30%"></span>
+        <div class="silk-settings__section-body">
+            <div class="silk-scheme-grid">
+                <button class="silk-scheme-card" data-scheme="system" onclick="silkApplyScheme('system')">
+                    <div style="position: relative;">
+                        <div class="silk-scheme-card__preview silk-scheme-card__preview--system">
+                            <div class="silk-scheme-card__nav" style="background:#1e2235"></div>
+                            <div class="silk-scheme-card__body" style="background:#f0f2f7">
+                                <div class="silk-scheme-card__surface" style="background:#ffffff">
+                                    <span style="background:#111827"></span>
+                                    <span style="background:#6b7280"></span>
+                                    <span style="background:#4f46e5; width:30%"></span>
+                                </div>
+                                <div class="silk-scheme-card__dots">
+                                    <i style="background:#16a34a"></i>
+                                    <i style="background:#d97706"></i>
+                                    <i style="background:#dc2626"></i>
+                                </div>
+                            </div>
                         </div>
-                        <div class="silk-scheme-card__dots">
-                            <i style="background:#16a34a"></i>
-                            <i style="background:#d97706"></i>
-                            <i style="background:#dc2626"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="silk-scheme-card__label">
-                    <i data-lucide="sun" class="silk-icon silk-icon--sm"></i>
-                    Light
-                </div>
-            </button>
-
-            <button class="silk-scheme-card" data-scheme="dark" onclick="silkApplyScheme('dark')">
-                <div class="silk-scheme-card__preview">
-                    <div class="silk-scheme-card__nav" style="background:#0a0a0c"></div>
-                    <div class="silk-scheme-card__body" style="background:#0a0a0c">
-                        <div class="silk-scheme-card__surface" style="background:#141418">
-                            <span style="background:#e8e8ee"></span>
-                            <span style="background:#707088"></span>
-                            <span style="background:#818cf8; width:30%"></span>
-                        </div>
-                        <div class="silk-scheme-card__dots">
-                            <i style="background:#8bc34a"></i>
-                            <i style="background:#ff9800"></i>
-                            <i style="background:#ff6b6b"></i>
+                        <div class="silk-scheme-card__preview silk-scheme-card__preview--system" style="clip-path: polygon(0% -50%, 73% 0%, 25% 100%, 294% 100%);">
+                            <div class="silk-scheme-card__nav" style="background:#0a0a0c"></div>
+                            <div class="silk-scheme-card__body" style="background:#0a0a0c">
+                                <div class="silk-scheme-card__surface" style="background:#141418">
+                                    <span style="background:#e8e8ee"></span>
+                                    <span style="background:#707088"></span>
+                                    <span style="background:#818cf8; width:30%"></span>
+                                </div>
+                                <div class="silk-scheme-card__dots">
+                                    <i style="background:#8bc34a"></i>
+                                    <i style="background:#ff9800"></i>
+                                    <i style="background:#ff6b6b"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="silk-scheme-card__label">
-                    <i data-lucide="moon" class="silk-icon silk-icon--sm"></i>
-                    Dark
-                </div>
-            </button>
+                    <div class="silk-scheme-card__preview" style="margin-top: -10px;"></div>
+                    <div class="silk-scheme-card__label">
+                        <i data-lucide="monitor" class="silk-icon silk-icon--sm"></i>
+                        System
+                    </div>
+                </button>
 
-            <button class="silk-scheme-card" data-scheme="midnight" onclick="silkApplyScheme('midnight')">
-                <div class="silk-scheme-card__preview">
-                    <div class="silk-scheme-card__nav" style="background:#0d0d0f"></div>
-                    <div class="silk-scheme-card__body" style="background:#111113">
-                        <div class="silk-scheme-card__surface" style="background:#1c1c20">
-                            <span style="background:#f0f0f2"></span>
-                            <span style="background:#888894"></span>
-                            <span style="background:#a78bfa; width:30%"></span>
-                        </div>
-                        <div class="silk-scheme-card__dots">
-                            <i style="background:#86efac"></i>
-                            <i style="background:#fcd34d"></i>
-                            <i style="background:#fca5a5"></i>
+                <button class="silk-scheme-card" data-scheme="light" onclick="silkApplyScheme('light')">
+                    <div class="silk-scheme-card__preview">
+                        <div class="silk-scheme-card__nav" style="background:#1e2235"></div>
+                        <div class="silk-scheme-card__body" style="background:#f0f2f7">
+                            <div class="silk-scheme-card__surface" style="background:#ffffff">
+                                <span style="background:#111827"></span>
+                                <span style="background:#6b7280"></span>
+                                <span style="background:#4f46e5; width:30%"></span>
+                            </div>
+                            <div class="silk-scheme-card__dots">
+                                <i style="background:#16a34a"></i>
+                                <i style="background:#d97706"></i>
+                                <i style="background:#dc2626"></i>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="silk-scheme-card__label">
-                    <i data-lucide="moon-star" class="silk-icon silk-icon--sm"></i>
-                    Midnight
-                </div>
-            </button>
+                    <div class="silk-scheme-card__label">
+                        <i data-lucide="sun" class="silk-icon silk-icon--sm"></i>
+                        Light
+                    </div>
+                </button>
 
-            <button class="silk-scheme-card" data-scheme="high-contrast" onclick="silkApplyScheme('high-contrast')">
-                <div class="silk-scheme-card__preview">
-                    <div class="silk-scheme-card__nav" style="background:#000000; border-right: 1px solid #444"></div>
-                    <div class="silk-scheme-card__body" style="background:#000000">
-                        <div class="silk-scheme-card__surface" style="background:#0d0d0d; border: 1px solid #555">
-                            <span style="background:#ffffff"></span>
-                            <span style="background:#aaaaaa"></span>
-                            <span style="background:#60a5fa; width:30%"></span>
-                        </div>
-                        <div class="silk-scheme-card__dots">
-                            <i style="background:#4ade80"></i>
-                            <i style="background:#fb923c"></i>
-                            <i style="background:#f87171"></i>
+                <button class="silk-scheme-card" data-scheme="dark" onclick="silkApplyScheme('dark')">
+                    <div class="silk-scheme-card__preview">
+                        <div class="silk-scheme-card__nav" style="background:#0a0a0c"></div>
+                        <div class="silk-scheme-card__body" style="background:#0a0a0c">
+                            <div class="silk-scheme-card__surface" style="background:#141418">
+                                <span style="background:#e8e8ee"></span>
+                                <span style="background:#707088"></span>
+                                <span style="background:#818cf8; width:30%"></span>
+                            </div>
+                            <div class="silk-scheme-card__dots">
+                                <i style="background:#8bc34a"></i>
+                                <i style="background:#ff9800"></i>
+                                <i style="background:#ff6b6b"></i>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="silk-scheme-card__label">
-                    <i data-lucide="contrast" class="silk-icon silk-icon--sm"></i>
-                    High Contrast
-                </div>
-            </button>
+                    <div class="silk-scheme-card__label">
+                        <i data-lucide="moon" class="silk-icon silk-icon--sm"></i>
+                        Dark
+                    </div>
+                </button>
 
+                <button class="silk-scheme-card" data-scheme="midnight" onclick="silkApplyScheme('midnight')">
+                    <div class="silk-scheme-card__preview">
+                        <div class="silk-scheme-card__nav" style="background:#0d0d0f"></div>
+                        <div class="silk-scheme-card__body" style="background:#111113">
+                            <div class="silk-scheme-card__surface" style="background:#1c1c20">
+                                <span style="background:#f0f0f2"></span>
+                                <span style="background:#888894"></span>
+                                <span style="background:#a78bfa; width:30%"></span>
+                            </div>
+                            <div class="silk-scheme-card__dots">
+                                <i style="background:#86efac"></i>
+                                <i style="background:#fcd34d"></i>
+                                <i style="background:#fca5a5"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="silk-scheme-card__label">
+                        <i data-lucide="moon-star" class="silk-icon silk-icon--sm"></i>
+                        Midnight
+                    </div>
+                </button>
+
+                <button class="silk-scheme-card" data-scheme="high-contrast" onclick="silkApplyScheme('high-contrast')">
+                    <div class="silk-scheme-card__preview">
+                        <div class="silk-scheme-card__nav" style="background:#000000; border-right: 1px solid #444"></div>
+                        <div class="silk-scheme-card__body" style="background:#000000">
+                            <div class="silk-scheme-card__surface" style="background:#0d0d0d; border: 1px solid #555">
+                                <span style="background:#ffffff"></span>
+                                <span style="background:#aaaaaa"></span>
+                                <span style="background:#60a5fa; width:30%"></span>
+                            </div>
+                            <div class="silk-scheme-card__dots">
+                                <i style="background:#4ade80"></i>
+                                <i style="background:#fb923c"></i>
+                                <i style="background:#f87171"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="silk-scheme-card__label">
+                        <i data-lucide="contrast" class="silk-icon silk-icon--sm"></i>
+                        High Contrast
+                    </div>
+                </button>
+
+            </div>
+        </div>
+    </section>
+    <section class="silk-settings__section">
+        <div class="silk-settings__section-head">
+            <i data-lucide="layout-panel-top" class="silk-icon"></i>
+            <div>
+                <h2 class="silk-settings__section-title">Header</h2>
+                <p class="silk-settings__section-desc">Choose a header style. Your choice is saved in the browser.</p>
+            </div>
+            <div class="silk-settings__section-head-toggle">
+                <i data-lucide="chevron-down" class="silk-icon silk-icon--large"></i>
+            </div>
+        </div>
+
+        <div class="silk-settings__section-body">
+            <div class="silk-scheme-grid">
+                <button class="silk-scheme-card" data-header="sticky" onclick="silkApplyHeader('sticky')">
+                    <div class="silk-scheme-card__preview silk-header-card__preview">
+                        <div class="silk-header-card__nav silk-header-card__nav--pinned">
+                            <span class="silk-header-card__nav-dot"></span>
+                            <span class="silk-header-card__nav-bar"></span>
+                            <span class="silk-header-card__nav-accent"></span>
+                        </div>
+                        <div class="silk-header-card__body">
+                            <div class="silk-header-card__surface">
+                                <span class="silk-header-card__line silk-header-card__line--primary"></span>
+                                <span class="silk-header-card__line silk-header-card__line--secondary"></span>
+                            </div>
+                            <div class="silk-header-card__surface silk-header-card__surface--faint"></div>
+                        </div>
+                        <div class="silk-header-card__scrollbar">
+                            <div class="silk-header-card__thumb silk-header-card__thumb--top"></div>
+                        </div>
+                    </div>
+                    <div class="silk-scheme-card__label">
+                        <i data-lucide="pin" class="silk-icon silk-icon--sm"></i>
+                        Sticky
+                    </div>
+                </button>
+
+                <button class="silk-scheme-card" data-header="normal" onclick="silkApplyHeader('normal')">
+                    <div class="silk-scheme-card__preview silk-header-card__preview">
+                        <div class="silk-header-card__ghost"></div>
+                        <div class="silk-header-card__body">
+                            <div class="silk-header-card__surface">
+                                <span class="silk-header-card__line silk-header-card__line--primary"></span>
+                                <span class="silk-header-card__line silk-header-card__line--secondary"></span>
+                            </div>
+                            <div class="silk-header-card__surface silk-header-card__surface--faint"></div>
+                        </div>
+                        <div class="silk-header-card__scrollbar">
+                            <div class="silk-header-card__thumb silk-header-card__thumb--bottom"></div>
+                        </div>
+                    </div>
+                    <div class="silk-scheme-card__label">
+                        <i data-lucide="layout-template" class="silk-icon silk-icon--sm"></i>
+                        Normal
+                    </div>
+                </button>
+            </div>
         </div>
     </section>
 
@@ -130,50 +234,54 @@
                 <h2 class="silk-settings__section-title">Data Management</h2>
                 <p class="silk-settings__section-desc">Permanently delete Silk profiling data. This cannot be undone.</p>
             </div>
+            <div class="silk-settings__section-head-toggle">
+                <i data-lucide="chevron-down" class="silk-icon silk-icon--large"></i>
+            </div>
         </div>
 
-        <form class="silk-settings__form" action="." method="post">
-            {% csrf_token %}
+        <div class="silk-settings__section-body">
+            <form class="silk-settings__form" action="." method="post">
+                {% csrf_token %}
 
-            <div class="silk-settings__options">
-                <label class="silk-settings__option" id="silk-cleardb-all-label">
-                    <input type="checkbox" name="clear_all" id="silk-cleardb-all">
-                    <div class="silk-settings__option-body">
-                        <i data-lucide="database" class="silk-icon"></i>
-                        <div>
-                            <div class="silk-settings__option-name">All data</div>
-                            <div class="silk-settings__option-hint">Requests, profiles, SQL queries &amp; responses</div>
+                <div class="silk-settings__options">
+                    <label class="silk-settings__option" id="silk-cleardb-all-label">
+                        <input type="checkbox" name="clear_all" id="silk-cleardb-all">
+                        <div class="silk-settings__option-body">
+                            <i data-lucide="database" class="silk-icon"></i>
+                            <div>
+                                <div class="silk-settings__option-name">All data</div>
+                                <div class="silk-settings__option-hint">Requests, profiles, SQL queries &amp; responses</div>
+                            </div>
                         </div>
-                    </div>
-                </label>
-                <label class="silk-settings__option" id="silk-cleardb-requests-label">
-                    <input type="checkbox" name="clear_requests" id="silk-cleardb-requests">
-                    <div class="silk-settings__option-body">
-                        <i data-lucide="layers" class="silk-icon"></i>
-                        <div>
-                            <div class="silk-settings__option-name">Requests</div>
-                            <div class="silk-settings__option-hint">HTTP requests, responses &amp; SQL queries</div>
+                    </label>
+                    <label class="silk-settings__option" id="silk-cleardb-requests-label">
+                        <input type="checkbox" name="clear_requests" id="silk-cleardb-requests">
+                        <div class="silk-settings__option-body">
+                            <i data-lucide="layers" class="silk-icon"></i>
+                            <div>
+                                <div class="silk-settings__option-name">Requests</div>
+                                <div class="silk-settings__option-hint">HTTP requests, responses &amp; SQL queries</div>
+                            </div>
                         </div>
-                    </div>
-                </label>
-                <label class="silk-settings__option" id="silk-cleardb-profiling-label">
-                    <input type="checkbox" name="clear_profiling" id="silk-cleardb-profiling">
-                    <div class="silk-settings__option-body">
-                        <i data-lucide="cpu" class="silk-icon"></i>
-                        <div>
-                            <div class="silk-settings__option-name">Profiling</div>
-                            <div class="silk-settings__option-hint">Python profiler data &amp; profile files</div>
+                    </label>
+                    <label class="silk-settings__option" id="silk-cleardb-profiling-label">
+                        <input type="checkbox" name="clear_profiling" id="silk-cleardb-profiling">
+                        <div class="silk-settings__option-body">
+                            <i data-lucide="cpu" class="silk-icon"></i>
+                            <div>
+                                <div class="silk-settings__option-name">Profiling</div>
+                                <div class="silk-settings__option-hint">Python profiler data &amp; profile files</div>
+                            </div>
                         </div>
-                    </div>
-                </label>
-            </div>
+                    </label>
+                </div>
 
-            <button type="submit" class="silk-settings__danger-btn" id="silk-cleardb-submit" disabled>
-                <i data-lucide="trash-2" class="silk-icon"></i>
-                Clear selected data
-            </button>
-        </form>
-
+                <button type="submit" class="silk-settings__danger-btn" id="silk-cleardb-submit" disabled>
+                    <i data-lucide="trash-2" class="silk-icon"></i>
+                    Clear selected data
+                </button>
+            </form>
+        </div>
         {% if msg %}
         <div class="silk-settings__msg">
             <i data-lucide="check-circle" class="silk-icon"></i>
@@ -217,6 +325,19 @@
         if (this.checked) cbAll.checked = false;
         updateBtn();
       });
+    });
+
+    // Toggle triggered section and close others open section
+    document.querySelectorAll('.silk-settings__section-head-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var section = this.closest('.silk-settings__section');
+            if (!section) return;
+            section.classList.toggle('is-active');
+            document.querySelectorAll('.silk-settings__section').forEach(function (el) {
+                if (el !== section) el.classList.remove('is-active');
+            });
+        });
     });
   }());
 </script>

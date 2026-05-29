@@ -5,7 +5,8 @@
   var ROOT_ID     = 'silk-root';
 
   var SCHEMES = [
-    { value: 'light',         label: 'Light',         icon: 'sun' },
+    { value: 'system',          label: 'System',           icon: 'monitor' },
+    { value: 'light',         label: 'Light',          icon: 'sun' },
     { value: 'dark',          label: 'Dark',           icon: 'moon' },
     { value: 'midnight',      label: 'Midnight',       icon: 'moon-star' },
     { value: 'high-contrast', label: 'High Contrast',  icon: 'contrast' },
@@ -15,15 +16,16 @@
 
   function applyScheme(scheme) {
     var root = document.getElementById(ROOT_ID);
-    if (root) root.setAttribute('data-theme', scheme);
-  }
+    if (!root) return;
 
-  function getSaved() {
-    try {
-      var v = localStorage.getItem(STORAGE_KEY);
-      // backward-compat: old 'dark'/'light' strings are valid scheme values
-      return v || 'light';
-    } catch (e) { return 'light'; }
+    var finalScheme = scheme;
+
+    if (scheme === 'system') {
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      finalScheme = prefersDark ? 'dark' : 'light';
+    }
+
+    root.setAttribute('data-theme', finalScheme);
   }
 
   function save(scheme) {
@@ -31,8 +33,11 @@
   }
 
   function getActive() {
-    var root = document.getElementById(ROOT_ID);
-    return root ? root.getAttribute('data-theme') || 'light' : 'light';
+    try {
+      return localStorage.getItem(STORAGE_KEY) || 'system';
+    } catch (e) {
+      return 'system';
+    }
   }
 
   /* ─── Nav picker UI ─────────────────────────────────────────── */
@@ -75,11 +80,11 @@
   }
 
   /* ─── Apply saved theme immediately (before paint) ──────────── */
-  applyScheme(getSaved());
+  applyScheme(getActive());
 
   /* ─── DOMContentLoaded init ─────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', function () {
-    var saved = getSaved();
+    var saved = getActive();
     applyScheme(saved);
     updatePickerLabel(saved);
 

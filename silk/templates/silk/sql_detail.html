@@ -44,7 +44,7 @@
         <h3 class="silk-section__heading">
             <i data-lucide="database" class="silk-icon silk-icon--sm"></i> Query
         </h3>
-        <pre class="silk-pre"><code class="language-sql">{{ sql_query.formatted_query }}</code></pre>
+        <pre class="silk-pre"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code class="language-sql">{{ sql_query.formatted_query }}</code></pre>
         <div class="silk-sql-meta">
             <span class="silk-hero__metric">
                 <i data-lucide="clock" class="silk-icon silk-icon--sm"></i>
@@ -63,7 +63,7 @@
         <h3 class="silk-section__heading">
             <i data-lucide="list-tree" class="silk-icon silk-icon--sm"></i> Query Plan
         </h3>
-        <pre class="silk-pre"><code>{{ analysis }}</code></pre>
+        <pre class="silk-pre"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code>{{ analysis }}</code></pre>
     </section>
     {% endif %}
 

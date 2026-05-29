@@ -133,7 +133,7 @@
                     <i data-lucide="chevron-down" class="silk-icon silk-icon--sm silk-n1-chevron"></i>
                 </button>
                 <div class="silk-n1-body" hidden>
-                    <pre class="silk-pre silk-pre--n1"><code class="language-sql">{{ group.representative.formatted_query }}</code></pre>
+                    <pre class="silk-pre silk-pre--n1"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code class="language-sql">{{ group.representative.formatted_query }}</code></pre>
                 </div>
             </div>
             {% endfor %}

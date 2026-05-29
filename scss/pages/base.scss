@@ -4,11 +4,13 @@ body {
   color: var(--silk-text-primary);
   margin: 0;
   font-weight: lighter;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 pre {
-  font-family: Fantasque, 'Fira Mono', monospace;
+  font-family: Fantasque, "Fira Mono", monospace;
   background-color: var(--silk-code-bg);
   padding: 0.5em;
   margin: 0;
@@ -17,7 +19,7 @@ pre {
 }
 
 code {
-  font-family: Fantasque, 'Fira Mono', monospace;
+  font-family: Fantasque, "Fira Mono", monospace;
   background-color: var(--silk-code-bg);
   color: var(--silk-code-text);
   padding: 0;
@@ -27,21 +29,6 @@ code {
 
 html {
   margin: 0;
-}
-
-#header {
-  height: 50px;
-  background-color: var(--silk-nav-bg);
-  width: 100%;
-  position: relative;
-  padding: 0;
-  display: flex;
-  align-items: stretch;
-}
-
-#header > div {
-  display: inline-flex;
-  align-items: stretch;
 }
 
 .menu {
@@ -64,7 +51,9 @@ html {
   position: relative;
   box-sizing: border-box;
   border-bottom: 3px solid transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .menu-item a {
@@ -89,7 +78,9 @@ html {
 
 /* ── Hover ── */
 .selectable-menu-item {
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .selectable-menu-item:hover {
@@ -158,4 +149,64 @@ a {
   vertical-align: middle;
   display: inline-block;
   flex-shrink: 0;
+}
+
+/* ── Scrollbar Design ─────────────────────────────────────────────────── */
+/* Firefox Scroll Bar*/
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--silk-scrollbar-thumb) var(--silk-scrollbar-track);
+}
+
+/* Webkit — track */
+::-webkit-scrollbar {
+  width:  var(--silk-scrollbar-size);
+  height: var(--silk-scrollbar-size);
+}
+
+::-webkit-scrollbar-track {
+  background:    var(--silk-scrollbar-track);
+  border-radius: var(--silk-scrollbar-radius);
+}
+
+::-webkit-scrollbar-track:hover {
+  background: var(--silk-scrollbar-track-hover);
+}
+
+/* Webkit — thumb */
+::-webkit-scrollbar-thumb {
+  background:    var(--silk-scrollbar-thumb);
+  border-radius: var(--silk-scrollbar-radius);
+  border: 2px solid var(--silk-scrollbar-track);
+  background-clip: padding-box;
+  min-height: 40px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background:    var(--silk-scrollbar-thumb-hover);
+  border-color:  var(--silk-scrollbar-track-hover);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background:    var(--silk-scrollbar-thumb-active);
+  border-color:  var(--silk-scrollbar-track);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--silk-scrollbar-corner);
+}
+
+/* ── Selection Design ─────────────────────────────────────────────────── */
+::selection {
+  background: var(--silk-selection-bg);
+  color: var(--silk-selection-text);
+  text-shadow: none;
+}
+
+::-moz-selection {
+  background: var(--silk-selection-bg);
+  color: var(--silk-selection-text);
+  text-shadow: none;
 }

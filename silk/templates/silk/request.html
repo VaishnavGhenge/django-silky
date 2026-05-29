@@ -65,7 +65,7 @@
         {% if query_params %}
         <section class="silk-section">
             <h3 class="silk-section__heading">Query Parameters</h3>
-            <pre class="silk-pre"><code>{{ query_params }}</code></pre>
+            <pre class="silk-pre"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code>{{ query_params }}</code></pre>
         </section>
         {% endif %}
 
@@ -99,7 +99,7 @@
             {% if silk_request.body|length > 1000 %}
                 <p class="silk-detail-note">Body is <strong>{{ silk_request.body|length }}</strong> characters — <a href="{% url "silk:raw" silk_request.pk %}?typ=request&subtyp=processed">view body</a>.</p>
             {% else %}
-                <pre class="silk-pre"><code>{{ silk_request.body }}</code></pre>
+                <pre class="silk-pre"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code>{{ silk_request.body }}</code></pre>
             {% endif %}
         </section>
         {% endif %}
@@ -138,7 +138,7 @@
             {% if silk_request.response.body|length > 1000 %}
                 <p class="silk-detail-note">Response body is <strong>{{ silk_request.response.body|length }}</strong> characters — <a href="{% url "silk:raw" silk_request.pk %}?typ=response&subtyp=processed">view body</a>.</p>
             {% else %}
-                <pre class="silk-pre"><code>{{ silk_request.response.body }}</code></pre>
+                <pre class="silk-pre"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code>{{ silk_request.response.body }}</code></pre>
             {% endif %}
         </section>
         {% endif %}
@@ -149,7 +149,7 @@
                 <i data-lucide="terminal" class="silk-icon silk-icon--sm"></i> Curl
             </h3>
             <p class="silk-detail-note">Paste into a terminal to repeat this request.</p>
-            <pre class="silk-pre"><code class="language-bash">{{ curl.strip }}</code></pre>
+            <pre class="silk-pre"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code class="language-bash">{{ curl.strip }}</code></pre>
         </section>
         {% endif %}
 
@@ -159,7 +159,7 @@
                 <i data-lucide="code" class="silk-icon silk-icon--sm"></i> Django Test Client
             </h3>
             <p class="silk-detail-note">Python code to replicate this request in a Django unit test.</p>
-            <pre class="silk-pre"><code class="language-python">{{ client.strip }}</code></pre>
+            <pre class="silk-pre"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code class="language-python">{{ client.strip }}</code></pre>
         </section>
         {% endif %}
     </div>

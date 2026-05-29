@@ -5,9 +5,17 @@
     <title>{% block pagetitle %}Silky{% endblock %}</title>
     {# Anti-flash: apply saved scheme before paint #}
     <script>
-      (function(){try{var t=localStorage.getItem('silk-theme');if(t)document.getElementById('silk-root').setAttribute('data-theme',t);}catch(e){}}());
+      (function(){
+        try {
+            var t=localStorage.getItem('silk-theme');
+            var resolved = t === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : t;
+            if(resolved)document.getElementById('silk-root').setAttribute('data-theme',resolved);
+            var h = localStorage.getItem('silk-header');
+            if (h) document.getElementById('silk-root').setAttribute('data-header', h);
+        }catch(e){}}());
     </script>
     <link rel="stylesheet" href="{% static "silk/css/components/theme.css" %}"/>
+    <link rel="stylesheet" href="{% static "silk/css/components/header.css" %}"/>
     <link rel="stylesheet" href="{% static "silk/css/components/theme_toggle.css" %}"/>
     <link rel="stylesheet" href="{% static "silk/css/components/fonts.css" %}"/>
     <link rel="stylesheet" href="{% static "silk/css/components/colors.css" %}"/>
@@ -23,6 +31,7 @@
     <script src="{% static 'silk/js/pages/base.js' %}"></script>
     <script src="{% static 'silk/lib/lucide.min.js' %}"></script>
     <script src="{% static 'silk/js/components/theme.js' %}"></script>
+    <script src="{% static 'silk/js/components/header.js' %}"></script>
     <script src="{% static 'silk/js/components/timeago.js' %}"></script>
     {% block js %}
     {% endblock %}
@@ -50,6 +59,9 @@
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                     <div class="silk-scheme-menu" id="silk-scheme-menu" hidden>
+                        <button class="silk-scheme-option" data-scheme="system">
+                            <i data-lucide="monitor" class="silk-icon silk-icon--sm"></i> System
+                        </button>
                         <button class="silk-scheme-option" data-scheme="light">
                             <i data-lucide="sun" class="silk-icon silk-icon--sm"></i> Light
                         </button>

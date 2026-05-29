@@ -1,7 +1,7 @@
 {% load silk_filters %}
 <div class="silk-code-snippet">
   <div class="silk-code-ellipsis">...</div>
-  <pre class="silk-pre" data-active-indices="{{ active_indices|silk_json }}"><code class="language-python">{% for line in code %}{{ line }}
+  <pre class="silk-pre" data-active-indices="{{ active_indices|silk_json }}"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code class="language-python">{% for line in code %}{{ line }}
 {% endfor %}</code></pre>
   <div class="silk-code-ellipsis">...</div>
 </div>
