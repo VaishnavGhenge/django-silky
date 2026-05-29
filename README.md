@@ -280,15 +280,19 @@ git clone https://github.com/VaishnavGhenge/django-silky.git
 cd django-silky
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[formatting]"
-pip install -r project/requirements.txt
+pip install -r requirements.txt
 
 # Run the example project
 DB_ENGINE=sqlite3 python project/manage.py migrate
 DB_ENGINE=sqlite3 python project/manage.py runserver
 # Visit http://127.0.0.1:8000/silk/  (login: admin / admin)
 
-# Watch SCSS while editing UI
-npx gulp watch
+# Watch SCSS while editing UI (Node Version 24.15)
+pnpm install || npm install
+npm run watch
+
+# For CSS Build
+npm run build
 
 # Run tests
 DB_ENGINE=sqlite3 python -m pytest project/tests/ -q

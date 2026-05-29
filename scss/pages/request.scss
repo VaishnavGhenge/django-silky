@@ -94,11 +94,52 @@ pre {
   color: var(--silk-code-text);
   overflow-x: auto;
   border-radius: 6px;
+  position: relative;
 
   code {
     background: transparent;
     padding: 0;
-    // no color override — let hljs token classes apply their colors
+  }
+
+  > .silk-pre__copy {
+    right: 1rem;
+    top: 0.5rem;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--silk-border);
+    border-radius: 4px;
+    background: var(--silk-bg);
+    transition: background-color 0.15s;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &:hover {
+      background: var(--silk-row-hover-bg);
+    }
+
+    > .silk-icon {
+      width: 17.5px;
+      height: 17.5px;
+    }
+
+    > .silk-icon--large.silk-pre__copy-icon--default {
+      display: block;
+    }
+    > .silk-icon--large.silk-pre__copy-icon--success {
+      display: none;
+    }
+
+    &.is-active {
+      > .silk-icon--large.silk-pre__copy-icon--default {
+        display: none;
+      }
+      > .silk-icon--large.silk-pre__copy-icon--success {
+        display: block;
+      }
+    }
   }
 }
 

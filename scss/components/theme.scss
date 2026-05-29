@@ -84,6 +84,20 @@
   --silk-code-deletion:   #82071e;
   --silk-code-active-line:        rgba(207,34,46,.08);
   --silk-code-active-line-border: rgba(207,34,46,.30);
+
+  /* For Scrollbar */
+  --silk-scrollbar-size:         8px;
+  --silk-scrollbar-track:        #e4e8f2;
+  --silk-scrollbar-track-hover:  #d8dce8;
+  --silk-scrollbar-thumb:        #b0bace;
+  --silk-scrollbar-thumb-hover:  #7f8fb0;
+  --silk-scrollbar-thumb-active: #4f5e85;
+  --silk-scrollbar-radius:       999px;
+  --silk-scrollbar-corner:       #e4e8f2;
+
+  /* For Selection */
+  --silk-selection-bg:    #3b82f6;
+  --silk-selection-text:  #ffffff;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -162,6 +176,20 @@
   --silk-code-deletion:   #ffdcd7;
   --silk-code-active-line:        rgba(255,123,114,.12);
   --silk-code-active-line-border: rgba(255,123,114,.40);
+
+  /* For Scrollbar */
+  --silk-scrollbar-size:         8px;
+  --silk-scrollbar-track:        #0a0a0c;
+  --silk-scrollbar-track-hover:  #111118;
+  --silk-scrollbar-thumb:        #33334a;
+  --silk-scrollbar-thumb-hover:  #4a4a70;
+  --silk-scrollbar-thumb-active: #6060c0;
+  --silk-scrollbar-radius:       999px;
+  --silk-scrollbar-corner:       #0a0a0c;
+
+  /* For Selection */
+  --silk-selection-bg:    rgba(129, 140, 248, 0.3);
+  --silk-selection-text:  #e8e8ee;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -239,6 +267,20 @@
   --silk-code-deletion:   #fecaca;
   --silk-code-active-line:        rgba(248,113,113,.10);
   --silk-code-active-line-border: rgba(248,113,113,.35);
+
+  /* For Scrollbar */
+  --silk-scrollbar-size:         8px;
+  --silk-scrollbar-track:        #111113;
+  --silk-scrollbar-track-hover:  #191920;
+  --silk-scrollbar-thumb:        #36363e;
+  --silk-scrollbar-thumb-hover:  #4e4e5c;
+  --silk-scrollbar-thumb-active: #7c6fd4;
+  --silk-scrollbar-radius:       999px;
+  --silk-scrollbar-corner:       #111113;
+
+  /* For Selection */
+  --silk-selection-bg:    #404048;
+  --silk-selection-text:  #f0f0f2;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -316,4 +358,18 @@
   --silk-code-deletion:   #ffcccc;
   --silk-code-active-line:        rgba(255,128,128,.15);
   --silk-code-active-line-border: rgba(255,128,128,.50);
+
+  /* For Scrollbar */
+  --silk-scrollbar-size:         8px;
+  --silk-scrollbar-track:        #000000;
+  --silk-scrollbar-track-hover:  #111111;
+  --silk-scrollbar-thumb:        #555555;
+  --silk-scrollbar-thumb-hover:  #aaaaaa;
+  --silk-scrollbar-thumb-active: #ffffff;
+  --silk-scrollbar-radius:       999px;
+  --silk-scrollbar-corner:       #000000;
+
+  /* For Selection */
+  --silk-selection-bg:    #ffffff;
+  --silk-selection-text:  #000000;
 }

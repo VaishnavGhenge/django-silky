@@ -8,7 +8,7 @@
 
 /* ── Page header ─────────────────────────────────────────────────── */
 .silk-settings__header {
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .silk-settings__title {
@@ -37,7 +37,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 1.5rem;
+  position: relative;
 }
 .silk-settings__section-head > .silk-icon {
   width: 20px;
@@ -45,6 +45,40 @@
   color: var(--silk-text-secondary);
   flex-shrink: 0;
   margin-top: 2px;
+}
+.silk-settings__section-head > .silk-settings__section-head-toggle {
+  position: absolute;
+  right: 0;
+  padding: 4px;
+  border: 1px solid var(--silk-border);
+  border-radius: 4px;
+  background: var(--silk-bg);
+  transition: background-color 0.15s;
+  cursor: pointer;
+}
+.silk-settings__section-head > .silk-settings__section-head-toggle:hover {
+  background: var(--silk-row-hover-bg);
+}
+.silk-settings__section-head > .silk-settings__section-head-toggle > .silk-icon {
+  width: 17.5px;
+  height: 17.5px;
+}
+
+.silk-settings__section-body {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  padding-top: 0rem;
+}
+
+.silk-settings__section.is-active > .silk-settings__section-head .silk-settings__section-head-toggle svg {
+  transform: rotate(180deg);
+}
+.silk-settings__section.is-active > .silk-settings__section-body {
+  max-height: 1200px;
+  padding-top: 1.5rem;
+  opacity: 1;
 }
 
 .silk-settings__section-title {
@@ -108,6 +142,11 @@
   height: 80px;
   border-radius: calc(var(--silk-card-radius) - 2px) calc(var(--silk-card-radius) - 2px) 0 0;
   overflow: hidden;
+}
+
+.silk-scheme-card__preview--system {
+  position: absolute;
+  width: 100%;
 }
 
 .silk-scheme-card__nav {
