@@ -5,6 +5,26 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.3.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.3.0) (2026-06-06)
+
+### Features
+
+- **System theme** ([#11](https://github.com/VaishnavGhenge/django-silky/issues/11)) — a new **System** theme follows the OS `prefers-color-scheme` setting and is now the default, so the UI matches light/dark mode automatically. Explicit Light/Dark selections still persist.
+- **Header modes** — the page header can be set to **sticky** (stays pinned while scrolling) or **normal**, with the preference persisted across pages.
+- **Copy-to-clipboard** — all code/`pre` blocks now have a copy button; clipboard use is guarded in insecure contexts where the API is unavailable.
+- **Theme-aware chrome** — scrollbar and `::selection` styling now adapt to every colour scheme.
+- **Collapsible settings sections** — the settings page groups options into collapsible **Appearance**, **Header**, and **Data** sections.
+
+### Build / Tooling
+
+- **Gulp removed** — the Gulp asset pipeline (`gulpfile.js`, `gulp-sass`) is gone; SCSS now compiles directly via the `sass` CLI through `npm run build` / `npm run watch`.
+
+### Tests
+
+- Test baseline: **292 passed, 1 skipped**.
+
+---
+
 ## [1.2.2](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.2.2) (2026-05-26)
 
 ### Bug Fixes
