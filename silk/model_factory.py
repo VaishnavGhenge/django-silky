@@ -294,7 +294,7 @@ class ResponseModelFactory:
         return body, content
 
     def construct_response_model(self):
-        assert self.request, 'Cant construct a response model if there is no request model'
+        assert self.request, "Can't construct a response model if there is no request model"
         Logger.debug(
             'Creating response model for request model with pk %s'
             % self.request.pk
