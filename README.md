@@ -224,10 +224,26 @@ SILKY_MAX_RECORDED_REQUESTS = 10_000
 SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 10  # GC runs on 10 % of requests
 ```
 
+#### Retention mode
+
+By default Silk keeps the newest `SILKY_MAX_RECORDED_REQUESTS` rows (count-based).
+To keep a rolling time window instead — useful for spotting patterns across days —
+switch the mode and set a maximum age in minutes:
+
+```python
+SILKY_GARBAGE_COLLECT_MODE = 'time'      # 'count' (default) | 'time' | 'both'
+SILKY_MAX_RECORDED_TIME = 60 * 24 * 7    # minutes; keep the last 7 days
+```
+
+`'both'` applies the count cap and the age window together (whichever trims more).
+The count default is unchanged, so existing setups keep their current behaviour.
+
 Trigger manually (e.g. from a cron job):
 
 ```bash
 python manage.py silk_request_garbage_collect
+# override per run:
+python manage.py silk_request_garbage_collect --mode time --max-time 10080
 ```
 
 Clear all data immediately:

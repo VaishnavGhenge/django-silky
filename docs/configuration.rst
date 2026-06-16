@@ -80,6 +80,18 @@ The garbage collection is only run on a percentage of requests to reduce overhea
 
     SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 10
 
+Alternatively, silky can retain data by age instead of (or in addition to) row count. Set the
+garbage collection mode and a maximum age in minutes:
+
+.. code-block:: python
+
+    SILKY_GARBAGE_COLLECT_MODE = 'time'      # 'count' (default), 'time' or 'both'
+    SILKY_MAX_RECORDED_TIME = 60 * 24 * 7    # minutes; keep the last 7 days
+
+In ``'count'`` mode (the default) the newest ``SILKY_MAX_RECORDED_REQUESTS`` rows are kept. In
+``'time'`` mode rows older than ``SILKY_MAX_RECORDED_TIME`` minutes are removed. ``'both'`` applies
+each limit. The default mode is unchanged, so existing setups keep their current behaviour.
+
 
 Query Analysis
 --------------
