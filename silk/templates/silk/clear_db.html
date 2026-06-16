@@ -226,6 +226,75 @@
         </div>
     </section>
 
+    {# ── Configuration (read-only · settings.py) ─────────────────── #}
+    <section class="silk-settings__section">
+        <div class="silk-settings__section-head">
+            <i data-lucide="history" class="silk-icon"></i>
+            <div>
+                <h2 class="silk-settings__section-title">Data Retention</h2>
+                <p class="silk-settings__section-desc">How long recorded requests are kept. Read-only &mdash; configured in <code>settings.py</code>.</p>
+            </div>
+            <div class="silk-settings__section-head-toggle">
+                <i data-lucide="chevron-down" class="silk-icon silk-icon--large"></i>
+            </div>
+        </div>
+
+        <div class="silk-settings__section-body">
+            <div class="silk-settings__info">
+                <i data-lucide="info" class="silk-icon"></i>
+                <div>
+                    {% if retention.mode == 'count' %}
+                    Retention is count-based. To keep a rolling time window instead &mdash; e.g. the last 7 days &mdash; set
+                    <code>SILKY_GARBAGE_COLLECT_MODE = 'time'</code> and <code>SILKY_MAX_RECORDED_TIME</code> (minutes) in <code>settings.py</code>.
+                    {% else %}
+                    Retention can also be count-based, or both together. Adjust <code>SILKY_GARBAGE_COLLECT_MODE</code>
+                    (<code>'count'</code>, <code>'time'</code> or <code>'both'</code>) and <code>SILKY_MAX_RECORDED_TIME</code> in <code>settings.py</code>.
+                    {% endif %}
+                </div>
+            </div>
+            <div class="silk-settings__options">
+                <div class="silk-settings__option">
+                    <div class="silk-settings__option-body">
+                        <i data-lucide="git-branch" class="silk-icon"></i>
+                        <div>
+                            <div class="silk-settings__option-name">Mode</div>
+                            <div class="silk-settings__option-hint">
+                                {{ retention.mode }}
+                                {% if retention.mode == 'count' %}&mdash; keep the newest N requests{% endif %}
+                                {% if retention.mode == 'time' %}&mdash; keep a rolling time window{% endif %}
+                                {% if retention.mode == 'both' %}&mdash; apply count cap and time window{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% if retention.shows_count %}
+                <div class="silk-settings__option">
+                    <div class="silk-settings__option-body">
+                        <i data-lucide="hash" class="silk-icon"></i>
+                        <div>
+                            <div class="silk-settings__option-name">Max recorded requests</div>
+                            <div class="silk-settings__option-hint">{{ retention.max_requests }} rows</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% if retention.shows_time %}
+                <div class="silk-settings__option">
+                    <div class="silk-settings__option-body">
+                        <i data-lucide="clock" class="silk-icon"></i>
+                        <div>
+                            <div class="silk-settings__option-name">Max recorded time</div>
+                            <div class="silk-settings__option-hint">
+                                {% if retention.max_time_label %}{{ retention.max_time_label }} ({{ retention.max_time }} min){% else %}not set &mdash; nothing is removed by age{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
     {# ── Danger zone ─────────────────────────────────────────────── #}
     <section class="silk-settings__section silk-settings__section--danger">
         <div class="silk-settings__section-head">
