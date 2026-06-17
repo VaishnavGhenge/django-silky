@@ -2,6 +2,7 @@ import base64
 import json
 import random
 import re
+from datetime import timedelta
 from uuid import uuid4
 
 import sqlparse
@@ -145,13 +146,25 @@ class Request(models.Model):
 
     @classmethod
     def garbage_collect(cls, force=False):
-        """ Remove Request/Responses when we are at the SILKY_MAX_RECORDED_REQUESTS limit
-        Note that multiple in-flight requests may call this at once causing a
-        double collection """
+        """ Remove Request/Responses according to SILKY_GARBAGE_COLLECT_MODE.
+
+        'count' (default) keeps the newest SILKY_MAX_RECORDED_REQUESTS rows,
+        'time' keeps rows from the last SILKY_MAX_RECORDED_TIME minutes, and
+        'both' applies each strategy. Note that multiple in-flight requests may
+        call this at once causing a double collection. """
         check_percent = SilkyConfig().SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT
         check_percent /= 100.0
         if check_percent < random.random() and not force:
             return
+
+        mode = SilkyConfig().SILKY_GARBAGE_COLLECT_MODE
+        if mode in ('time', 'both'):
+            cls._garbage_collect_by_time()
+        if mode in ('count', 'both'):
+            cls._garbage_collect_by_count(check_percent)
+
+    @classmethod
+    def _garbage_collect_by_count(cls, check_percent):
         target_count = SilkyConfig().SILKY_MAX_RECORDED_REQUESTS
 
         # Since garbage collection is probabilistic, the target count should
@@ -175,6 +188,14 @@ class Request(models.Model):
             return
 
         cls.objects.filter(start_time__lte=time_cutoff).delete()
+
+    @classmethod
+    def _garbage_collect_by_time(cls):
+        max_time = SilkyConfig().SILKY_MAX_RECORDED_TIME
+        if not max_time:
+            return
+        cutoff = timezone.now() - timedelta(minutes=max_time)
+        cls.objects.filter(start_time__lt=cutoff).delete()
 
     def save(self, *args, **kwargs):
         # sometimes django requests return the body as 'None'

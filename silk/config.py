@@ -21,6 +21,8 @@ class SilkyConfig(metaclass=Singleton):
         'SILKY_PERMISSIONS': default_permissions,
         'SILKY_MAX_RECORDED_REQUESTS': 10**4,
         'SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT': 10,
+        'SILKY_GARBAGE_COLLECT_MODE': 'count',
+        'SILKY_MAX_RECORDED_TIME': None,
         'SILKY_MAX_REQUEST_BODY_SIZE': -1,
         'SILKY_MAX_RESPONSE_BODY_SIZE': -1,
         'SILKY_INTERCEPT_PERCENT': 100,

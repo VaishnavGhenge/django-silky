@@ -30,11 +30,15 @@ class RequestTest(TestCase):
         self.obj = RequestMinFactory.create()
         self.max_percent = SilkyConfig().SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT
         self.max_requests = SilkyConfig().SILKY_MAX_RECORDED_REQUESTS
+        self.gc_mode = SilkyConfig().SILKY_GARBAGE_COLLECT_MODE
+        self.max_time = SilkyConfig().SILKY_MAX_RECORDED_TIME
 
     def tearDown(self):
 
         SilkyConfig().SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = self.max_percent
         SilkyConfig().SILKY_MAX_RECORDED_REQUESTS = self.max_requests
+        SilkyConfig().SILKY_GARBAGE_COLLECT_MODE = self.gc_mode
+        SilkyConfig().SILKY_MAX_RECORDED_TIME = self.max_time
 
     def test_uuid_is_primary_key(self):
 
@@ -146,6 +150,60 @@ class RequestTest(TestCase):
         SilkyConfig().SILKY_MAX_RECORDED_REQUESTS = 3
         models.Request.garbage_collect(force=True)
         self.assertGreater(models.Request.objects.count(), 0)
+
+    def test_time_garbage_collect(self):
+
+        now = datetime.datetime(2016, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        old = RequestMinFactory.create(start_time=now - datetime.timedelta(minutes=120))
+        recent = RequestMinFactory.create(start_time=now - datetime.timedelta(minutes=5))
+        SilkyConfig().SILKY_GARBAGE_COLLECT_MODE = 'time'
+        SilkyConfig().SILKY_MAX_RECORDED_TIME = 60
+        with freeze_time(now):
+            models.Request.garbage_collect(force=True)
+        self.assertFalse(models.Request.objects.filter(id=old.id).exists())
+        self.assertTrue(models.Request.objects.filter(id=recent.id).exists())
+
+    def test_time_garbage_collect_disabled_when_unset(self):
+
+        now = datetime.datetime(2016, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        old = RequestMinFactory.create(start_time=now - datetime.timedelta(days=30))
+        SilkyConfig().SILKY_GARBAGE_COLLECT_MODE = 'time'
+        SilkyConfig().SILKY_MAX_RECORDED_TIME = None
+        with freeze_time(now):
+            models.Request.garbage_collect(force=True)
+        self.assertTrue(models.Request.objects.filter(id=old.id).exists())
+
+    def test_count_mode_ignores_time(self):
+
+        now = datetime.datetime(2016, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        old = RequestMinFactory.create(start_time=now - datetime.timedelta(days=30))
+        SilkyConfig().SILKY_GARBAGE_COLLECT_MODE = 'count'
+        SilkyConfig().SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 100
+        SilkyConfig().SILKY_MAX_RECORDED_REQUESTS = 10
+        SilkyConfig().SILKY_MAX_RECORDED_TIME = 1
+        with freeze_time(now):
+            models.Request.garbage_collect(force=True)
+        # under the count cap and time mode inactive -> nothing removed by age
+        self.assertTrue(models.Request.objects.filter(id=old.id).exists())
+
+    def test_both_mode_applies_count_and_time(self):
+
+        now = datetime.datetime(2016, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        models.Request.objects.all().delete()
+        old = RequestMinFactory.create(start_time=now - datetime.timedelta(minutes=120))
+        recent = [
+            RequestMinFactory.create(start_time=now - datetime.timedelta(minutes=i))
+            for i in range(1, 6)
+        ]
+        SilkyConfig().SILKY_GARBAGE_COLLECT_MODE = 'both'
+        SilkyConfig().SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 100
+        SilkyConfig().SILKY_MAX_RECORDED_REQUESTS = 3
+        SilkyConfig().SILKY_MAX_RECORDED_TIME = 60
+        with freeze_time(now):
+            models.Request.garbage_collect(force=True)
+        # old row trimmed by age, remainder trimmed to the count cap
+        self.assertFalse(models.Request.objects.filter(id=old.id).exists())
+        self.assertLessEqual(models.Request.objects.count(), 3)
 
     def test_save_if_have_no_raw_body(self):
 
