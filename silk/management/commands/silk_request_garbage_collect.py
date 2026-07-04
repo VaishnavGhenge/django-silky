@@ -1,7 +1,18 @@
+import argparse
+
 from django.core.management.base import BaseCommand
 
 import silk.models
 from silk.config import SilkyConfig
+
+
+def non_negative_int(value):
+    minutes = int(value)
+    if minutes < 0:
+        raise argparse.ArgumentTypeError(
+            f"invalid value {value!r}: must be a non-negative number of minutes"
+        )
+    return minutes
 
 
 class Command(BaseCommand):
@@ -24,7 +35,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--max-time",
             default=SilkyConfig().SILKY_MAX_RECORDED_TIME,
-            type=int,
+            type=non_negative_int,
             help="Maximum age in minutes to keep ('time'/'both' modes).",
         )
 

@@ -92,6 +92,14 @@ In ``'count'`` mode (the default) the newest ``SILKY_MAX_RECORDED_REQUESTS`` row
 ``'time'`` mode rows older than ``SILKY_MAX_RECORDED_TIME`` minutes are removed. ``'both'`` applies
 each limit. The default mode is unchanged, so existing setups keep their current behaviour.
 
+Time-based collection runs on every recorded request — the
+``SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT`` sampling only applies to count-based collection.
+Note that garbage collection is only triggered while requests are being recorded; on a
+low-traffic site, use the ``silk_request_garbage_collect`` management command (e.g. from cron)
+to enforce the window independently of traffic. ``SILKY_MAX_RECORDED_TIME`` must be a
+non-negative number of minutes (or ``None`` to disable); invalid values for it or for
+``SILKY_GARBAGE_COLLECT_MODE`` are reported by Django's system checks at startup.
+
 
 Query Analysis
 --------------

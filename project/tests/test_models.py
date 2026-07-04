@@ -205,6 +205,40 @@ class RequestTest(TestCase):
         self.assertFalse(models.Request.objects.filter(id=old.id).exists())
         self.assertLessEqual(models.Request.objects.count(), 3)
 
+    def test_time_garbage_collect_ignores_negative_max_time(self):
+
+        now = datetime.datetime(2016, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        old = RequestMinFactory.create(start_time=now - datetime.timedelta(days=30))
+        SilkyConfig().SILKY_GARBAGE_COLLECT_MODE = 'time'
+        SilkyConfig().SILKY_MAX_RECORDED_TIME = -60
+        with freeze_time(now):
+            models.Request.garbage_collect(force=True)
+        # a negative window must not turn into a future cutoff that wipes everything
+        self.assertTrue(models.Request.objects.filter(id=old.id).exists())
+        self.assertTrue(models.Request.objects.filter(id=self.obj.id).exists())
+
+    def test_time_garbage_collect_is_not_sampled(self):
+
+        now = datetime.datetime(2016, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        old = RequestMinFactory.create(start_time=now - datetime.timedelta(minutes=120))
+        SilkyConfig().SILKY_GARBAGE_COLLECT_MODE = 'time'
+        SilkyConfig().SILKY_MAX_RECORDED_TIME = 60
+        SilkyConfig().SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 0
+        with freeze_time(now):
+            models.Request.garbage_collect(force=False)
+        # the count-mode sampling gate must not defer age-based collection
+        self.assertFalse(models.Request.objects.filter(id=old.id).exists())
+
+    def test_unknown_mode_falls_back_to_count(self):
+
+        SilkyConfig().SILKY_GARBAGE_COLLECT_MODE = 'counts'
+        SilkyConfig().SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 100
+        SilkyConfig().SILKY_MAX_RECORDED_REQUESTS = 0
+        with self.assertLogs('silk.models', level='WARNING'):
+            models.Request.garbage_collect()
+        # a typo'd mode must not silently disable the count cap
+        self.assertFalse(models.Request.objects.filter(id=self.obj.id).exists())
+
     def test_save_if_have_no_raw_body(self):
 
         obj = models.Request(path='/some/path/', method='get')
