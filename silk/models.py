@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import random
 import re
 from datetime import timedelta
@@ -28,6 +29,10 @@ from django.utils.safestring import mark_safe
 
 from silk.config import SilkyConfig
 from silk.utils.profile_parser import parse_profile
+
+Logger = logging.getLogger('silk.models')
+
+GARBAGE_COLLECT_MODES = ('count', 'time', 'both')
 
 try:
     silk_storage = storages['SILKY_STORAGE']
@@ -150,17 +155,28 @@ class Request(models.Model):
 
         'count' (default) keeps the newest SILKY_MAX_RECORDED_REQUESTS rows,
         'time' keeps rows from the last SILKY_MAX_RECORDED_TIME minutes, and
-        'both' applies each strategy. Note that multiple in-flight requests may
+        'both' applies each strategy. Time-based collection is deterministic;
+        the SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT sampling only applies to
+        count-based collection. Note that multiple in-flight requests may
         call this at once causing a double collection. """
-        check_percent = SilkyConfig().SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT
-        check_percent /= 100.0
-        if check_percent < random.random() and not force:
-            return
-
         mode = SilkyConfig().SILKY_GARBAGE_COLLECT_MODE
+        if mode not in GARBAGE_COLLECT_MODES:
+            # An unrecognised mode must not silently disable collection, or
+            # the tables grow without bound.
+            Logger.warning(
+                "Unknown SILKY_GARBAGE_COLLECT_MODE %r; falling back to 'count'.",
+                mode,
+            )
+            mode = 'count'
+
         if mode in ('time', 'both'):
             cls._garbage_collect_by_time()
+
         if mode in ('count', 'both'):
+            check_percent = SilkyConfig().SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT
+            check_percent /= 100.0
+            if check_percent < random.random() and not force:
+                return
             cls._garbage_collect_by_count(check_percent)
 
     @classmethod
@@ -192,7 +208,9 @@ class Request(models.Model):
     @classmethod
     def _garbage_collect_by_time(cls):
         max_time = SilkyConfig().SILKY_MAX_RECORDED_TIME
-        if not max_time:
+        # A negative window would put the cutoff in the future and delete
+        # every row, so treat it as disabled alongside None/0.
+        if not max_time or max_time < 0:
             return
         cutoff = timezone.now() - timedelta(minutes=max_time)
         cls.objects.filter(start_time__lt=cutoff).delete()
