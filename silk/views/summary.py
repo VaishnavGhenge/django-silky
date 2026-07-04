@@ -1,6 +1,6 @@
 import json
 
-from django.db.models import Avg, Count, Max, Min, Sum
+from django.db.models import Avg, Count, Max, Min, Q, Sum
 from django.db.models.functions import TruncHour, TruncDay
 from django.shortcuts import render
 from django.template.context_processors import csrf
@@ -17,18 +17,48 @@ from silk.request_filters import (
 )
 
 
-def _percentile(sorted_data, p):
-    """Linear-interpolation percentile (stdlib only, works on SQLite/PG/MySQL)."""
-    n = len(sorted_data)
+PERCENTILES = [25, 50, 75, 95, 99]
+
+
+def _percentiles(queryset, field, percentiles=PERCENTILES):
+    """Linear-interpolation percentiles computed with COUNT plus OFFSET/LIMIT
+    lookups, so the value column is never materialised in Python. Works on
+    SQLite/PG/MySQL."""
+    values = queryset.order_by(field).values_list(field, flat=True)
+    n = values.count()
     if n == 0:
-        return 0.0
-    idx = (p / 100.0) * (n - 1)
-    lo = int(idx)
-    hi = lo + 1
-    frac = idx - lo
-    if hi >= n:
-        return float(sorted_data[-1])
-    return sorted_data[lo] * (1 - frac) + sorted_data[hi] * frac
+        return {p: 0.0 for p in percentiles}
+    result = {}
+    for p in percentiles:
+        idx = (p / 100.0) * (n - 1)
+        lo = int(idx)
+        frac = idx - lo
+        window = list(values[lo:lo + 2])
+        if frac and len(window) > 1:
+            value = window[0] * (1 - frac) + window[1] * frac
+        else:
+            value = window[0]
+        result[p] = round(float(value), 2)
+    return result
+
+
+def _bucket_counts(queryset, field, buckets):
+    """Count rows per [lo, hi) bucket in a single aggregate query instead of
+    fetching every value. `buckets` is a list of (label, lo, hi) with None
+    meaning unbounded."""
+    aggregates = {}
+    for i, (_, lo, hi) in enumerate(buckets):
+        condition = Q()
+        if lo is not None:
+            condition &= Q(**{f'{field}__gte': lo})
+        if hi is not None:
+            condition &= Q(**{f'{field}__lt': hi})
+        aggregates[f'bucket_{i}'] = Count('pk', filter=condition)
+    counts = queryset.aggregate(**aggregates)
+    return [
+        {'label': label, 'count': counts[f'bucket_{i}']}
+        for i, (label, _, _) in enumerate(buckets)
+    ]
 
 
 class SummaryView(View):
@@ -65,24 +95,15 @@ class SummaryView(View):
         return sorted(requests, key=lambda item: item.t, reverse=True)
 
     def _request_time_percentiles(self, filters):
-        times = list(
-            models.Request.objects.filter(*filters)
-            .filter(time_taken__isnull=False)
-            .order_by('time_taken')
-            .values_list('time_taken', flat=True)
-        )
-        return {p: round(_percentile(times, p), 2) for p in [25, 50, 75, 95, 99]}
+        queryset = models.Request.objects.filter(*filters).filter(time_taken__isnull=False)
+        return _percentiles(queryset, 'time_taken')
 
     def _sql_time_percentiles(self, filters):
-        pks = list(models.Request.objects.filter(*filters).values_list('pk', flat=True))
-        if not pks:
-            return {p: 0.0 for p in [25, 50, 75, 95, 99]}
-        times = list(
-            models.SQLQuery.objects.filter(request_id__in=pks, time_taken__isnull=False)
-            .order_by('time_taken')
-            .values_list('time_taken', flat=True)
+        requests = models.Request.objects.filter(*filters)
+        queryset = models.SQLQuery.objects.filter(
+            request__in=requests, time_taken__isnull=False,
         )
-        return {p: round(_percentile(times, p), 2) for p in [25, 50, 75, 95, 99]}
+        return _percentiles(queryset, 'time_taken')
 
     def _request_timeline(self, filters):
         """Hourly (or daily) request counts for the activity chart."""
@@ -102,12 +123,10 @@ class SummaryView(View):
 
     def _status_distribution(self, filters):
         """Count requests by HTTP status class."""
-        request_pks = list(models.Request.objects.filter(*filters).values_list('pk', flat=True))
-        if not request_pks:
-            return {'2xx': 0, '3xx': 0, '4xx': 0, '5xx': 0}
+        requests = models.Request.objects.filter(*filters)
         rows = (
             models.Response.objects
-            .filter(request_id__in=request_pks, status_code__isnull=False)
+            .filter(request__in=requests, status_code__isnull=False)
             .values('status_code')
             .annotate(count=Count('id'))
         )
@@ -136,26 +155,17 @@ class SummaryView(View):
 
     def _response_time_histogram(self, filters):
         """Bucket response times into 6 fixed ranges."""
-        times = list(
-            models.Request.objects.filter(*filters)
-            .filter(time_taken__isnull=False, time_taken__gte=0)
-            .values_list('time_taken', flat=True)
+        queryset = models.Request.objects.filter(*filters).filter(
+            time_taken__isnull=False, time_taken__gte=0,
         )
-        buckets = [
-            {'label': '<50ms',    'max': 50,   'count': 0},
-            {'label': '50-100ms', 'max': 100,  'count': 0},
-            {'label': '100-200ms','max': 200,  'count': 0},
-            {'label': '200-500ms','max': 500,  'count': 0},
-            {'label': '500ms-1s', 'max': 1000, 'count': 0},
-            {'label': '>1s',      'max': None,  'count': 0},
-        ]
-        prev = 0
-        for t in times:
-            for b in buckets:
-                if b['max'] is None or t < b['max']:
-                    b['count'] += 1
-                    break
-        return [{'label': b['label'], 'count': b['count']} for b in buckets]
+        return _bucket_counts(queryset, 'time_taken', [
+            ('<50ms',     None, 50),
+            ('50-100ms',  50,   100),
+            ('100-200ms', 100,  200),
+            ('200-500ms', 200,  500),
+            ('500ms-1s',  500,  1000),
+            ('>1s',       1000, None),
+        ])
 
     def _num_queries_by_view(self, filters):
         queryset = models.Request.objects.filter(*filters).values_list('view_name').annotate(t=Count('queries')).order_by('-t')[:5]
@@ -195,25 +205,15 @@ class SummaryView(View):
 
     def _query_count_histogram(self, filters):
         """Bucket requests by the number of SQL queries they fired."""
-        counts = list(
-            models.Request.objects.filter(*filters)
-            .values_list('num_sql_queries', flat=True)
-        )
-        buckets = [
-            {'label': '0',     'max': 1},
-            {'label': '1–5',   'max': 6},
-            {'label': '6–10',  'max': 11},
-            {'label': '11–25', 'max': 26},
-            {'label': '26–50', 'max': 51},
-            {'label': '>50',   'max': None},
-        ]
-        result = [{'label': b['label'], 'count': 0} for b in buckets]
-        for n in counts:
-            for i, b in enumerate(buckets):
-                if b['max'] is None or n < b['max']:
-                    result[i]['count'] += 1
-                    break
-        return result
+        queryset = models.Request.objects.filter(*filters)
+        return _bucket_counts(queryset, 'num_sql_queries', [
+            ('0',     None, 1),
+            ('1–5',   1,    6),
+            ('6–10',  6,    11),
+            ('11–25', 11,   26),
+            ('26–50', 26,   51),
+            ('>50',   51,   None),
+        ])
 
     def _create_context(self, request):
         raw_filters = self.filters_manager.get(request)
