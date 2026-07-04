@@ -5,6 +5,27 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.4.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.4.0) (2026-07-04)
+
+### Features
+
+- **Time-based retention** ([#16](https://github.com/VaishnavGhenge/django-silky/issues/16), [#17](https://github.com/VaishnavGhenge/django-silky/pull/17)) — recorded requests can now be trimmed by age instead of (or in addition to) row count. Set `SILKY_GARBAGE_COLLECT_MODE` to `'count'` (default, unchanged), `'time'`, or `'both'`, and `SILKY_MAX_RECORDED_TIME` to the window in minutes (e.g. `60 * 24 * 7` keeps the last 7 days). The `silk_request_garbage_collect` management command gains `--mode` and `--max-time` overrides for cron-driven cleanup, and the settings page shows the active retention policy.
+
+### Bug Fixes / Hardening
+
+- **Retention misconfiguration guards** ([#18](https://github.com/VaishnavGhenge/django-silky/pull/18)) — a negative `SILKY_MAX_RECORDED_TIME` no longer produces a future cutoff that would delete every recorded request (it is treated as disabled, and `--max-time` rejects negatives); an unrecognised `SILKY_GARBAGE_COLLECT_MODE` now logs a warning and falls back to `'count'` instead of silently disabling all garbage collection; and time-based collection now runs deterministically — the `SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT` sampling only applies to count-based collection.
+- **New system checks** — `silk.E001` (unknown garbage-collect mode), `silk.E002` (invalid `SILKY_MAX_RECORDED_TIME`), and `silk.W001` (`'time'`/`'both'` mode with no window set) surface retention misconfiguration at startup via `manage.py check`.
+
+### Performance
+
+- **Summary dashboard aggregates in SQL** ([#19](https://github.com/VaishnavGhenge/django-silky/pull/19)) — percentiles, histograms, and the status distribution no longer materialise entire columns (or feed every request pk back through an `IN (...)` clause) in Python on each page load. Rows transferred per dashboard load are now constant regardless of how many requests are recorded; chart output is unchanged.
+
+### Tests
+
+- Test baseline: **315 passed, 1 skipped**.
+
+---
+
 ## [1.3.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.3.0) (2026-06-06)
 
 ### Features
