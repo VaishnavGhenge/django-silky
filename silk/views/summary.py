@@ -61,20 +61,49 @@ def _bucket_counts(queryset, field, buckets):
     ]
 
 
+def _top_request(rows):
+    """Materialise the first row of a ``values('pk')`` aggregate queryset as a
+    Request, with the aggregate attached as ``.t`` for the template.
+
+    Aggregating over ``values('pk')`` keeps the GROUP BY down to the primary
+    key. Annotating whole Request rows instead would group by every column,
+    including the NCLOB ones on Oracle, which that backend rejects. See
+    silk/utils/aggregation.py.
+    """
+    row = next(iter(rows), None)
+    if row is None:
+        return None
+    request = models.Request.objects.get(pk=row['pk'])
+    request.t = row['t']
+    return request
+
+
 class SummaryView(View):
     filters_key = 'summary_filters'
     filters_manager = FiltersManager(filters_key)
 
     def _avg_num_queries(self, filters):
-        queries__aggregate = models.Request.objects.filter(*filters).annotate(num_queries=Count('queries')).aggregate(num=Avg('num_queries'))
+        queries__aggregate = (
+            models.Request.objects.filter(*filters)
+            .values('pk')
+            .annotate(num_queries=Count('queries'))
+            .aggregate(num=Avg('num_queries'))
+        )
         return queries__aggregate['num']
 
     def _avg_time_spent_on_queries(self, filters):
-        taken__aggregate = models.Request.objects.filter(*filters).annotate(time_spent=Sum('queries__time_taken')).aggregate(num=Avg('time_spent'))
+        taken__aggregate = (
+            models.Request.objects.filter(*filters)
+            .values('pk')
+            .annotate(time_spent=Sum('queries__time_taken'))
+            .aggregate(num=Avg('time_spent'))
+        )
         return taken__aggregate['num']
 
     def _avg_overall_time(self, filters):
-        taken__aggregate = models.Request.objects.filter(*filters).annotate(time_spent=Sum('time_taken')).aggregate(num=Avg('time_spent'))
+        # Per-request Sum('time_taken') is just the row's own time_taken, so
+        # average the column directly and skip the grouping entirely.
+        taken__aggregate = models.Request.objects.filter(*filters).aggregate(num=Avg('time_taken'))
         return taken__aggregate['num']
 
     # TODO: Find a more efficient way to do this. Currently has to go to DB num. views + 1 times and is prob quite expensive
@@ -90,8 +119,15 @@ class SummaryView(View):
         values_list = models.Request.objects.filter(*filters).values_list('view_name').annotate(t=Sum('queries__time_taken')).filter(t__gte=0).order_by('-t')[:5]
         requests = []
         for view, _ in values_list:
-            r = models.Request.objects.filter(view_name=view, *filters).annotate(t=Sum('queries__time_taken')).filter(t__isnull=False).order_by('-t')[0]
-            requests.append(r)
+            request = _top_request(
+                models.Request.objects.filter(view_name=view, *filters)
+                .values('pk')
+                .annotate(t=Sum('queries__time_taken'))
+                .filter(t__isnull=False)
+                .order_by('-t')[:1]
+            )
+            if request is not None:
+                requests.append(request)
         return sorted(requests, key=lambda item: item.t, reverse=True)
 
     def _request_time_percentiles(self, filters):
@@ -172,11 +208,14 @@ class SummaryView(View):
         views = [r[0] for r in queryset[:6]]
         requests = []
         for view in views:
-            try:
-                r = models.Request.objects.filter(view_name=view, *filters).annotate(t=Count('queries')).order_by('-t')[0]
-                requests.append(r)
-            except IndexError:
-                pass
+            request = _top_request(
+                models.Request.objects.filter(view_name=view, *filters)
+                .values('pk')
+                .annotate(t=Count('queries'))
+                .order_by('-t')[:1]
+            )
+            if request is not None:
+                requests.append(request)
         return sorted(requests, key=lambda item: item.t, reverse=True)
 
     def _hot_paths(self, filters):

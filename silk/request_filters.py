@@ -12,11 +12,12 @@ TIME_RANGE_PRESETS = {
     '7d': 604800,
 }
 
-from django.db.models import Count, Q, Sum
+from django.db.models import Q
 from django.utils import timezone
 
 from silk.profiling.dynamic import _get_module
 from silk.templatetags.silk_filters import _silk_date_time
+from silk.utils.aggregation import db_time_expr, num_queries_expr
 from silk.utils.n_plus_one import fingerprint_query
 
 logger = logging.getLogger('silk.request_filters')
@@ -172,7 +173,7 @@ class NumQueriesFilter(BaseFilter):
         return '#queries >= %s' % self.value
 
     def contribute_to_query_set(self, query_set):
-        return query_set.annotate(num_queries=Count('queries'))
+        return query_set.annotate(num_queries=num_queries_expr(query_set.model))
 
 
 class TimeSpentOnQueriesFilter(BaseFilter):
@@ -187,7 +188,7 @@ class TimeSpentOnQueriesFilter(BaseFilter):
         return 'DB Time >= %s' % self.value
 
     def contribute_to_query_set(self, query_set):
-        return query_set.annotate(db_time=Sum('queries__time_taken'))
+        return query_set.annotate(db_time=db_time_expr(query_set.model))
 
 
 class OverallTimeFilter(BaseFilter):

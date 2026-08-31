@@ -1,6 +1,6 @@
 import json
 
-from django.db.models import Q, Sum
+from django.db.models import Q
 from django.shortcuts import render
 from django.template.context_processors import csrf
 from django.utils.decorators import method_decorator
@@ -14,6 +14,7 @@ from silk.request_filters import (
     TIME_RANGE_PRESETS,
     filters_from_request,
 )
+from silk.utils.aggregation import db_time_expr
 from silk.utils.n_plus_one import fingerprint_query
 from silk.utils.pagination import get_page
 
@@ -40,7 +41,7 @@ SORT_OPTIONS = {
     'db_time': {
         'label': 'DB Time',
         'additional_query_filter': lambda qs: qs.annotate(
-            db_time=Sum('queries__time_taken')
+            db_time=db_time_expr(qs.model)
         ).filter(db_time__gte=0),
     },
 }
