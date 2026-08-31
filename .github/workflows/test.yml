@@ -13,8 +13,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.12', '3.13']
-        django-version: ['5.1', '5.2']
+        python-version: ['3.12', '3.13', '3.14']
+        django-version: ['5.2', '6.0', '6.1']
 
     steps:
       - uses: actions/checkout@v4
@@ -23,6 +23,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
 
       - name: Cache pip
         uses: actions/cache@v4
