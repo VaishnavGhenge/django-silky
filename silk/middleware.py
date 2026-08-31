@@ -24,9 +24,9 @@ def silky_reverse(name, *args, **kwargs):
     try:
         r = reverse('silk:%s' % name, *args, **kwargs)
     except NoReverseMatch:
-        # In case user forgets to set namespace, but also fixes Django 1.5 tests on Travis
+        # In case user forgets to set namespace
         # Hopefully if user has forgotten to add namespace there are no clashes with their own
-        # view names but I don't think there is really anything can do about this.
+        # view names but I don't think there is really anything we can do about this.
         r = reverse(name, *args, **kwargs)
     return r
 
@@ -44,7 +44,7 @@ AUTH_AND_SESSION_MIDDLEWARES = [
 
 
 def _should_intercept(request):
-    """we want to avoid recording any requests/sql queries etc that belong to Silky"""
+    """We want to avoid recording any requests/SQL queries, etc., that belong to Silky."""
     # Check custom intercept logic.
     if config.SILKY_INTERCEPT_FUNC:
         if not config.SILKY_INTERCEPT_FUNC(request):
@@ -55,11 +55,22 @@ def _should_intercept(request):
             return False
 
     try:
+        # get_fpath() (via reverse()) picks up Django's script prefix
+        # (set from SCRIPT_NAME by the WSGI handler on every real
+        # request), so it already includes any front-end web server
+        # prefix -- exactly like request.path does. Keep comparing
+        # against request.path here; request.path_info has that
+        # prefix stripped and would no longer match.
         silky = request.path.startswith(get_fpath())
     except NoReverseMatch:
         silky = False
 
-    ignored = request.path in config.SILKY_IGNORE_PATHS
+    # SILKY_IGNORE_PATHS entries are plain strings the user writes in
+    # settings.py -- never passed through reverse() -- so they're
+    # naturally written without any deployment-specific SCRIPT_NAME
+    # prefix. Use path_info (prefix-stripped) here so such an entry
+    # still matches when silk is deployed behind a prefix. See GH #349.
+    ignored = request.path_info in config.SILKY_IGNORE_PATHS
     return not (silky or ignored)
 
 
@@ -89,7 +100,7 @@ class SilkyMiddleware:
         # To be able to persist filters when Session and Authentication
         # middlewares are not present.
         # Unlike session (which stores in DB) it won't persist filters
-        # after refresh the page.
+        # after refreshing the page.
         request.silk_filters = {}
 
         response = self.get_response(request)

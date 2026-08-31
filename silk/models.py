@@ -7,7 +7,6 @@ from datetime import timedelta
 from uuid import uuid4
 
 import sqlparse
-from django.conf import settings
 from django.core.files.storage import storages
 from django.core.files.storage.handler import InvalidStorageError
 from django.db import models, router, transaction
@@ -34,12 +33,18 @@ Logger = logging.getLogger('silk.models')
 
 GARBAGE_COLLECT_MODES = ('count', 'time', 'both')
 
-try:
-    silk_storage = storages['SILKY_STORAGE']
-except InvalidStorageError:
-    from django.utils.module_loading import import_string
-    storage_class = SilkyConfig().SILKY_STORAGE_CLASS or settings.DEFAULT_FILE_STORAGE
-    silk_storage = import_string(storage_class)()
+
+def get_silk_storage():
+    """Resolve profiler file storage at use-time (migration-safe callable)."""
+    try:
+        return storages['SILKY_STORAGE']
+    except InvalidStorageError:
+        from django.utils.module_loading import import_string
+        return import_string(SilkyConfig().SILKY_STORAGE_CLASS)()
+
+
+# Kept for historical migrations that reference silk.models.silk_storage.
+silk_storage = get_silk_storage()
 
 
 # Seperated out so can use in tests w/o models
@@ -90,7 +95,8 @@ class Request(models.Model):
     meta_num_queries = IntegerField(null=True, blank=True)
     meta_time_spent_queries = FloatField(null=True, blank=True)
     pyprofile = TextField(blank=True, default='')
-    prof_file = FileField(max_length=300, blank=True, storage=silk_storage)
+    # Callable storage keeps migrations stable across project STORAGES settings.
+    prof_file = FileField(max_length=300, blank=True, storage=get_silk_storage)
 
     # Useful method to create shortened copies of strings without losing start and end context
     # Used to ensure path and view_name don't exceed 190 characters

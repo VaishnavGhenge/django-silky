@@ -1,6 +1,6 @@
 import json
 
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.shortcuts import render
 from django.template.context_processors import csrf
 from django.utils.decorators import method_decorator
@@ -117,7 +117,7 @@ class RequestsView(View):
     def _get_views(self):
         return (
             Request.objects.values_list('view_name', flat=True)
-            .exclude(view_name='')
+            .exclude(Q(view_name='') | Q(view_name__isnull=True))
             .order_by('view_name')
             .distinct()
         )

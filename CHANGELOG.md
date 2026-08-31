@@ -5,6 +5,37 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.5.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.5.0) (2026-08-31)
+
+Sync with upstream [jazzband/django-silk](https://github.com/jazzband/django-silk) through 5.5.2 and its post-5.5.2 master (commit `3c431d9`).
+
+### Compatibility (breaking)
+
+- **Django 6.1 is supported; Django 4.2 and 5.1 are no longer.** Both are end of life upstream, and `install_requires` is now `Django>=5.2`. Pip will keep resolving `django-silky` 1.4.0 for projects still on 4.2 or 5.1. Supported matrix: Django 5.2, 6.0, 6.1 on Python 3.10 through 3.15.
+- **New migration `silk.0009_alter_request_prof_file`.** Run `manage.py migrate silk` after upgrading. `Request.prof_file` now takes a storage *callable* (`silk.models.get_silk_storage`) rather than an instance resolved at import time, so the recorded migration state no longer depends on the project's `STORAGES` setting. The old `silk.models.silk_storage` name is kept for historical migrations.
+- The `settings.DEFAULT_FILE_STORAGE` fallback is gone (Django 5.1 removed the setting). Point `STORAGES['SILKY_STORAGE']` or `SILKY_STORAGE_CLASS` at your storage backend instead.
+
+### Bug Fixes
+
+- **`SILKY_IGNORE_PATHS` now matches behind a `SCRIPT_NAME` prefix** (upstream [#888](https://github.com/jazzband/django-silk/pull/888)). Matching uses `request.path_info`, which has the deployment prefix stripped, so an entry written as `/health/` in settings.py matches whether or not the app is mounted behind a prefix.
+- **View filter dropdown skips NULL view names** (upstream [#882](https://github.com/jazzband/django-silk/pull/882)): requests recorded without a resolved view no longer contribute a blank option.
+- **curl generation with non-string query params** (upstream [#885](https://github.com/jazzband/django-silk/pull/885)) no longer raises `AttributeError`.
+- **`FiltersManager.get()` without session support** (upstream [#887](https://github.com/jazzband/django-silk/pull/887)) returns `{}` instead of raising `AttributeError` when `save()` has not run for that request.
+
+### UI
+
+- The filter nav's Apply and Clear actions are native `<button>` elements submitting the form, not `<div>`s with `onclick` handlers (upstream [#890](https://github.com/jazzband/django-silk/pull/890)). Keyboard and screen reader users can now reach them. The fork's themed styling is preserved.
+
+### CI
+
+- Test matrix moved to Python 3.12, 3.13, 3.14 against Django 5.2, 6.0 and 6.1.
+
+### Tests
+
+- Test baseline: **326 passed, 1 skipped** (up from 315, upstream backfilled filter and middleware tests).
+
+---
+
 ## [1.4.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.4.0) (2026-07-04)
 
 ### Features
@@ -195,6 +226,43 @@ See git history for changes in v1.0.0–v1.0.3.
      ────────────────────────────────────────────────────────────────────────── -->
 
 ## Unreleased
+
+## [5.5.2](https://github.com/jazzband/django-silk/tree/5.5.2) (2026-08-11)
+:release-by: Albert Wang (@albertyw)
+[Full Changelog](https://github.com/jazzband/django-silk/compare/5.5.0..5.5.2)
+
+This is a re-release of 5.5.1 due to build/release issues.
+
+This will be the final release to support Django 4.2 and Django 5.1.
+
+**Fixes:**
+
+ - Fix making a release build (#897) @albertyw
+
+## [5.5.1](https://github.com/jazzband/django-silk/tree/5.5.1) (2026-08-01)
+:release-by: Albert Wang (@albertyw)
+[Full Changelog](https://github.com/jazzband/django-silk/compare/5.5.0..5.5.1)
+
+This will be the final release to support Django 4.2 and Django 5.1
+
+**Fixes:**
+
+ - Fix HTML in request_summary.html (#852) @JortRoelofs
+ - Fix filtering for JS content (#868) @albertyw
+ - Fix silk collector finalise raising TypeError when a "model" key is present in query dict (#872) @albertyw
+ - Exclude NULL view_names from View filter dropdown (#882) @albertyw
+ - Fix FiltersManager.get() raising AttributeError without session support (#887) @agu2347
+ - Fix AttributeError generating curl command for non-string query params (#885) @agu2347
+
+**Features/Enhancements:**
+
+ - Add support for Python 3.15 (#892) @hugovk
+
+**Maintenance and Cleanup:**
+
+ - Fix test coverage flakiness (#850) @albertyw
+ - Fix test project (#871) @VaishnavGhenge
+ - Dependency updates
 
 ## [5.5.0](https://github.com/jazzband/django-silk/tree/5.5.0) (2026-03-06)
 :release-by: Albert Wang (@albertyw)

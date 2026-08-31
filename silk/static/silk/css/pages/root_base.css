@@ -151,6 +151,8 @@ input[type=text] {
   display: inline-block;
   background-color: var(--silk-surface);
   color: var(--silk-text-primary);
+  border: 0;
+  font: inherit;
   margin: 10px;
   padding: 10px;
   border-radius: 5px;
