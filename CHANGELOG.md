@@ -5,6 +5,37 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.5.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.5.0) (2026-08-31)
+
+Sync with upstream [jazzband/django-silk](https://github.com/jazzband/django-silk) through 5.5.2 and its post-5.5.2 master (commit `3c431d9`).
+
+### Compatibility (breaking)
+
+- **Django 6.1 is supported; Django 4.2 and 5.1 are no longer.** Both are end of life upstream, and `install_requires` is now `Django>=5.2`. Pip will keep resolving `django-silky` 1.4.0 for projects still on 4.2 or 5.1. Supported matrix: Django 5.2, 6.0, 6.1 on Python 3.10 through 3.15.
+- **New migration `silk.0009_alter_request_prof_file`.** Run `manage.py migrate silk` after upgrading. `Request.prof_file` now takes a storage *callable* (`silk.models.get_silk_storage`) rather than an instance resolved at import time, so the recorded migration state no longer depends on the project's `STORAGES` setting. The old `silk.models.silk_storage` name is kept for historical migrations.
+- The `settings.DEFAULT_FILE_STORAGE` fallback is gone (Django 5.1 removed the setting). Point `STORAGES['SILKY_STORAGE']` or `SILKY_STORAGE_CLASS` at your storage backend instead.
+
+### Bug Fixes
+
+- **`SILKY_IGNORE_PATHS` now matches behind a `SCRIPT_NAME` prefix** (upstream [#888](https://github.com/jazzband/django-silk/pull/888)). Matching uses `request.path_info`, which has the deployment prefix stripped, so an entry written as `/health/` in settings.py matches whether or not the app is mounted behind a prefix.
+- **View filter dropdown skips NULL view names** (upstream [#882](https://github.com/jazzband/django-silk/pull/882)): requests recorded without a resolved view no longer contribute a blank option.
+- **curl generation with non-string query params** (upstream [#885](https://github.com/jazzband/django-silk/pull/885)) no longer raises `AttributeError`.
+- **`FiltersManager.get()` without session support** (upstream [#887](https://github.com/jazzband/django-silk/pull/887)) returns `{}` instead of raising `AttributeError` when `save()` has not run for that request.
+
+### UI
+
+- The filter nav's Apply and Clear actions are native `<button>` elements submitting the form, not `<div>`s with `onclick` handlers (upstream [#890](https://github.com/jazzband/django-silk/pull/890)). Keyboard and screen reader users can now reach them. The fork's themed styling is preserved.
+
+### CI
+
+- Test matrix moved to Python 3.12, 3.13, 3.14 against Django 5.2, 6.0 and 6.1.
+
+### Tests
+
+- Test baseline: **326 passed, 1 skipped** (up from 315, upstream backfilled filter and middleware tests).
+
+---
+
 ## [1.4.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.4.0) (2026-07-04)
 
 ### Features
