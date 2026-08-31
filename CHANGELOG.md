@@ -5,6 +5,18 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.5.1](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.5.1) (2026-09-01)
+
+### Bug Fixes
+
+- **Oracle: `ORA-00932: inconsistent datatypes: expected - got NCLOB`** ([#21](https://github.com/VaishnavGhenge/django-silky/issues/21), upstream [#255](https://github.com/jazzband/django-silk/issues/255)). The summary page, the requests list sorted by DB time, and the num-queries and DB-time filters all annotated whole `Request` rows with `Count('queries')` or `Sum('queries__time_taken')`. Django only collapses that GROUP BY down to the primary key on PostgreSQL, so on Oracle the statement grouped by all 17 columns, five of which are `TextField` (NCLOB), and Oracle refuses to group by a LOB. Filters and list sorting now annotate through correlated subqueries (`silk/utils/aggregation.py`), and the summary aggregates group over `values('pk')`. Results are unchanged on every backend: counts still read 0 for requests with no queries, sums still read NULL.
+
+### Tests
+
+- New `project/tests/test_oracle_lob_group_by.py` asserts that no statement the summary or requests page runs names a LOB column in a GROUP BY, so the regression is caught on SQLite without an Oracle instance. Test baseline: **338 passed, 1 skipped**.
+
+---
+
 ## [1.5.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.5.0) (2026-08-31)
 
 Sync with upstream [jazzband/django-silk](https://github.com/jazzband/django-silk) through 5.5.2 and its post-5.5.2 master (commit `3c431d9`).
