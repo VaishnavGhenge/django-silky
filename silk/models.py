@@ -1,4 +1,5 @@
 import base64
+import gzip
 import json
 import logging
 import random
@@ -269,7 +270,15 @@ class Response(models.Model):
 
     @property
     def raw_body_decoded(self):
-        return base64.b64decode(self.raw_body)
+        raw_body = base64.b64decode(self.raw_body)
+        if self.headers.get('content-encoding') == 'gzip':
+            try:
+                return gzip.decompress(raw_body)
+            except (OSError, EOFError):
+                # Malformed gzip payloads must not crash the raw view;
+                # fall back to the still-compressed body.
+                return raw_body
+        return raw_body
 
 
 # TODO rewrite docstring

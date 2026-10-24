@@ -23,3 +23,21 @@ class TestByteStringCompatForResponse(TestCase):
         factory = ResponseModelFactory(mock)
         body, content = factory.body()
         self.assertDictEqual(json.loads(body), d)
+
+
+class TestPackageVersion(TestCase):
+    def test_version_falls_back_when_metadata_is_missing(self):
+        import importlib
+        import importlib.metadata
+        from unittest.mock import patch
+
+        import silk
+
+        self.addCleanup(importlib.reload, silk)
+        with patch(
+            "importlib.metadata.version",
+            side_effect=importlib.metadata.PackageNotFoundError,
+        ):
+            importlib.reload(silk)
+
+        self.assertEqual(silk.__version__, "unknown")

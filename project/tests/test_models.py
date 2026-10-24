@@ -1,4 +1,7 @@
+import base64
 import datetime
+import gzip
+import json
 import uuid
 
 from django.core.management import call_command
@@ -327,6 +330,20 @@ class ResponseTest(TestCase):
 
         self.obj.encoded_headers = '{"content-type": "some_data"}'
         self.assertEqual(self.obj.content_type, "some_data")
+
+    def test_raw_body_decoded_decompresses_gzip_response(self):
+        content = b'hello from gzip'
+        self.obj.raw_body = base64.b64encode(gzip.compress(content)).decode('ascii')
+        self.obj.encoded_headers = json.dumps({'content-encoding': 'gzip'})
+
+        self.assertEqual(self.obj.raw_body_decoded, content)
+
+    def test_raw_body_decoded_falls_back_on_malformed_gzip_response(self):
+        raw = b'not actually gzip data'
+        self.obj.raw_body = base64.b64encode(raw).decode('ascii')
+        self.obj.encoded_headers = json.dumps({'content-encoding': 'gzip'})
+
+        self.assertEqual(self.obj.raw_body_decoded, raw)
 
 
 class SQLQueryManagerTest(TestCase):
