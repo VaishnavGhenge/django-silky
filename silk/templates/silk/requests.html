@@ -1,20 +1,19 @@
 {% extends 'silk/base/base.html' %}
+{% load silk_assets %}
 {% load static %}
 
 {% block pagetitle %}Silky - Requests{% endblock %}
 
 {% block js %}
-    <script src="{% static 'silk/lib/htmx.min.js' %}" defer></script>
-    <script src="{% static 'silk/js/pages/requests.js' %}" defer></script>
-    {# Prefetch a request's page when the pointer rests on its row (Chrome; ignored elsewhere). #}
-    <script type="speculationrules">
-      {"prefetch": [{"source": "document", "where": {"selector_matches": "a.row-link"}, "eagerness": "moderate"}]}
-    </script>
+    <script src="{% silk_asset 'silk/lib/htmx.min.js' %}" defer></script>
+    <script src="{% silk_asset 'silk/js/pages/requests.js' %}" defer></script>
 {% endblock %}
 
 {% block data %}
 {# Filters post to this view and are kept in the session, as before. htmx swaps only #req-dynamic, #}
 {# so the search box keeps focus while you type. Without JavaScript the form still posts normally. #}
+<div class="splitview" id="req-split" data-list-url="{% url 'silk:requests' %}">
+<section class="splitview__main">
 <form id="req-form" class="req" method="post" action="{% url 'silk:requests' %}"
       hx-post="{% url 'silk:requests' %}" hx-target="#req-dynamic" hx-swap="outerHTML"
       hx-trigger="submit, input changed delay:300ms from:#req-search">
@@ -31,4 +30,8 @@
     </div>
     {% include 'silk/inclusion/requests_results.html' %}
 </form>
+</section>
+{# Clicking a row loads the request here (htmx); the URL becomes the request's own page. #}
+<aside class="detail req-panel" id="req-panel" aria-label="Request" hidden></aside>
+</div>
 {% endblock %}

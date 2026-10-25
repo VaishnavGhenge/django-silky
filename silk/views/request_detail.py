@@ -50,4 +50,6 @@ class RequestView(View):
             context['n_plus_one'] = detect_n_plus_one(all_queries)
         context['insights'] = request_insights(silk_request, all_queries)
 
-        return render(request, 'silk/request.html', context)
+        # The requests list opens a request in a side panel through htmx; a normal visit gets the full page.
+        template = 'silk/inclusion/request_panel.html' if request.headers.get('HX-Request') else 'silk/request.html'
+        return render(request, template, context)

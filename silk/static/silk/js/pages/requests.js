@@ -4,6 +4,7 @@
   'use strict';
 
   var SLOW_MS = 1000;
+  var cursor = -1;
 
   function form() { return document.getElementById('req-form'); }
   function field(name) { return form().querySelector('[name="' + name + '"]'); }
@@ -55,18 +56,59 @@
     if (e.target.matches('[data-submit-on-change]')) submit();
   });
 
+  // ── Side panel: a row opens its request beside the list (htmx loads it into #req-panel) ──
+  function panel() { return document.getElementById('req-panel'); }
+  function split() { return document.getElementById('req-split'); }
+  function markOpen(id) {
+    document.querySelectorAll('#req-dynamic tbody tr').forEach(function (tr) { tr.classList.toggle('is-open', tr.dataset.id === id); });
+  }
+  function closePanel(push) {
+    var p = panel();
+    if (!p || p.hidden) return;
+    p.hidden = true;
+    p.innerHTML = '';
+    split().classList.remove('has-detail');
+    markOpen(null);
+    if (push) history.pushState(null, '', split().dataset.listUrl);
+  }
+  document.addEventListener('htmx:afterSwap', function (e) {
+    if (e.detail.target !== panel()) return;
+    var p = panel(), rp = p.querySelector('.rp');
+    p.hidden = false;
+    p.scrollTop = 0;
+    split().classList.add('has-detail');
+    markOpen(rp ? rp.dataset.requestId : null);
+    // Keep the keyboard cursor on the open row so j/k continue from it.
+    cursor = rows().findIndex(function (tr) { return tr.classList.contains('is-open'); });
+    paintOnly();
+  });
+  // Ctrl/Cmd/Shift/middle click keeps the browser's own behaviour (open the full page in a new tab).
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('a.row-link') && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) e.stopPropagation();
+    if (e.target.closest('[data-panel-close]')) closePanel(true);
+  }, true);
+  // Back/forward to the list URL closes the panel.
+  window.addEventListener('popstate', function () {
+    if (!/\/request\//.test(location.pathname)) closePanel(false);
+  });
+
   // Keyboard: / focuses search, j/k move between rows, Enter opens the row.
-  var cursor = -1;
+
   function rows() { return Array.prototype.slice.call(document.querySelectorAll('#req-dynamic tbody tr')); }
+  function paintOnly() { rows().forEach(function (tr, i) { tr.classList.toggle('is-cursor', i === cursor); }); }
   function paint() {
     rows().forEach(function (tr, i) { tr.classList.toggle('is-cursor', i === cursor); });
     var tr = rows()[cursor];
-    if (tr) tr.scrollIntoView({ block: 'nearest' });
+    if (!tr) return;
+    tr.scrollIntoView({ block: 'nearest' });
+    // With the panel open, moving the cursor opens that request.
+    if (panel() && !panel().hidden) { var a = tr.querySelector('a.row-link'); if (a) a.click(); }
   }
   document.addEventListener('keydown', function (e) {
     var typing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
     if (e.key === '/' && !typing) { e.preventDefault(); var s = document.getElementById('req-search'); s.focus(); s.select(); return; }
     if (e.key === 'Escape' && typing) { document.activeElement.blur(); return; }
+    if (e.key === 'Escape' && panel() && !panel().hidden) { closePanel(true); return; }
     if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
     var n = rows().length;
     if (!n) return;
@@ -74,7 +116,8 @@
     else if (e.key === 'k' || e.key === 'ArrowUp') { e.preventDefault(); cursor = Math.max(0, cursor - 1); paint(); }
     else if (e.key === 'Enter' && cursor >= 0) { var a = rows()[cursor].querySelector('a.row-link'); if (a) a.click(); }
   });
-  document.addEventListener('htmx:afterSwap', function () {
+  document.addEventListener('htmx:afterSwap', function (e) {
+    if (e.detail.target === panel()) return; // panel loads keep the cursor
     cursor = -1;
     // The search box sits outside the swapped region; keep it in step with the
     // server's filters (e.g. after "Clear filters") unless the user is typing in it.

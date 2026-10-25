@@ -1,4 +1,5 @@
 {% extends "silk/base/detail_base.html" %}
+{% load silk_assets %}
 {% load static %}
 {% load silk_filters %}
 {% load silk_nav %}
@@ -8,12 +9,12 @@
 
 {% block js %}
     {{ block.super }}
-    <script src="{% static 'silk/js/pages/sql_detail.js' %}"></script>
+    <script src="{% silk_asset 'silk/js/pages/sql_detail.js' %}"></script>
 {% endblock %}
 
 {% block style %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'silk/css/pages/sql_detail.css' %}"/>
+    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/sql_detail.css' %}"/>
 {% endblock %}
 
 {% block menu %}

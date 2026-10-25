@@ -1,4 +1,5 @@
 {% extends "silk/base/detail_base.html" %}
+{% load silk_assets %}
 {% load silk_filters %}
 {% load silk_nav %}
 {% load silk_inclusion %}
@@ -7,14 +8,14 @@
 {% block pagetitle %}Silky - Profile Detail - {{ silk_request.path }}{% endblock %}
 
 {% block js %}
-    <script type="text/javascript" src="{% static 'silk/lib/viz-lite.js' %}"></script>
-    <script type="text/javascript" src="{% static 'silk/lib/svg-pan-zoom.min.js' %}"></script>
+    <script type="text/javascript" src="{% silk_asset 'silk/lib/viz-lite.js' %}"></script>
+    <script type="text/javascript" src="{% silk_asset 'silk/lib/svg-pan-zoom.min.js' %}"></script>
     {{ block.super }}
 {% endblock %}
 
 {% block style %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'silk/css/pages/profile_detail.css' %}">
+    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/profile_detail.css' %}">
 {% endblock %}
 
 {% block menu %}
@@ -86,7 +87,7 @@
     </section>
     {% url 'silk:request_profile_dot' request_id=silk_request.pk as profile_dot_url %}
     {{ profile_dot_url|json_script:'profileDotURL' }}
-    <script src="{% static 'silk/js/pages/profile_detail.js' %}"></script>
+    <script src="{% silk_asset 'silk/js/pages/profile_detail.js' %}"></script>
     {% endif %}
 
     {# ── Python profiler output ── #}

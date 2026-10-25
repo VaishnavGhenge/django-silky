@@ -1,4 +1,4 @@
-{% load static silk_nav %}<!DOCTYPE html>
+{% load silk_assets %}{% load static silk_nav %}<!DOCTYPE html>
 <html lang="en" id="silk-root">
 <head>
     <meta charset="utf-8">
@@ -21,12 +21,12 @@
         } catch (e) { /* storage blocked: defaults apply */ }
       })();
     </script>
-    <link rel="stylesheet" href="{% static 'silk/css/silky.css' %}">
+    <link rel="stylesheet" href="{% silk_asset 'silk/css/silky.css' %}">
     <link rel="icon" type="image/png" href="{% static 'silk/favicon-32x32.png' %}" sizes="32x32">
     <link rel="icon" type="image/png" href="{% static 'silk/favicon-16x16.png' %}" sizes="16x16">
     {% block style %}{% endblock %}
-    <script src="{% static 'silk/js/silky.js' %}" defer></script>
-    <script src="{% static 'silk/js/components/timeago.js' %}" defer></script>
+    <script src="{% silk_asset 'silk/js/silky.js' %}" defer></script>
+    <script src="{% silk_asset 'silk/js/components/timeago.js' %}" defer></script>
     {% block js %}{% endblock %}
 </head>
 

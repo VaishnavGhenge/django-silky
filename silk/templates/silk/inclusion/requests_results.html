@@ -118,11 +118,12 @@
             <tbody>
             {% for r in results %}
             {% with sc=r.response.status_code %}
-            <tr>
+            <tr data-id="{{ r.pk }}">
                 <td><span class="badge m-{{ r.method }}">{{ r.method }}</span></td>
                 <td>{% if sc %}<span class="status s-{{ sc|stringformat:'d'|slice:':1' }}">{{ sc }}</span>{% else %}<span class="muted">·</span>{% endif %}</td>
                 <td class="c-path-cell">
-                    <a class="row-link path" href="{% url 'silk:request_detail' request_id=r.pk %}" title="{{ r.path }}">{{ r.path }}</a>
+                    <a class="row-link path" href="{% url 'silk:request_detail' request_id=r.pk %}" title="{{ r.path }}"
+                       hx-get="{% url 'silk:request_detail' request_id=r.pk %}" hx-target="#req-panel" hx-swap="innerHTML" hx-push-url="true">{{ r.path }}</a>
                     <div class="view">{{ r.view_name|default:"unresolved view" }}</div>
                 </td>
                 <td class="num"><div class="timecell t-{{ r.tier }}"><b>{{ r.time_taken|floatformat:"0" }} ms</b><span class="timebar"><i style="width:{{ r.bar_pct }}%"></i></span></div></td>

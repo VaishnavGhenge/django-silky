@@ -1,0 +1,18 @@
+{# A request opened in the side panel of the requests list. The full page is one click away. #}
+<div class="rp" data-request-id="{{ silk_request.pk }}">
+    <div class="rp-bar">
+        <nav class="rp-tabs" aria-label="Request">
+            <span class="rp-tab is-active">Overview</span>
+            <a class="rp-tab" href="{% url 'silk:request_sql' request_id=silk_request.pk %}">SQL <span class="count">{{ silk_request.num_sql_queries }}</span></a>
+            <a class="rp-tab" href="{% url 'silk:request_profiling' request_id=silk_request.pk %}">Profiling</a>
+            <a class="rp-tab" href="{% url 'silk:cprofile' request_id=silk_request.pk %}">cProfile</a>
+        </nav>
+        <a class="btn btn--sm" href="{% url 'silk:request_detail' request_id=silk_request.pk %}" title="Open the full request page">Full page</a>
+        <button class="d-close" type="button" data-panel-close aria-label="Close" title="Close (Esc)">
+            <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg>
+        </button>
+    </div>
+    <div class="rp-body">
+        {% include 'silk/inclusion/request_overview.html' %}
+    </div>
+</div>

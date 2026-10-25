@@ -1,4 +1,5 @@
 {% extends 'silk/base/base.html' %}
+{% load silk_assets %}
 {% load silk_inclusion %}
 {% load static %}
 {% block pagetitle %}Silky - Settings{% endblock %}
@@ -8,7 +9,7 @@
 {% endblock %}
 
 {% block style %}
-    <link rel="stylesheet" href="{% static 'silk/css/pages/clear_db.css' %}"/>
+    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/clear_db.css' %}"/>
 {% endblock %}
 
 {% block data %}
