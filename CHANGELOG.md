@@ -5,6 +5,30 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.6.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.6.0) (2026-10-25)
+
+Sync with upstream [jazzband/django-silk](https://github.com/jazzband/django-silk) through 5.6.0 and its post-5.6.0 master (commit `d273516`). No new migrations.
+
+### Features
+
+- **`SILKY_INTERCEPT_STATUS_CODES`** (upstream [#922](https://github.com/jazzband/django-silk/pull/922)) keeps only requests whose response status is in the given set, e.g. `{500, 501}` to record server errors only. The default `None` records every request. The status is only known once the response is ready, so Silk still writes each request as it arrives and deletes it afterwards if the status does not match. A value that is not `None` or an iterable of integers raises `SilkNotConfigured` at startup.
+
+### Bug Fixes
+
+- **Gzip response bodies are decompressed in the raw body view** (upstream [#900](https://github.com/jazzband/django-silk/pull/900)). A malformed gzip body falls back to the stored bytes instead of raising.
+- **`silk.__version__` no longer raises `PackageNotFoundError`** when package metadata is missing (upstream [#911](https://github.com/jazzband/django-silk/pull/911)). The lookup tries `django-silky`, then `django-silk`, then reports `"unknown"`.
+
+### Development
+
+- `requirements.txt` is gone. Test dependencies live in the `test` dependency group in `pyproject.toml` (upstream [#914](https://github.com/jazzband/django-silk/pull/914)); install them with `pip install --group test` (pip 25.1 or later).
+- README documents `SILKY_INTERCEPT_STATUS_CODES` and `SILKY_IGNORE_PATHS`.
+
+### Tests
+
+- Test baseline: **346 passed, 1 skipped** (up from 338). Upstream also fixed a profile parser test that failed when GC finalizers ran during profiling.
+
+---
+
 ## [1.5.1](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.5.1) (2026-09-01)
 
 ### Bug Fixes
