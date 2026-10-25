@@ -1,6 +1,7 @@
 from django.urls import path
 
 from silk.views.clear_db import ClearDBView
+from silk.views.compare import CompareRangesView, ComparePickView, CompareRequestsView
 from silk.views.cprofile import CProfileView
 from silk.views.profile_detail import ProfilingDetailView
 from silk.views.profile_dot import ProfileDotView
@@ -20,6 +21,9 @@ urlpatterns = [
     path(route='requests/', view=RequestsView.as_view(), name='requests'),
     path(route='sql/', view=SQLPatternsView.as_view(), name='sql'),
     path(route='hotspots/', view=HotspotsView.as_view(), name='hotspots'),
+    path(route='compare/', view=CompareRangesView.as_view(), name='compare'),
+    path(route='compare/requests/', view=ComparePickView.as_view(), name='compare_pick'),
+    path(route='compare/<uuid:a_id>/<uuid:b_id>/', view=CompareRequestsView.as_view(), name='compare_requests'),
     path(
         route='request/<uuid:request_id>/',
         view=RequestView.as_view(),

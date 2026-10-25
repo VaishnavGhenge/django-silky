@@ -117,10 +117,11 @@
     // Chart cards: <div class="chartcard" data-chart="id"> … <button data-chart-toggle>. Remembered per chart.
     var chartBtn = e.target.closest('[data-chart-toggle]');
     if (chartBtn) {
-      var card = chartBtn.closest('[data-chart]');
+      // A toggle outside its chart names it with data-chart-for.
+      var card = chartBtn.dataset.chartFor ? document.querySelector('[data-chart="' + chartBtn.dataset.chartFor + '"]') : chartBtn.closest('[data-chart]');
       var hide = !card.classList.contains('is-collapsed');
       card.classList.toggle('is-collapsed', hide);
-      chartBtn.textContent = hide ? 'Show' : 'Hide';
+      chartBtn.textContent = (hide ? 'Show' : 'Hide') + (chartBtn.dataset.chartFor ? ' chart' : '');
       var hidden = JSON.parse(read('silky-hidden-charts', '{}'));
       hidden[card.dataset.chart] = hide;
       write('silky-hidden-charts', JSON.stringify(hidden));
@@ -138,15 +139,40 @@
       closeMenus(list);
       list.hidden = !list.hidden;
       toggle.setAttribute('aria-expanded', String(!list.hidden));
-      if (!list.hidden) { var current = list.querySelector('[aria-checked="true"]') || list.querySelector('a, button'); if (current) current.focus(); }
+      if (!list.hidden) {
+        var search = list.querySelector('[data-menu-filter]');
+        if (search) { search.value = ''; filterMenu(search); search.focus(); return; }
+        var current = list.querySelector('[aria-checked="true"]') || list.querySelector('a, button'); if (current) current.focus();
+      }
       return;
     }
     if (!e.target.closest('.menu__list') || e.target.closest('a, button')) closeMenus();
   });
+  // Searchable menus: <input data-menu-filter> hides items that don't match; items marked data-keep always show.
+  function filterMenu(input) {
+    var q = input.value.trim().toLowerCase();
+    input.closest('.menu__list').querySelectorAll('a, button').forEach(function (item) {
+      item.hidden = !!q && !item.hasAttribute('data-keep') && item.textContent.toLowerCase().indexOf(q) < 0;
+    });
+  }
+  document.addEventListener('input', function (e) {
+    if (e.target.matches && e.target.matches('[data-menu-filter]')) filterMenu(e.target);
+  });
+  // Forms marked data-autosubmit submit as soon as a field changes.
+  document.addEventListener('change', function (e) {
+    var form = e.target.closest && e.target.closest('form[data-autosubmit]');
+    if (form && e.target.name && form.checkValidity()) { if (form.requestSubmit) form.requestSubmit(); else form.submit(); }
+  });
   document.addEventListener('keydown', function (e) {
     var list = e.target.closest && e.target.closest('.menu__list');
     if (!list) return;
-    var items = Array.prototype.slice.call(list.querySelectorAll('a, button')), i = items.indexOf(document.activeElement);
+    if (e.target.matches('[data-menu-filter]') && e.key === 'Enter') {
+      e.preventDefault();
+      var first = list.querySelector('a:not([hidden]):not([data-keep]), button:not([hidden]):not([data-keep])');
+      if (first) first.click();
+      return;
+    }
+    var items = Array.prototype.slice.call(list.querySelectorAll('a:not([hidden]), button:not([hidden])')), i = items.indexOf(document.activeElement);
     if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
     else if (e.key === 'Escape') { closeMenus(); var b = list.parentNode.querySelector('[data-menu-toggle]'); if (b) b.focus(); }
@@ -180,6 +206,8 @@
       card.classList.toggle('is-collapsed', hide);
       var btn = card.querySelector('[data-chart-toggle]');
       if (btn) btn.textContent = hide ? 'Show' : 'Hide';
+      var ext = document.querySelector('[data-chart-for="' + card.dataset.chart + '"]');
+      if (ext) ext.textContent = hide ? 'Show chart' : 'Hide chart';
     });
   };
   document.addEventListener('htmx:afterSettle', function (e) { silky.applyChartPrefs(e.target); });

@@ -1,0 +1,10 @@
+<div class="req-head">
+    <div>
+        <h1>Compare</h1>
+        <p class="sub">{% if mode == 'range' %}Compare two periods, for example before and after a deploy.{% else %}Two requests to the same endpoint. Step either side through that endpoint's history.{% endif %}</p>
+    </div>
+    <nav class="seg" aria-label="Compare mode">
+        <a href="{% url 'silk:compare' %}" aria-pressed="{% if mode == 'range' %}true{% else %}false{% endif %}">Two time ranges</a>
+        <a href="{% url 'silk:compare_pick' %}" aria-pressed="{% if mode == 'requests' %}true{% else %}false{% endif %}">Two requests</a>
+    </nav>
+</div>

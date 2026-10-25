@@ -8,6 +8,7 @@ from silk.auth import login_possibly_required, permissions_possibly_required
 from silk.code_generation.curl import curl_cmd
 from silk.code_generation.django_test_client import gen
 from silk.models import Request, SQLQuery
+from silk.utils.compare import endpoint_key, endpoint_q
 from silk.utils.insights import request_insights
 from silk.utils.n_plus_one import detect_n_plus_one
 
@@ -49,6 +50,10 @@ class RequestView(View):
         if all_queries:
             context['n_plus_one'] = detect_n_plus_one(all_queries)
         context['insights'] = request_insights(silk_request, all_queries)
+        context['previous_id'] = (Request.objects
+                                  .filter(endpoint_q(endpoint_key(silk_request.view_name, silk_request.path)),
+                                          start_time__lt=silk_request.start_time)
+                                  .order_by('-start_time').values_list('pk', flat=True).first())
 
         # The requests list opens a request in a side panel through htmx; a normal visit gets the full page.
         template = 'silk/inclusion/request_panel.html' if request.headers.get('HX-Request') else 'silk/request.html'

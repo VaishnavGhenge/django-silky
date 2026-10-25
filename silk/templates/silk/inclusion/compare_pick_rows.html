@@ -1,0 +1,16 @@
+<div id="cmp-rows" class="tablewrap">
+    <table class="reqs">
+        <thead><tr><th>Endpoint</th><th class="num c-90">Requests</th><th class="c-160"></th></tr></thead>
+        <tbody>
+        {% for e in endpoints %}
+        <tr>
+            <td class="c-path-cell"><a class="row-link path" href="{% url 'silk:compare_requests' a_id=e.a b_id=e.b %}">{{ e.key }}</a></td>
+            <td class="num mono">{{ e.count }}</td>
+            <td class="num"><span class="linkish">Compare newest two →</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3"><div class="empty">{% if q %}No endpoint with two or more requests matches “{{ q }}”.{% else %}No endpoint has two requests yet.{% endif %}</div></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,101 @@
+{% extends 'silk/base/base.html' %}
+{% load silk_assets %}
+
+{% block pagetitle %}Silky - Compare time ranges{% endblock %}
+
+{% block data %}
+<div class="cmp-page">
+    {% include 'silk/inclusion/compare_head.html' %}
+    {% if empty %}
+    <div class="empty"><p><strong>No requests recorded yet.</strong></p><p class="muted">Compare needs recorded requests on both sides.</p></div>
+    {% else %}
+    <form class="card rngcard" method="get" action="{% url 'silk:compare' %}" data-autosubmit>
+        {% if ep %}<input type="hidden" name="ep" value="{{ ep }}">{% endif %}
+        <div class="rngbar">
+            <div class="menu">
+                <button type="button" class="menu__btn" data-menu-toggle aria-haspopup="menu" aria-expanded="false">{{ active_preset.label|default:"Custom range" }}
+                    <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>
+                <div class="menu__list menu__list--left" role="menu" hidden>
+                    {% for p in presets %}<a role="menuitemradio" aria-checked="{% if active_preset.id == p.id %}true{% else %}false{% endif %}" href="{{ p.link }}">{{ p.label }}<kbd>{{ p.na }} vs {{ p.nb }}</kbd></a>{% endfor %}
+                </div>
+            </div>
+            <div class="menu">
+                <button type="button" class="menu__btn" data-menu-toggle aria-haspopup="menu" aria-expanded="false"><span class="menu__btntext">{{ ep|default:"All endpoints" }}</span>
+                    <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>
+                <div class="menu__list menu__list--left menu__list--scroll" role="menu" hidden>
+                    <input class="menu__search" type="search" placeholder="Filter endpoints" autocomplete="off" spellcheck="false" aria-label="Filter endpoints" data-menu-filter>
+                    <a role="menuitemradio" aria-checked="{% if not ep %}true{% else %}false{% endif %}" href="{{ all_link }}" data-keep>All endpoints</a>
+                    {% for m in menu %}<a role="menuitemradio" aria-checked="{% if ep == m.key %}true{% else %}false{% endif %}" href="{{ m.link }}">{{ m.key }}<kbd>{{ m.na }} vs {{ m.nb }}</kbd></a>{% endfor %}
+                </div>
+            </div>
+            <span class="rngbar__end">
+                <button type="button" class="chartcard__toggle" data-chart-toggle data-chart-for="cmp-activity">Hide chart</button>
+                <a class="btn btn--sm" href="{{ swap_link }}" title="Swap A and B">Swap A and B</a>
+            </span>
+        </div>
+        <div class="inlinechart" data-chart="cmp-activity">
+            <div class="act" aria-hidden="true">{% for bar in activity.bars %}<i class="{{ bar.cls }}" style="height:{{ bar.h }}%"></i>{% endfor %}</div>
+            <div class="act__axis"><span>{{ activity.lo|date:"M j, H:i" }}</span><span>{{ activity.hi|date:"M j, H:i" }}</span></div>
+        </div>
+        <div class="rrow rrow--a"><span class="rrow__tag">A</span>
+            <input type="datetime-local" class="input input--sm mono" name="a0" value="{{ fields.a0 }}" aria-label="A from" required>
+            <span class="muted">to</span>
+            <input type="datetime-local" class="input input--sm mono" name="a1" value="{{ fields.a1 }}" aria-label="A to" required>
+            <span class="rrow__n">{{ A.n }} request{{ A.n|pluralize }}</span></div>
+        <div class="rrow rrow--b"><span class="rrow__tag">B</span>
+            <input type="datetime-local" class="input input--sm mono" name="b0" value="{{ fields.b0 }}" aria-label="B from" required>
+            <span class="muted">to</span>
+            <input type="datetime-local" class="input input--sm mono" name="b1" value="{{ fields.b1 }}" aria-label="B to" required>
+            <span class="rrow__n">{{ B.n }} request{{ B.n|pluralize }}</span></div>
+        {% if tz %}<p class="muted small rngcard__tz">Times are in {{ tz }}.</p>{% endif %}
+    </form>
+
+    {% if error %}<div class="alert alert--bad"><span>{{ error }} Showing the default ranges instead.</span></div>{% endif %}
+    <div class="alert alert--{{ verdict.kind }}"><span><b>{{ verdict.headline }}</b> {{ verdict.detail }}</span></div>
+    {% if low_sample %}<p class="note">Fewer than 10 requests on one side: percentiles will be noisy.</p>{% endif %}
+
+    {% include 'silk/inclusion/compare_metrics.html' %}
+
+    {% if not ep and endpoints %}
+    <div class="secthead"><h2>Endpoints</h2><span class="muted small">biggest p95 regressions first</span></div>
+    <div class="tablewrap">
+        <table class="reqs">
+            <thead><tr><th>Endpoint</th><th class="num c-80">A</th><th class="num c-80">B</th><th class="num c-90">A p95</th><th class="num c-90">B p95</th><th class="num c-140">Change</th><th class="num c-130">Queries/req</th></tr></thead>
+            <tbody>
+            {% for e in endpoints|slice:":100" %}
+            <tr>
+                <td class="c-path-cell"><a class="row-link path" href="{{ e.link }}" title="Compare only this endpoint">{{ e.key }}</a></td>
+                <td class="num mono">{{ e.a.n|default:"·" }}</td>
+                <td class="num mono">{{ e.b.n|default:"·" }}</td>
+                <td class="num mono">{% if e.a.n %}{{ e.a.p95|floatformat:"0" }} ms{% else %}·{% endif %}</td>
+                <td class="num mono">{% if e.b.n %}{{ e.b.p95|floatformat:"0" }} ms{% else %}·{% endif %}</td>
+                <td class="num">{% if e.kind == 'new' %}<span class="kind kind--new">only in B</span>{% elif e.kind == 'gone' %}<span class="kind kind--gone">only in A</span>{% else %}<span class="delta {{ e.change.cls }}">{{ e.change.text }}</span>{% endif %}</td>
+                <td class="num mono">{% if e.a.n %}{{ e.a.q|floatformat:"1" }}{% else %}·{% endif %} → {% if e.b.n %}{{ e.b.q|floatformat:"1" }}{% else %}·{% endif %}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="secthead"><h2>Query patterns</h2><span class="muted small">calls per request, largest time change first</span></div>
+    <div class="tablewrap">
+        <table class="reqs">
+            <thead><tr><th>Pattern</th><th class="num c-110">A calls/req</th><th class="num c-110">B calls/req</th><th class="num c-140">Time/req change</th></tr></thead>
+            <tbody>
+            {% for p in patterns %}
+            <tr class="diff">
+                <td class="c-path-cell"><a class="pat" href="{% url 'silk:sql' %}?p={{ p.pattern_hash }}"><span class="sqltype t-{{ p.type }}">{{ p.type }}</span><code>{{ p.table|default:"·" }}</code></a><div class="pat__sql">{{ p.sql|truncatechars:160 }}</div></td>
+                <td class="num mono">{{ p.a|floatformat:"1" }}</td>
+                <td class="num mono">{{ p.b|floatformat:"1" }}</td>
+                <td class="num"><span class="delta {{ p.change.cls }}">{{ p.change.text }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4"><div class="empty">No query pattern changed by more than 0.1 calls per request.</div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'silk/base/base.html' %}
+{% load silk_filters %}
+
+{% block pagetitle %}Silky - Compare requests{% endblock %}
+
+{% block data %}
+<div class="cmp-page">
+    {% include 'silk/inclusion/compare_head.html' %}
+    <div class="cmpgrid">
+        {% with s=A r=A.request %}{% include 'silk/inclusion/compare_side.html' with tag='A · before' which='a' other=B.request %}{% endwith %}
+        <div class="cmpvs" aria-hidden="true">vs</div>
+        {% with s=B r=B.request %}{% include 'silk/inclusion/compare_side.html' with tag='B · after' which='b' other=A.request %}{% endwith %}
+    </div>
+
+    <div class="alert alert--{{ verdict.kind }}"><span><b>{{ verdict.headline }}</b> {{ verdict.detail }}</span></div>
+
+    {% include 'silk/inclusion/compare_metrics.html' %}
+
+    <div class="secthead">
+        <h2>Query patterns</h2>
+        {% if only_changes %}<a class="btn btn--sm" href="?all=1">Show unchanged too</a>{% else %}<a class="btn btn--sm" href="?">Only changes</a>{% endif %}
+    </div>
+    <div class="tablewrap">
+        <table class="reqs">
+            <thead><tr><th>Pattern</th><th class="num c-80">A</th><th class="num c-80">B</th><th class="num c-100">A time</th><th class="num c-100">B time</th><th class="c-110">Change</th></tr></thead>
+            <tbody>
+            {% if only_changes %}{% with rows=changed %}{% include 'silk/inclusion/compare_diff_rows.html' %}{% endwith %}
+            {% else %}{% with rows=diff %}{% include 'silk/inclusion/compare_diff_rows.html' %}{% endwith %}{% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

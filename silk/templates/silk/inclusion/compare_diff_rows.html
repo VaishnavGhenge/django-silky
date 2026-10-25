@@ -1,0 +1,13 @@
+{% for d in rows %}
+<tr class="diff diff--{{ d.kind }}">
+    <td class="c-path-cell"><a class="pat" href="{% url 'silk:sql' %}?p={{ d.pattern_hash }}"><span class="sqltype t-{{ d.type }}">{{ d.type }}</span><code>{{ d.table|default:"·" }}</code></a>
+        <div class="pat__sql">{{ d.sql|truncatechars:160 }}</div></td>
+    <td class="num mono">{{ d.a|default:"·" }}</td>
+    <td class="num mono">{{ d.b|default:"·" }}</td>
+    <td class="num mono">{% if d.a %}{{ d.ams|floatformat:"0" }} ms{% else %}·{% endif %}</td>
+    <td class="num mono">{% if d.b %}{{ d.bms|floatformat:"0" }} ms{% else %}·{% endif %}</td>
+    <td><span class="kind kind--{{ d.kind }}">{% if d.kind == 'new' %}new in B{% elif d.kind == 'gone' %}gone in B{% elif d.kind == 'more' %}more calls{% elif d.kind == 'fewer' %}fewer calls{% else %}same{% endif %}</span></td>
+</tr>
+{% empty %}
+<tr><td colspan="6"><div class="empty">Both requests ran the same queries the same number of times.</div></td></tr>
+{% endfor %}

@@ -1,0 +1,23 @@
+{% extends 'silk/base/base.html' %}
+{% load silk_assets %}
+
+{% block pagetitle %}Silky - Compare requests{% endblock %}
+
+{% block js %}
+    <script src="{% silk_asset 'silk/lib/htmx.min.js' %}" defer></script>
+{% endblock %}
+
+{% block data %}
+<div class="cmp-page">
+    {% include 'silk/inclusion/compare_head.html' %}
+    <form class="filters" method="get" action="{% url 'silk:compare_pick' %}"
+          hx-get="{% url 'silk:compare_pick' %}" hx-target="#cmp-rows" hx-swap="outerHTML" hx-push-url="true" hx-trigger="submit, input changed delay:250ms from:#cmp-q">
+        <label class="search">
+            <svg class="silk-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+            <input id="cmp-q" type="search" name="q" value="{{ q }}" placeholder="Search endpoint or path" autocomplete="off" spellcheck="false" aria-label="Search endpoint or path" autofocus>
+        </label>
+        <span class="muted small">Pick an endpoint to compare its two newest requests.</span>
+    </form>
+    {% include 'silk/inclusion/compare_pick_rows.html' %}
+</div>
+{% endblock %}

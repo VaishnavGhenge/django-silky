@@ -23,6 +23,11 @@
                 <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>Query-count test
             </button>
             <textarea id="copy-test" hidden>{{ ins.test_code }}</textarea>
+            {% if previous_id %}
+            <a class="btn" href="{% url 'silk:compare_requests' a_id=previous_id b_id=silk_request.pk %}" title="Compare with the previous request to this endpoint">
+                <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-git-compare"></use></svg>Compare with previous
+            </a>
+            {% endif %}
         </div>
     </header>
 
