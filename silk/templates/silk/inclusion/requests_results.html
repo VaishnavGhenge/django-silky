@@ -43,7 +43,7 @@
         <input type="hidden" name="filter-status_code-value" value="{{ filters.status_code.value|default:'' }}">
         <span class="sep" aria-hidden="true"></span>
 
-        <button type="button" class="chip" data-chip="slow" aria-pressed="{% if filters.overalltime.value %}true{% else %}false{% endif %}">{% if filters.overalltime.value and filters.overalltime.value != 1000 %}Time ≥ {{ filters.overalltime.value }} ms{% else %}Slow ≥ 1 s{% endif %}</button>
+        <button type="button" class="chip" data-chip="slow" data-slow-ms="{{ thresholds.slow_ms }}" aria-pressed="{% if filters.overalltime.value %}true{% else %}false{% endif %}">{% if filters.overalltime.value and filters.overalltime.value != thresholds.slow_ms %}Time ≥ {{ filters.overalltime.value }} ms{% else %}Slow ≥ {{ thresholds.slow_ms }} ms{% endif %}</button>
         <input type="hidden" name="filter-overalltime-typ" value="OverallTimeFilter">
         <input type="hidden" name="filter-overalltime-value" value="{{ filters.overalltime.value|default:'' }}">
         <button type="button" class="chip" data-chip="flag" data-field="nplusone" aria-pressed="{% if filters.nplusone.value %}true{% else %}false{% endif %}">N+1</button>

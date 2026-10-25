@@ -9,7 +9,7 @@ from django.views.generic import View
 
 from silk import models
 from silk.auth import login_possibly_required, permissions_possibly_required
-from silk.utils import summary_data
+from silk.utils import prefs, summary_data
 from silk.request_filters import (
     BaseFilter,
     FiltersManager,
@@ -262,7 +262,9 @@ class SummaryView(View):
         eps = summary_data.endpoints(rows)
         scope = request.GET.get('ep', '')
         scoped = [r for r in rows if r['ep'] == scope] if scope else rows
+        th = prefs.thresholds(request)
         c = {
+            'thresholds': th,
             'request': request,
             'filters': raw_filters,
             'has_data': bool(rows),
@@ -271,7 +273,7 @@ class SummaryView(View):
             'active_preset': raw_filters.get('time_preset', {}).get('value'),
             'stats': summary_data.headline(rows),
             'latency': summary_data.latency_chart(rows),
-            'focus': summary_data.focus(eps),
+            'focus': summary_data.focus(eps, th['slow_ms']),
             'status': summary_data.status_breakdown(rows),
             'endpoints': eps,
             'endpoint_keys': [e['key'] for e in sorted(eps, key=lambda e: -e['count'])],

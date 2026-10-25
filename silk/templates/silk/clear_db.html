@@ -1,39 +1,73 @@
 {% extends 'silk/base/base.html' %}
 {% load silk_assets %}
-{% load silk_inclusion %}
-{% load static %}
+
 {% block pagetitle %}Silky - Settings{% endblock %}
 
-{% block menu %}
-    {% root_menu request %}
-{% endblock %}
-
-{% block style %}
-    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/clear_db.css' %}"/>
+{% block js %}
+    <script src="{% silk_asset 'silk/js/pages/settings.js' %}" defer></script>
 {% endblock %}
 
 {% block data %}
-<div class="silk-settings">
-
-    <div class="silk-settings__header">
-        <h1 class="silk-settings__title">Settings</h1>
-        <p class="silk-settings__subtitle">Configure django-silky appearance and data management.</p>
-    </div>
-
-    {# ── Appearance ─────────────────────────────────────────────── #}
-    <section class="silk-settings__section is-active">
-        <div class="silk-settings__section-head">
-            <svg data-icon="palette" class="silk-icon" aria-hidden="true"><use href="#i-palette"></use></svg>
+<div class="settings">
+    <nav class="settings__nav" aria-label="Settings sections">
+        <a href="#sec-editor">Editor</a>
+        <a href="#sec-thresholds">Thresholds</a>
+        <a href="#sec-appearance">Appearance</a>
+        <a href="#sec-recording">Recording</a>
+        <a href="#sec-data">Data</a>
+        <button class="linkbtn" type="button" data-action="shortcuts">Keyboard shortcuts</button>
+    </nav>
+    <div class="settings__main">
+        <div class="req-head">
             <div>
-                <h2 class="silk-settings__section-title">Appearance</h2>
-                <p class="silk-settings__section-desc">Theme, accent colour and navigation. Saved in this browser.</p>
-            </div>
-            <div class="silk-settings__section-head-toggle">
-                <svg data-icon="chevron-down" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+                <h1>Settings</h1>
+                <p class="sub">Preferences are saved in this browser. Recording options come from your project's <code>settings.py</code>.</p>
             </div>
         </div>
 
-        <div class="silk-settings__section-body">
+        {% if msg %}<div class="alert alert--ok"><span>{{ msg }}</span></div>{% endif %}
+        {% if risks %}
+        <div class="alert alert--bad"><span><b>{{ risks|length }} setting{{ risks|length|pluralize:" needs,s need" }} attention:</b> {% for r in risks %}<code>{{ r.key }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}. <a href="#sec-recording">Review</a></span></div>
+        {% endif %}
+
+        <section class="card sec" id="sec-editor">
+            <h2>Editor</h2>
+            <p class="note">Where “Open in editor” and traceback links go.</p>
+            <div class="seg" role="radiogroup" aria-label="Editor">
+                <button type="button" data-editor="vscode">VS Code</button>
+                <button type="button" data-editor="cursor">Cursor</button>
+                <button type="button" data-editor="pycharm">PyCharm</button>
+                <button type="button" data-editor="sublime">Sublime Text</button>
+                <button type="button" data-editor="none">No links</button>
+            </div>
+            <h3 class="h3">Path mapping</h3>
+            <p class="note">Running Django in Docker or a VM? Map the path in recorded tracebacks to your local checkout.</p>
+            <div class="pathmap">
+                <label>Path in tracebacks<input id="path-from" class="input mono" placeholder="/app/" spellcheck="false" autocomplete="off"></label>
+                <span class="pathmap__arrow" aria-hidden="true">→</span>
+                <label>Local path<input id="path-to" class="input mono" placeholder="/Users/you/code/project/" spellcheck="false" autocomplete="off"></label>
+            </div>
+            {% if sample_frame %}
+            <p class="preview"><span class="muted">Example:</span> <code>{{ sample_frame.file }}:{{ sample_frame.line }}</code> opens
+                <a id="editor-preview" class="mono" data-editor-file="{{ sample_frame.file }}" data-editor-line="{{ sample_frame.line }}"></a></p>
+            {% endif %}
+        </section>
+
+        <section class="card sec" id="sec-thresholds">
+            <h2>Thresholds</h2>
+            <p class="note">What Silky colours amber and red, and what the Slow filter on Requests means. Saved as cookies so the server can use them.</p>
+            <div class="thr">
+                <label>Slow request<span class="thr__in"><input type="number" class="input mono" id="slow-ms" min="50" step="50" value="{{ thresholds.slow_ms }}" data-default="{{ defaults.slow_ms }}"><em>ms</em></span><small>red, and the Slow filter</small></label>
+                <label>Getting slow<span class="thr__in"><input type="number" class="input mono" id="ok-ms" min="10" step="10" value="{{ thresholds.ok_ms }}" data-default="{{ defaults.ok_ms }}"><em>ms</em></span><small>amber from here, green below</small></label>
+            </div>
+            <div class="sec__actions">
+                <button class="btn btn--primary" type="button" data-apply-thresholds>Apply thresholds</button>
+                <button class="btn" type="button" data-reset-thresholds>Reset to defaults</button>
+            </div>
+        </section>
+
+        <section class="card sec" id="sec-appearance">
+            <h2>Appearance</h2>
             <div class="silky-rows">
                 <div class="silky-row">
                     <div><b>Theme</b><small>System follows your operating system.</small></div>
@@ -59,180 +93,80 @@
                         <button type="button" data-set-layout="top">Top tabs</button>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    {# ── Configuration (read-only · settings.py) ─────────────────── #}
-    <section class="silk-settings__section">
-        <div class="silk-settings__section-head">
-            <svg data-icon="history" class="silk-icon" aria-hidden="true"><use href="#i-history"></use></svg>
-            <div>
-                <h2 class="silk-settings__section-title">Data Retention</h2>
-                <p class="silk-settings__section-desc">How long recorded requests are kept. Read-only &mdash; configured in <code>settings.py</code>.</p>
-            </div>
-            <div class="silk-settings__section-head-toggle">
-                <svg data-icon="chevron-down" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
-            </div>
-        </div>
-
-        <div class="silk-settings__section-body">
-            <div class="silk-settings__info">
-                <svg data-icon="info" class="silk-icon" aria-hidden="true"><use href="#i-info"></use></svg>
-                <div>
-                    {% if retention.mode == 'count' %}
-                    Retention is count-based. To keep a rolling time window instead &mdash; e.g. the last 7 days &mdash; set
-                    <code>SILKY_GARBAGE_COLLECT_MODE = 'time'</code> and <code>SILKY_MAX_RECORDED_TIME</code> (minutes) in <code>settings.py</code>.
-                    {% else %}
-                    Retention can also be count-based, or both together. Adjust <code>SILKY_GARBAGE_COLLECT_MODE</code>
-                    (<code>'count'</code>, <code>'time'</code> or <code>'both'</code>) and <code>SILKY_MAX_RECORDED_TIME</code> in <code>settings.py</code>.
-                    {% endif %}
-                </div>
-            </div>
-            <div class="silk-settings__options">
-                <div class="silk-settings__option">
-                    <div class="silk-settings__option-body">
-                        <svg data-icon="git-branch" class="silk-icon" aria-hidden="true"><use href="#i-git-branch"></use></svg>
-                        <div>
-                            <div class="silk-settings__option-name">Mode</div>
-                            <div class="silk-settings__option-hint">
-                                {{ retention.mode }}
-                                {% if retention.mode == 'count' %}&mdash; keep the newest N requests{% endif %}
-                                {% if retention.mode == 'time' %}&mdash; keep a rolling time window{% endif %}
-                                {% if retention.mode == 'both' %}&mdash; apply count cap and time window{% endif %}
-                            </div>
-                        </div>
+                <div class="silky-row">
+                    <div><b>Charts</b><small>Hidden collapses every chart to its title. Each chart also has its own Hide and Show.</small></div>
+                    <div class="seg" role="radiogroup" aria-label="Charts">
+                        <button type="button" data-charts="shown">Shown</button>
+                        <button type="button" data-charts="hidden">Hidden</button>
                     </div>
                 </div>
-                {% if retention.shows_count %}
-                <div class="silk-settings__option">
-                    <div class="silk-settings__option-body">
-                        <svg data-icon="hash" class="silk-icon" aria-hidden="true"><use href="#i-hash"></use></svg>
-                        <div>
-                            <div class="silk-settings__option-name">Max recorded requests</div>
-                            <div class="silk-settings__option-hint">{{ retention.max_requests }} rows</div>
-                        </div>
-                    </div>
+                <div class="silky-row">
+                    <div><b>Collapsed sidebar</b><small>Icons only, more room for tables.</small></div>
+                    <label class="switch"><input type="checkbox" id="rail-toggle"><span></span></label>
                 </div>
-                {% endif %}
-                {% if retention.shows_time %}
-                <div class="silk-settings__option">
-                    <div class="silk-settings__option-body">
-                        <svg data-icon="clock" class="silk-icon" aria-hidden="true"><use href="#i-clock"></use></svg>
-                        <div>
-                            <div class="silk-settings__option-name">Max recorded time</div>
-                            <div class="silk-settings__option-hint">
-                                {% if retention.max_time_label %}{{ retention.max_time_label }} ({{ retention.max_time }} min){% else %}not set &mdash; nothing is removed by age{% endif %}
-                            </div>
-                        </div>
-                    </div>
+            </div>
+        </section>
+
+        <section class="card sec" id="sec-recording">
+            <h2>Recording</h2>
+            <p class="note">Read from <code>settings.py</code>. Change them there and restart the server.</p>
+            <div class="cfg">
+                {% for c in recording %}
+                <div class="cfg__row{% if c.risk %} is-risk{% endif %}">
+                    <code class="cfg__key">{{ c.key }}</code><code class="cfg__val">{{ c.value }}</code>
+                    <span class="cfg__def">{% if c.changed %}default {{ c.default }}{% else %}default{% endif %}</span>
+                    {% if c.risk %}<div class="cfg__risk">{{ c.risk }}</div>{% endif %}
                 </div>
-                {% endif %}
+                {% endfor %}
             </div>
-        </div>
-    </section>
+            <p class="note cfg__retention">
+                {% if retention.mode == 'count' %}Keeps the newest {{ retention.max_requests }} requests.
+                {% elif retention.mode == 'time' %}Keeps {% if retention.max_time_label %}the last {{ retention.max_time_label }}{% else %}everything: no time window is set{% endif %}.
+                {% else %}Keeps at most {{ retention.max_requests }} requests{% if retention.max_time_label %}, none older than {{ retention.max_time_label }}{% endif %}.{% endif %}
+            </p>
+            {% if recommended %}
+            <textarea id="recommended-settings" hidden>{{ recommended }}</textarea>
+            <div class="sec__actions"><button class="btn" type="button" data-copy-from="#recommended-settings" data-copy-label="Recommended settings copied"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>Copy recommended settings</button></div>
+            {% endif %}
+        </section>
 
-    {# ── Danger zone ─────────────────────────────────────────────── #}
-    <section class="silk-settings__section silk-settings__section--danger">
-        <div class="silk-settings__section-head">
-            <svg data-icon="trash-2" class="silk-icon" aria-hidden="true"><use href="#i-trash-2"></use></svg>
-            <div>
-                <h2 class="silk-settings__section-title">Data Management</h2>
-                <p class="silk-settings__section-desc">Permanently delete Silk profiling data. This cannot be undone.</p>
+        <section class="card sec" id="sec-data">
+            <h2>Data</h2>
+            <div class="datastats">
+                <div><b>{{ data.requests }}</b><span>requests</span></div>
+                <div><b>{{ data.queries }}</b><span>queries</span></div>
+                <div><b>{{ data.profiles }}</b><span>profiles</span></div>
+                <div><b>{% if data.oldest %}{{ data.oldest|timesince }}{% else %}·{% endif %}</b><span>oldest record</span></div>
             </div>
-            <div class="silk-settings__section-head-toggle">
-                <svg data-icon="chevron-down" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
-            </div>
-        </div>
-
-        <div class="silk-settings__section-body">
-            <form class="silk-settings__form" action="." method="post">
+            <form method="post" action="{% url 'silk:cleardb' %}" class="silky-rows">
                 {% csrf_token %}
-
-                <div class="silk-settings__options">
-                    <label class="silk-settings__option" id="silk-cleardb-all-label">
-                        <input type="checkbox" name="clear_all" id="silk-cleardb-all">
-                        <div class="silk-settings__option-body">
-                            <svg data-icon="database" class="silk-icon" aria-hidden="true"><use href="#i-database"></use></svg>
-                            <div>
-                                <div class="silk-settings__option-name">All data</div>
-                                <div class="silk-settings__option-hint">Requests, profiles, SQL queries &amp; responses</div>
-                            </div>
-                        </div>
-                    </label>
-                    <label class="silk-settings__option" id="silk-cleardb-requests-label">
-                        <input type="checkbox" name="clear_requests" id="silk-cleardb-requests">
-                        <div class="silk-settings__option-body">
-                            <svg data-icon="layers" class="silk-icon" aria-hidden="true"><use href="#i-layers"></use></svg>
-                            <div>
-                                <div class="silk-settings__option-name">Requests</div>
-                                <div class="silk-settings__option-hint">HTTP requests, responses &amp; SQL queries</div>
-                            </div>
-                        </div>
-                    </label>
-                    <label class="silk-settings__option" id="silk-cleardb-profiling-label">
-                        <input type="checkbox" name="clear_profiling" id="silk-cleardb-profiling">
-                        <div class="silk-settings__option-body">
-                            <svg data-icon="cpu" class="silk-icon" aria-hidden="true"><use href="#i-cpu"></use></svg>
-                            <div>
-                                <div class="silk-settings__option-name">Profiling</div>
-                                <div class="silk-settings__option-hint">Python profiler data &amp; profile files</div>
-                            </div>
-                        </div>
-                    </label>
+                <div class="silky-row">
+                    <div><b>Run garbage collection</b><small>Apply the retention policy now, as <code>manage.py silk_request_garbage_collect</code> does.</small></div>
+                    <button class="btn" type="submit" name="run_gc" value="1">Run now</button>
                 </div>
-
-                <button type="submit" class="silk-settings__danger-btn" id="silk-cleardb-submit" disabled>
-                    <svg data-icon="trash-2" class="silk-icon" aria-hidden="true"><use href="#i-trash-2"></use></svg>
-                    Clear selected data
-                </button>
+                <div class="silky-row">
+                    <div><b>Clear profiling data</b><small>Deletes every profile, and profiler files when <code>SILKY_DELETE_PROFILES</code> is on.</small></div>
+                    <button class="btn btn--danger" type="submit" name="clear_profiling" value="1" data-confirm="Delete all {{ data.profiles }} profiles?">Clear profiles</button>
+                </div>
+                <div class="silky-row">
+                    <div><b>Clear all recorded data</b><small>Deletes every request, query and profile. This can't be undone.</small></div>
+                    <button class="btn btn--danger" type="button" data-clear-all>Clear data…</button>
+                </div>
             </form>
-        </div>
-        {% if msg %}
-        <div class="silk-settings__msg">
-            <svg data-icon="check-circle" class="silk-icon" aria-hidden="true"><use href="#i-check-circle"></use></svg>
-            {{ msg|linebreaksbr }}
-        </div>
-        {% endif %}
-    </section>
-
+        </section>
+    </div>
 </div>
 
-<script>
-  (function () {
-    // Clear DB form logic
-    var cbAll  = document.getElementById('silk-cleardb-all');
-    var cbReq  = document.getElementById('silk-cleardb-requests');
-    var cbProf = document.getElementById('silk-cleardb-profiling');
-    var btn    = document.getElementById('silk-cleardb-submit');
-
-    function updateBtn() {
-      btn.disabled = ![cbAll, cbReq, cbProf].some(function (cb) { return cb.checked; });
-    }
-
-    cbAll.addEventListener('change', function () {
-      if (this.checked) { cbReq.checked = false; cbProf.checked = false; }
-      updateBtn();
-    });
-    [cbReq, cbProf].forEach(function (cb) {
-      cb.addEventListener('change', function () {
-        if (this.checked) cbAll.checked = false;
-        updateBtn();
-      });
-    });
-
-    // Toggle triggered section and close others open section
-    document.querySelectorAll('.silk-settings__section-head-toggle').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            var section = this.closest('.silk-settings__section');
-            if (!section) return;
-            section.classList.toggle('is-active');
-            document.querySelectorAll('.silk-settings__section').forEach(function (el) {
-                if (el !== section) el.classList.remove('is-active');
-            });
-        });
-    });
-  }());
-</script>
+<dialog class="dialog" id="clear-dialog" aria-labelledby="clear-title">
+    <form method="post" action="{% url 'silk:cleardb' %}">
+        {% csrf_token %}
+        <h2 id="clear-title">Clear all recorded data?</h2>
+        <p class="note">This deletes {{ data.requests }} requests and everything recorded with them. Type <code>clear</code> to confirm.</p>
+        <input class="input mono" id="clear-confirm" autocomplete="off" spellcheck="false" aria-label="Type clear to confirm">
+        <div class="sec__actions">
+            <button class="btn" type="button" data-dialog-close>Cancel</button>
+            <button class="btn btn--danger" type="submit" name="clear_all" value="1" disabled>Delete everything</button>
+        </div>
+    </form>
+</dialog>
 {% endblock %}

@@ -15,6 +15,7 @@ from silk.request_filters import (
     TIME_RANGE_PRESETS,
     filters_from_request,
 )
+from silk.utils import prefs
 from silk.utils.aggregation import db_time_expr
 from silk.utils.n_plus_one import fingerprint_query
 from silk.utils.pagination import get_page
@@ -278,11 +279,12 @@ class RequestsView(View):
             has_n1_on_page = bool(n1_request_ids)
 
         # Time bar (square-root scale so fast requests stay visible) and speed tier per row.
+        th = prefs.thresholds(request)
         page_max = max([r.time_taken or 0 for r in page_obj.object_list] + [1])
         for r in page_obj.object_list:
             ms = r.time_taken or 0
             r.bar_pct = max(2, round(math.sqrt(ms / page_max) * 100))
-            r.tier = 'good' if ms < 300 else 'ok' if ms < 1000 else 'bad'
+            r.tier = prefs.tier(ms, th)
 
         selected_methods = []
         if raw_filters.get('method'):
@@ -316,6 +318,7 @@ class RequestsView(View):
                 {'key': k, 'seconds': v, 'label': k} for k, v in TIME_RANGE_PRESETS.items()
             ],
             'page_obj': page_obj,
+            'thresholds': th,
             'stats': stats,
             'selected_methods': selected_methods,
             'current_sort': sort_list[0] if sort_list else DEFAULT_SORT_LIST[0],

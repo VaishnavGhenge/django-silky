@@ -27,6 +27,7 @@
     {% block style %}{% endblock %}
     <script src="{% silk_asset 'silk/js/silky.js' %}" defer></script>
     <script src="{% silk_asset 'silk/js/components/timeago.js' %}" defer></script>
+    <script src="{% silk_asset 'silk/js/palette.js' %}" defer></script>
     {% block js %}{% endblock %}
 </head>
 
@@ -108,5 +109,7 @@
     </div>
 </div>
 <div class="toast" id="silky-toast" role="status" aria-live="polite"></div>
+<div class="overlay" id="silky-overlay" hidden></div>
+<script type="application/json" id="silky-nav">{"r": "{% url 'silk:requests' %}", "s": "{% url 'silk:sql' %}", "h": "{% url 'silk:hotspots' %}", "d": "{% url 'silk:summary' %}", "p": "{% url 'silk:profiling' %}", "c": "{% url 'silk:compare' %}", ",": "{% url 'silk:cleardb' %}"}</script>
 </body>
 </html>

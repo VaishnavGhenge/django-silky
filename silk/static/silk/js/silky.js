@@ -15,6 +15,8 @@
   }
 
   var silky = window.silky = {
+    read: read,
+    write: write,
     theme: function () { return read('silky-theme', 'system'); },
     accent: function () { return read('silky-accent', 'green'); },
     layout: function () { return read('silky-layout', 'sidebar'); },

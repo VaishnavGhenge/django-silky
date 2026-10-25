@@ -40,7 +40,7 @@
                         <div class="view">{% if b.func_name %}{{ b.func_name }}() · {% endif %}{{ b.file_path|app_path }}{% if b.line_num %}:{{ b.line_num }}{% endif %}</div>
                     </td>
                     <td class="num mono">{{ b.runs }}</td>
-                    <td class="num"><div class="timecell {% if b.avg >= 1000 %}t-bad{% elif b.avg >= 300 %}t-warn{% else %}t-good{% endif %}"><b>{{ b.total|floatformat:"0" }} ms</b><span class="timebar"><i style="width:{{ b.bar|floatformat:'1' }}%"></i></span></div></td>
+                    <td class="num"><div class="timecell t-{% time_tier b.avg %}"><b>{{ b.total|floatformat:"0" }} ms</b><span class="timebar"><i style="width:{{ b.bar|floatformat:'1' }}%"></i></span></div></td>
                     <td class="num mono">{{ b.avg|floatformat:"0" }} ms</td>
                     <td class="num mono col-opt">{{ b.max|floatformat:"0" }} ms</td>
                     <td class="num col-opt"><div class="share"><span class="share__bar"><i style="width:{{ b.sql_share|floatformat:'1' }}%"></i></span><span class="mono">{{ b.sql_share|floatformat:"0" }}%</span></div></td>
@@ -72,7 +72,7 @@
                         {% if r.view_name %}<div class="view">{{ r.view_name }}</div>{% endif %}
                     </td>
                     <td class="num mono">{{ r.num_sql_queries }}</td>
-                    <td class="num"><div class="timecell {% if r.time_taken >= 1000 %}t-bad{% elif r.time_taken >= 300 %}t-warn{% else %}t-good{% endif %}"><b>{{ r.time_taken|floatformat:"0" }} ms</b></div></td>
+                    <td class="num"><div class="timecell t-{% time_tier r.time_taken %}"><b>{{ r.time_taken|floatformat:"0" }} ms</b></div></td>
                 </tr>
                 {% endfor %}
                 </tbody>

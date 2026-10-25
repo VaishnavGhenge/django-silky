@@ -151,3 +151,11 @@ filepath_urlify.needs_autoescape = True
 register.filter(spacify)
 register.filter(filepath_urlify)
 register.filter(body_filter)
+
+
+@register.simple_tag(takes_context=True)
+def time_tier(context, ms):
+    """'good', 'ok' or 'bad' for a duration, using the viewer's thresholds from Settings."""
+    from silk.utils.prefs import thresholds, tier
+    th = context.get('thresholds') or thresholds(context.get('request'))
+    return tier(ms, th)

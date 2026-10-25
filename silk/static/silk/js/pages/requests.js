@@ -37,7 +37,7 @@
           break;
         }
         case 'slow':
-          field('filter-overalltime-value').value = field('filter-overalltime-value').value ? '' : SLOW_MS;
+          field('filter-overalltime-value').value = field('filter-overalltime-value').value ? '' : (chip.dataset.slowMs || SLOW_MS);
           break;
         case 'flag': {
           var f = field('filter-' + chip.dataset.field + '-value');
