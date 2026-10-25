@@ -217,6 +217,24 @@ SILKY_INTERCEPT_PERCENT = 50  # record only 50 % of requests
 SILKY_INTERCEPT_FUNC = lambda request: 'profile' in request.session
 ```
 
+To keep only requests whose response matched given status codes (for example, server errors only):
+
+```python
+SILKY_INTERCEPT_STATUS_CODES = {500, 501}  # default None records every status
+```
+
+The status code is only known once the response is ready, so Silk still records each request
+and then discards it if the status code is not in the set.
+
+To stop recording particular paths entirely:
+
+```python
+SILKY_IGNORE_PATHS = ['/healthz', '/readyz']
+```
+
+Entries are matched exactly against `request.path_info`, i.e. without any `SCRIPT_NAME` prefix.
+Silk's own views are always ignored.
+
 ### Garbage collection
 
 ```python
@@ -296,7 +314,7 @@ git clone https://github.com/VaishnavGhenge/django-silky.git
 cd django-silky
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[formatting]"
-pip install -r requirements.txt
+pip install --group test  # pip >= 25.1
 
 # Run the example project
 DB_ENGINE=sqlite3 python project/manage.py migrate

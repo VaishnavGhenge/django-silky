@@ -26,13 +26,15 @@ class ProfileParserTestCase(TestCase):
             #     ["1", "0.000", "0.000", "0.000", "0.000", "{built-in method builtins.exec}"],
             #     ["1", "0.000", "0.000", "0.000", "0.000", "{built-in method builtins.print}"],
             #     ["1", "0.000", "0.000", "0.000", "0.000", "{method 'disable' of '_lsprof.Profiler' objects}"],
+            #     # Garbage collection may finalize unrelated objects during profiling
+            #     ["1", "0.000", "0.000", "0.000", "0.000", "tempfile.py:447(cleanup)"],
             # ]
 
             exc_header = ["ncalls", "tottime", "percall", "cumtime", "percall", "filename:lineno(function)"]
             self.assertEqual(actual[0], exc_header)
 
             exc_number = re.compile(r"\d(.\d+)?")
-            exc_module = re.compile(r"({method.*})|({built-in.*})|(<.+>:\d+\(<.+>\))")
+            exc_module = re.compile(r"({method.*})|({built-in.*})|(.+:\d+\(.+\))")
 
             exc_row = [exc_number, exc_number, exc_number, exc_number, exc_number, exc_module]
 
