@@ -166,3 +166,22 @@ def sql_type_filter(sql):
     """SELECT, INSERT, UPDATE, DELETE or the query's first keyword."""
     from silk.utils.sql_patterns import sql_type
     return sql_type(sql or '')
+
+
+@register.filter
+def dur(ms):
+    """A duration in ms as '273 ms' or '5.09 s'."""
+    from silk.utils.fmt import fmt_ms
+    return fmt_ms(ms)
+
+
+@register.filter
+def dur_num(ms):
+    from silk.utils.fmt import ms_parts
+    return ms_parts(ms)[0]
+
+
+@register.filter
+def dur_unit(ms):
+    from silk.utils.fmt import ms_parts
+    return ms_parts(ms)[1]

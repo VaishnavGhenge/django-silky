@@ -2,12 +2,12 @@
 
 .linkbtn { background: none; border: 0; color: var(--link); cursor: pointer; padding: 0; font: inherit; font-weight: 500; }
 .settings { display: grid; grid-template-columns: 180px minmax(0, 860px); gap: 28px; }
-.settings__nav { position: sticky; top: 20px; align-self: start; display: flex; flex-direction: column; gap: 2px; padding-top: 60px; }
+.settings__nav { position: sticky; top: 72px; align-self: start; display: flex; flex-direction: column; gap: 2px; padding-top: 60px; }
 .settings__nav a, .settings__nav .linkbtn { padding: 7px 10px; border-radius: 7px; color: var(--text-2); font-weight: 500; font-size: 13px; text-align: left; }
 .settings__nav a:hover { background: var(--row-hover); text-decoration: none; color: var(--text); }
 .settings__nav .linkbtn { margin-top: 10px; color: var(--link); }
 .settings__main > .alert { margin-bottom: 14px; }
-.sec { margin-bottom: 16px; padding: 18px 20px; scroll-margin-top: 20px; }
+.sec { margin-bottom: 16px; padding: 18px 20px; scroll-margin-top: 72px; }
 .sec h2 { margin: 0 0 2px; font-size: 16px; }
 .sec .note { margin-bottom: 12px; }
 .sec .h3 { margin: 18px 0 4px; }

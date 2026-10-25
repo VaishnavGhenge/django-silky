@@ -1,0 +1,13 @@
+{# Response headers and bodies. #}
+{% url 'silk:raw' silk_request.pk as raw_url %}
+    {% if silk_request.response.headers %}{% include 'silk/inclusion/headers_table.html' with title='Response headers' headers=silk_request.response.headers %}{% endif %}
+    {% if silk_request.response.raw_body %}{% with raw_body=silk_request.response.raw_body_decoded %}
+        {% if raw_body|length > 1000 %}{% include 'silk/inclusion/code_block.html' with title='Raw response body' id='b-res-raw' text=raw_body more_url=raw_url|add:'?typ=response&subtyp=raw' %}
+        {% else %}{% include 'silk/inclusion/code_block.html' with title='Raw response body' id='b-res-raw' text=raw_body %}{% endif %}
+    {% endwith %}{% endif %}
+    {% if silk_request.response.body %}
+        {% if silk_request.response.body|length > 1000 %}{% include 'silk/inclusion/code_block.html' with title='Response body' id='b-res' text=silk_request.response.body note='formatted as JSON' more_url=raw_url|add:'?typ=response&subtyp=processed' %}
+        {% else %}{% include 'silk/inclusion/code_block.html' with title='Response body' id='b-res' text=silk_request.response.body note='formatted as JSON' lang='json' %}{% endif %}
+    {% endif %}
+
+{% if not silk_request.response.headers and not silk_request.response.raw_body and not silk_request.response.body %}<div class="empty"><p class="muted">No response headers or body were recorded.</p></div>{% endif %}

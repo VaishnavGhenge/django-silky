@@ -1,4 +1,5 @@
 {% extends 'silk/base/base.html' %}
+{% load silk_filters %}
 {% load silk_assets %}
 
 {% block pagetitle %}Silky - Compare time ranges{% endblock %}
@@ -67,8 +68,8 @@
                 <td class="c-path-cell"><a class="row-link path" href="{{ e.link }}" title="Compare only this endpoint">{{ e.key }}</a></td>
                 <td class="num mono">{{ e.a.n|default:"·" }}</td>
                 <td class="num mono">{{ e.b.n|default:"·" }}</td>
-                <td class="num mono">{% if e.a.n %}{{ e.a.p95|floatformat:"0" }} ms{% else %}·{% endif %}</td>
-                <td class="num mono">{% if e.b.n %}{{ e.b.p95|floatformat:"0" }} ms{% else %}·{% endif %}</td>
+                <td class="num mono">{% if e.a.n %}{{ e.a.p95|dur }}{% else %}·{% endif %}</td>
+                <td class="num mono">{% if e.b.n %}{{ e.b.p95|dur }}{% else %}·{% endif %}</td>
                 <td class="num">{% if e.kind == 'new' %}<span class="kind kind--new">only in B</span>{% elif e.kind == 'gone' %}<span class="kind kind--gone">only in A</span>{% else %}<span class="delta {{ e.change.cls }}">{{ e.change.text }}</span>{% endif %}</td>
                 <td class="num mono">{% if e.a.n %}{{ e.a.q|floatformat:"1" }}{% else %}·{% endif %} → {% if e.b.n %}{{ e.b.q|floatformat:"1" }}{% else %}·{% endif %}</td>
             </tr>

@@ -12,7 +12,7 @@ button.th-sort { background: none; border: 0; padding: 0; cursor: pointer; font:
 #split.htmx-request { opacity: .6; transition: opacity .15s .1s; }
 
 .detail {
-  position: sticky; top: 16px; align-self: start; max-height: calc(100vh - 32px); overflow: auto;
+  position: sticky; top: 72px; align-self: start; max-height: calc(100vh - 92px); overflow: auto;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg);
   animation: slidein .22s cubic-bezier(.2, .8, .2, 1);
 }

@@ -9,6 +9,7 @@ from datetime import timedelta
 from django.db.models import Count, Min, Q, Sum
 from django.utils import timezone
 
+from silk.utils.fmt import fmt_ms
 from silk.utils.sql_patterns import sql_table, sql_type
 from silk.utils.summary_data import REPEAT_MIN, _pct, repeating_request_ids
 
@@ -76,7 +77,7 @@ def _change(a, b, lower_is_better=True, fmt='ms'):
         return {'text': 'no change', 'cls': ''}
     good = d < 0 if lower_is_better else d > 0
     pct = f' ({"+" if d > 0 else ""}{d / a * 100:.0f}%)' if a else ''
-    value = f'{abs(d):.0f} ms' if fmt == 'ms' else f'{abs(d):.1f}' if fmt == 'f1' else f'{abs(d):.1f}%' if fmt == 'pct' else f'{abs(d):.0f}'
+    value = fmt_ms(abs(d)) if fmt == 'ms' else f'{abs(d):.1f}' if fmt == 'f1' else f'{abs(d):.1f}%' if fmt == 'pct' else f'{abs(d):.0f}'
     return {'text': ('+' if d > 0 else '−') + value + pct, 'cls': 'is-good' if good else 'is-bad'}
 
 
@@ -108,7 +109,7 @@ def compare_requests(a, b):
 
     return {
         'A': A, 'B': B,
-        'verdict': {'kind': kind, 'headline': headline, 'detail': f'({ta:.0f} ms → {tb:.0f} ms) {queries}.'},
+        'verdict': {'kind': kind, 'headline': headline, 'detail': f'({fmt_ms(ta)} → {fmt_ms(tb)}) {queries}.'},
         'metrics': [
             row('Total time', ta, tb, 'ms'),
             row('DB time', A['db'], B['db'], 'ms'),
@@ -247,7 +248,7 @@ def compare_ranges(a, b, ep=''):
                    else f'queries per request {"down" if dq < 0 else "up"} from {A["q"]:.1f} to {B["q"]:.1f}')
         verdict = {'kind': 'neutral' if same else 'ok' if d95 < 0 else 'bad',
                    'headline': 'p95 about the same' if same else f'p95 {abs(d95):.0f}% {"lower" if d95 < 0 else "higher"} in B',
-                   'detail': f'({A["p95"]:.0f} ms → {B["p95"]:.0f} ms), {queries}. Based on {len(ra)} and {len(rb)} requests.'}
+                   'detail': f'({fmt_ms(A["p95"])} → {fmt_ms(B["p95"])}), {queries}. Based on {len(ra)} and {len(rb)} requests.'}
 
     def row(label, key, fmt, lower=True):
         return {'label': label, 'a': A[key], 'b': B[key], 'fmt': fmt,

@@ -1,0 +1,37 @@
+{% load silk_filters %}
+{# Request header: method, status, time, path and actions. The panel passes in_panel to add its buttons. #}
+{% with sc=silk_request.response.status_code ins=insights %}
+    <header class="rd-head">
+        <div class="rd-top">
+            {% if in_panel %}<span class="rd-top__end">
+                <a class="btn btn--sm" href="{% url 'silk:request_detail' request_id=silk_request.pk %}" title="Open the full request page">Full page</a>
+                <button class="d-close" type="button" data-panel-close aria-label="Close" title="Close (Esc)"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button>
+            </span>{% endif %}
+            <span class="badge m-{{ silk_request.method }}">{{ silk_request.method }}</span>
+            {% if sc %}<span class="status s-{{ sc|stringformat:'d'|slice:':1' }}">{{ sc }}</span>{% endif %}
+            <span class="muted" title="{{ silk_request.start_time|date:'c' }}">{{ silk_request.start_time|silk_full_datetime }}</span>
+        </div>
+        <h1 class="rd-path">{{ silk_request.path }}</h1>
+        <div class="rd-meta">
+            <span>{{ silk_request.view_name|default:"unresolved view" }}</span>
+            {% if silk_request.response.content_type %}<span>{{ silk_request.response.content_type }}</span>{% endif %}
+        </div>
+        <div class="rd-actions">
+            {% if curl %}
+            <button class="btn" type="button" data-copy-from="#copy-curl" data-copy-label="curl command copied" title="Copy as curl">
+                <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>curl
+            </button>
+            <textarea id="copy-curl" hidden>{{ curl }}</textarea>
+            {% endif %}
+            <button class="btn" type="button" data-copy-from="#copy-test" data-copy-label="Query-count test copied" title="Copy a Django test that fails if this request's query count goes up">
+                <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>Query-count test
+            </button>
+            <textarea id="copy-test" hidden>{{ ins.test_code }}</textarea>
+            {% if previous_id %}
+            <a class="btn" data-palette="Compare with the previous request" href="{% url 'silk:compare_requests' a_id=previous_id b_id=silk_request.pk %}" title="Compare with the previous request to this endpoint">
+                <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-git-compare"></use></svg>Compare with previous
+            </a>
+            {% endif %}
+        </div>
+    </header>
+{% endwith %}

@@ -6,7 +6,7 @@
         {% if r.response %}<span class="status s-{{ r.response.status_code|stringformat:'d'|slice:':1' }}">{{ r.response.status_code }}</span>{% endif %}
         <a class="mono" href="{% url 'silk:request_detail' request_id=r.pk %}">{{ r.path }}</a>
     </div>
-    <div class="cmpcard__meta"><span data-time="{{ r.start_time|date:'c' }}">{{ r.start_time|silk_date_time }}</span> · {{ r.time_taken|floatformat:"0" }} ms · {{ r.num_sql_queries }} queries</div>
+    <div class="cmpcard__meta"><span data-time="{{ r.start_time|date:'c' }}">{{ r.start_time|silk_date_time }}</span> · {{ r.time_taken|dur }} · {{ r.num_sql_queries }} queries</div>
     <div class="cmpcard__nav">
         {% if s.sib.older %}<a class="btn btn--sm" href="{% if which == 'a' %}{% url 'silk:compare_requests' a_id=s.sib.older b_id=other.pk %}{% else %}{% url 'silk:compare_requests' a_id=other.pk b_id=s.sib.older %}{% endif %}">‹ Older</a>{% else %}<span class="btn btn--sm" aria-disabled="true">‹ Older</span>{% endif %}
         <span class="muted small">{{ s.sib.position }} of {{ s.sib.count }}</span>

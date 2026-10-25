@@ -3,31 +3,23 @@
 <div id="req-dynamic" data-search="{{ filters.search.value|default:'' }}">
     {% url 'silk:requests' as list_url %}
 
-    <div class="stats">
-        <div class="stat"><div class="stat__label">Requests</div><div class="stat__value">{{ stats.count }}</div></div>
+    <div class="stats stats--5">
+        <div class="stat"><div class="stat__label">Requests</div><div class="stat__value">{{ stats.count }}</div>
+            {% if stats.spark %}<svg class="stat__spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><path class="stat__spark-area" d="{{ stats.spark }} L120 28 L0 28 Z"/><path d="{{ stats.spark }}"/></svg>{% endif %}</div>
         <div class="stat"><div class="stat__label">p95 time</div>
-            <div class="stat__value">{% if stats.p95 is not None %}{{ stats.p95|floatformat:"0" }}<small>ms</small>{% else %}·{% endif %}</div>
-            <div class="stat__sub">p50 {{ stats.p50|floatformat:"0"|default:"·" }} ms</div></div>
+            <div class="stat__value">{% if stats.p95 is not None %}{{ stats.p95|dur_num }}<small>{{ stats.p95|dur_unit }}</small>{% else %}·{% endif %}</div>
+            <div class="stat__sub">p50 {{ stats.p50|dur }}</div></div>
         <div class="stat"><div class="stat__label">5xx rate</div>
             <div class="stat__value{% if stats.error_rate >= 5 %} is-bad{% endif %}">{{ stats.error_rate|default:0|floatformat:"1" }}<small>%</small></div>
             <div class="stat__sub">{{ stats.errors|default:0 }} server errors</div></div>
+        <div class="stat"><div class="stat__label">N+1 suspects</div><div class="stat__value">{{ stats.n1|default:0 }}</div><div class="stat__sub">same query run 3+ times</div></div>
         <div class="stat"><div class="stat__label">Avg queries</div><div class="stat__value">{{ stats.avg_queries|default:0|floatformat:"1" }}</div><div class="stat__sub">per request</div></div>
     </div>
 
     <div class="filters" role="toolbar" aria-label="Filters">
-        <div class="chipset" aria-label="Time range">
-            <button type="button" class="chip" data-chip="seconds" data-value="" aria-pressed="{% if not filters.seconds.value %}true{% else %}false{% endif %}">All time</button>
-            {% for preset in time_presets %}
-            <button type="button" class="chip" data-chip="seconds" data-value="{{ preset.seconds|unlocalize }}" aria-pressed="{% if filters.seconds.value == preset.seconds %}true{% else %}false{% endif %}">{{ preset.label }}</button>
-            {% endfor %}
-        </div>
-        <input type="hidden" name="filter-seconds-typ" value="SecondsFilter">
-        <input type="hidden" name="filter-seconds-value" value="{{ filters.seconds.value|unlocalize|default:'' }}">
-        <span class="sep" aria-hidden="true"></span>
-
         <div class="chipset" aria-label="Method">
-            {% for method in options_methods %}
-            <button type="button" class="chip" data-chip="method" data-value="{{ method }}" aria-pressed="{% if method in selected_methods %}true{% else %}false{% endif %}">{{ method }}</button>
+            {% for m in method_chips %}
+            <button type="button" class="chip" data-chip="method" data-value="{{ m.method }}" aria-pressed="{% if m.method in selected_methods %}true{% else %}false{% endif %}">{{ m.method }} <span class="count">{{ m.count }}</span></button>
             {% endfor %}
         </div>
         <input type="hidden" name="filter-method-typ" value="MultiMethodFilter">
@@ -36,22 +28,49 @@
 
         <div class="chipset" aria-label="Status">
             {% for sc in status_classes %}
-            <button type="button" class="chip" data-chip="status" data-codes="{{ sc.codes }}" aria-pressed="{% if sc.active %}true{% else %}false{% endif %}"><span class="status s-{{ sc.digit }}"></span>{{ sc.label }}</button>
+            <button type="button" class="chip" data-chip="status" data-codes="{{ sc.codes }}" aria-pressed="{% if sc.active %}true{% else %}false{% endif %}"><span class="status s-{{ sc.digit }}"></span>{{ sc.label }} <span class="count">{{ sc.count }}</span></button>
             {% endfor %}
         </div>
         <input type="hidden" name="filter-status_code-typ" value="MultiStatusCodeFilter">
         <input type="hidden" name="filter-status_code-value" value="{{ filters.status_code.value|default:'' }}">
         <span class="sep" aria-hidden="true"></span>
 
-        <button type="button" class="chip" data-chip="slow" data-slow-ms="{{ thresholds.slow_ms }}" aria-pressed="{% if filters.overalltime.value %}true{% else %}false{% endif %}">{% if filters.overalltime.value and filters.overalltime.value != thresholds.slow_ms %}Time ≥ {{ filters.overalltime.value }} ms{% else %}Slow ≥ {{ thresholds.slow_ms }} ms{% endif %}</button>
+        <button type="button" class="chip" data-chip="slow" data-slow-ms="{{ thresholds.slow_ms }}" aria-pressed="{% if filters.overalltime.value %}true{% else %}false{% endif %}">{% if filters.overalltime.value and filters.overalltime.value != thresholds.slow_ms %}Time ≥ {{ filters.overalltime.value|dur }}{% else %}Slow &gt; {% if thresholds.slow_ms|divisibleby:1000 %}{% widthratio thresholds.slow_ms 1000 1 %} s{% else %}{{ thresholds.slow_ms }} ms{% endif %}{% endif %}</button>
         <input type="hidden" name="filter-overalltime-typ" value="OverallTimeFilter">
         <input type="hidden" name="filter-overalltime-value" value="{{ filters.overalltime.value|default:'' }}">
-        <button type="button" class="chip" data-chip="flag" data-field="nplusone" aria-pressed="{% if filters.nplusone.value %}true{% else %}false{% endif %}">N+1</button>
+        <button type="button" class="chip" data-chip="flag" data-field="nplusone" aria-pressed="{% if filters.nplusone.value %}true{% else %}false{% endif %}">N+1 suspects</button>
         <input type="hidden" name="filter-nplusone-typ" value="NPlusOneFilter">
         <input type="hidden" name="filter-nplusone-value" value="{{ filters.nplusone.value|default:'' }}">
-        <label class="chip chip--input" title="Only requests with at least this many queries">Queries ≥
-            <input type="number" min="0" name="filter-numqueriesfilter-value" value="{{ filters.numqueriesfilter.value|default:'' }}" placeholder="any" data-submit-on-change>
-        </label>
+        {% if filters.slower.value %}<button type="button" class="chip chip--on" data-clear="filter-slower-value" title="Remove filter">Slower than usual <span aria-hidden="true">✕</span></button>{% endif %}
+        <input type="hidden" name="filter-slower-typ" value="SlowerThanUsualFilter">
+        <input type="hidden" name="filter-slower-value" value="{{ filters.slower.value|default:'' }}">
+
+        {# Less common filters live in More: time range, query count and page size. #}
+        <div class="menu">
+            <button type="button" class="chip" data-menu-toggle aria-haspopup="true" aria-expanded="false" aria-pressed="{% if more_active %}true{% else %}false{% endif %}">More{% if more_active %} <span class="count">{{ more_active }}</span>{% endif %}
+                <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>
+            <div class="menu__list menu__list--left menu__list--panel" hidden>
+                <div class="menu__section">Time range</div>
+                <div class="chipset">
+                    <button type="button" class="chip" data-chip="seconds" data-value="" aria-pressed="{% if not filters.seconds.value %}true{% else %}false{% endif %}">All time</button>
+                    {% for preset in time_presets %}
+                    <button type="button" class="chip" data-chip="seconds" data-value="{{ preset.seconds|unlocalize }}" aria-pressed="{% if filters.seconds.value == preset.seconds %}true{% else %}false{% endif %}">{{ preset.label }}</button>
+                    {% endfor %}
+                </div>
+                <div class="menu__section">Queries per request</div>
+                <label class="chip chip--input" title="Only requests with at least this many queries">at least
+                    <input type="number" min="0" name="filter-numqueriesfilter-value" value="{{ filters.numqueriesfilter.value|default:'' }}" placeholder="any" data-submit-on-change>
+                </label>
+                <div class="menu__section">Rows per page</div>
+                <div class="chipset">
+                    {% for n in options_show %}
+                    <a class="chip" aria-pressed="{% if n == per_page %}true{% else %}false{% endif %}" href="{{ list_url }}?show={{ n }}" hx-get="{{ list_url }}?show={{ n }}" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">{{ n }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <input type="hidden" name="filter-seconds-typ" value="SecondsFilter">
+        <input type="hidden" name="filter-seconds-value" value="{{ filters.seconds.value|unlocalize|default:'' }}">
         <input type="hidden" name="filter-numqueriesfilter-typ" value="NumQueriesFilter">
 
         {# Filters set from other pages (Summary links) show as removable chips. #}
@@ -85,17 +104,6 @@
                 </div>
             </div>
             {% endwith %}
-            <div class="menu">
-                <button type="button" class="menu__btn" data-menu-toggle aria-haspopup="menu" aria-expanded="false" title="Rows per page">
-                    {{ per_page }} per page
-                    <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
-                </button>
-                <div class="menu__list" role="menu" hidden>
-                    {% for n in options_show %}
-                    <a role="menuitemradio" aria-checked="{% if n == per_page %}true{% else %}false{% endif %}" href="{{ list_url }}?show={{ n }}" hx-get="{{ list_url }}?show={{ n }}" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">{{ n }} per page</a>
-                    {% endfor %}
-                </div>
-            </div>
         </div>
     </div>
 
@@ -126,9 +134,9 @@
                        hx-get="{% url 'silk:request_detail' request_id=r.pk %}" hx-target="#req-panel" hx-swap="innerHTML" hx-push-url="true">{{ r.path }}</a>
                     <div class="view">{{ r.view_name|default:"unresolved view" }}</div>
                 </td>
-                <td class="num"><div class="timecell t-{{ r.tier }}"><b>{{ r.time_taken|floatformat:"0" }} ms</b><span class="timebar"><i style="width:{{ r.bar_pct }}%"></i></span></div></td>
+                <td class="num"><div class="timecell t-{{ r.tier }}"><b>{{ r.time_taken|dur }}</b><span class="timebar"><i style="width:{{ r.bar_pct }}%"></i></span></div></td>
                 <td class="num"><span class="qcell">{% if r.has_n1 %}<span class="flag" title="Repeated queries">N+1</span>{% endif %}{{ r.num_sql_queries }}</span></td>
-                <td class="num mono">{% if r.db_ms is not None %}{{ r.db_ms|floatformat:"0" }} ms{% else %}<span class="muted">·</span>{% endif %}</td>
+                <td class="num mono">{% if r.db_ms is not None %}{{ r.db_ms|dur }}{% else %}<span class="muted">·</span>{% endif %}</td>
                 <td class="num muted"><span data-time="{{ r.start_time|date:'c' }}">{{ r.start_time|silk_date_time }}</span></td>
             </tr>
             {% endwith %}

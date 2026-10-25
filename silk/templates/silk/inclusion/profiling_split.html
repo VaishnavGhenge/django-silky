@@ -40,9 +40,9 @@
                         <div class="view">{% if b.func_name %}{{ b.func_name }}() · {% endif %}{{ b.file_path|app_path }}{% if b.line_num %}:{{ b.line_num }}{% endif %}</div>
                     </td>
                     <td class="num mono">{{ b.runs }}</td>
-                    <td class="num"><div class="timecell t-{% time_tier b.avg %}"><b>{{ b.total|floatformat:"0" }} ms</b><span class="timebar"><i style="width:{{ b.bar|floatformat:'1' }}%"></i></span></div></td>
-                    <td class="num mono">{{ b.avg|floatformat:"0" }} ms</td>
-                    <td class="num mono col-opt">{{ b.max|floatformat:"0" }} ms</td>
+                    <td class="num"><div class="timecell t-{% time_tier b.avg %}"><b>{{ b.total|dur }}</b><span class="timebar"><i style="width:{{ b.bar|floatformat:'1' }}%"></i></span></div></td>
+                    <td class="num mono">{{ b.avg|dur }}</td>
+                    <td class="num mono col-opt">{{ b.max|dur }}</td>
                     <td class="num col-opt"><div class="share"><span class="share__bar"><i style="width:{{ b.sql_share|floatformat:'1' }}%"></i></span><span class="mono">{{ b.sql_share|floatformat:"0" }}%</span></div></td>
                 </tr>
                 {% endfor %}
@@ -72,7 +72,7 @@
                         {% if r.view_name %}<div class="view">{{ r.view_name }}</div>{% endif %}
                     </td>
                     <td class="num mono">{{ r.num_sql_queries }}</td>
-                    <td class="num"><div class="timecell t-{% time_tier r.time_taken %}"><b>{{ r.time_taken|floatformat:"0" }} ms</b></div></td>
+                    <td class="num"><div class="timecell t-{% time_tier r.time_taken %}"><b>{{ r.time_taken|dur }}</b></div></td>
                 </tr>
                 {% endfor %}
                 </tbody>
@@ -102,8 +102,8 @@
         <div class="d-body">
             <div class="kpis">
                 <div class="kpi"><span>Runs</span><b>{{ s.runs }}</b></div>
-                <div class="kpi"><span>Avg</span><b>{{ s.avg|floatformat:"0" }} ms</b></div>
-                <div class="kpi"><span>Max</span><b>{{ s.max|floatformat:"0" }} ms</b></div>
+                <div class="kpi"><span>Avg</span><b>{{ s.avg|dur }}</b></div>
+                <div class="kpi"><span>Max</span><b>{{ s.max|dur }}</b></div>
                 <div class="kpi"><span>Avg queries</span><b>{{ s.avg_q|floatformat:"1" }}</b></div>
             </div>
             <div class="split">
@@ -113,7 +113,7 @@
             {% if d.hist.bars %}
             <h2 class="h3">Duration spread</h2>
             <div class="hist" aria-hidden="true">{% for b in d.hist.bars %}<i style="height:{{ b }}%"></i>{% endfor %}</div>
-            <div class="hist__axis"><span>0</span><span>{{ d.hist.max|floatformat:"0" }} ms</span></div>
+            <div class="hist__axis"><span>0</span><span>{{ d.hist.max|dur }}</span></div>
             {% endif %}
             <h2 class="h3">Slowest runs ({{ d.runs|length }}{% if s.runs > d.runs|length %} of {{ s.runs }}{% endif %})</h2>
             <div class="occ">
@@ -121,7 +121,7 @@
                 <a class="occ__row" href="{% if p.request_id %}{% url 'silk:request_profile_detail' request_id=p.request_id profile_id=p.pk %}{% else %}{% url 'silk:profile_detail' profile_id=p.pk %}{% endif %}">
                     {% if p.request %}<span class="badge m-{{ p.request.method }}">{{ p.request.method }}</span><span class="occ__path">{{ p.request.path }}</span>{% else %}<span class="occ__path muted">outside a request</span>{% endif %}
                     <span class="occ__n">{{ p.nq }} q</span>
-                    <span class="occ__ms">{{ p.time_taken|floatformat:"0" }} ms</span>
+                    <span class="occ__ms">{{ p.time_taken|dur }}</span>
                 </a>
                 {% endfor %}
             </div>
@@ -138,7 +138,7 @@
                 <a class="d-close" href="{{ request.path }}?tab=cprofile" hx-get="{{ request.path }}?tab=cprofile" hx-target="#split" hx-swap="outerHTML" hx-push-url="true" aria-label="Close" title="Close">
                     <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></a>
             </div>
-            <div class="d-meta"><span>{{ c.calls|default:"?" }} function calls in {{ c.ms|floatformat:"0" }} ms</span></div>
+            <div class="d-meta"><span>{{ c.calls|default:"?" }} function calls in {{ c.ms|dur }}</span></div>
             <div class="d-actions">
                 <a class="btn" href="{% url 'silk:request_detail' request_id=r.pk %}">Open request</a>
                 <a class="btn" href="{% url 'silk:cprofile' request_id=r.pk %}">Call graph and raw output</a>
@@ -152,7 +152,7 @@
             <div class="fnlist">
                 {% for f in c.rows|slice:":150" %}
                 <div class="fn"><div class="fn__bar" style="width:{{ f.bar|floatformat:'1' }}%"></div>
-                    <div class="fn__row"><span class="fn__name">{{ f.name }}</span><span class="fn__file">{% if f.file %}{{ f.file|app_path }}:{{ f.line }}{% endif %}</span><span class="fn__calls">{{ f.ncalls }}×</span><span class="fn__ms">{{ f.value|floatformat:"1" }} ms</span></div>
+                    <div class="fn__row"><span class="fn__name">{{ f.name }}</span><span class="fn__file">{% if f.file %}{{ f.file|app_path }}:{{ f.line }}{% endif %}</span><span class="fn__calls">{{ f.ncalls }}×</span><span class="fn__ms">{{ f.value|dur }}</span></div>
                 </div>
                 {% empty %}<p class="muted">The output could not be parsed. <a href="{% url 'silk:cprofile' request_id=r.pk %}">See the raw output.</a></p>
                 {% endfor %}

@@ -13,6 +13,9 @@ from silk.utils.insights import request_insights
 from silk.utils.n_plus_one import detect_n_plus_one
 
 
+PANEL_QUERIES = 100   # queries listed in the side panel's SQL tab
+
+
 class RequestView(View):
 
     @method_decorator(login_possibly_required)
@@ -56,5 +59,11 @@ class RequestView(View):
                                   .order_by('-start_time').values_list('pk', flat=True).first())
 
         # The requests list opens a request in a side panel through htmx; a normal visit gets the full page.
-        template = 'silk/inclusion/request_panel.html' if request.headers.get('HX-Request') else 'silk/request.html'
+        template = 'silk/request.html'
+        if request.headers.get('HX-Request'):
+            template = 'silk/inclusion/request_panel.html'
+            queries = sorted(all_queries, key=lambda q: q.start_time)[:PANEL_QUERIES]
+            context['queries'] = queries
+            context['queries_max'] = max([q.time_taken or 0 for q in queries] + [1])
+            context['profiles'] = list(silk_request.profile_set.order_by('-time_taken')[:50])
         return render(request, template, context)

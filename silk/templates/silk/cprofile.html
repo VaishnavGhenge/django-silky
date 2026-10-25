@@ -13,7 +13,7 @@
     <div class="req-head">
         <div>
             <h1>cProfile</h1>
-            <p class="sub"><span class="badge m-{{ silk_request.method }}">{{ silk_request.method }}</span> <code>{{ silk_request.path }}</code>{% if cprofile.calls %} · {{ cprofile.calls }} function calls in {{ cprofile.ms|floatformat:"0" }} ms{% endif %}</p>
+            <p class="sub"><span class="badge m-{{ silk_request.method }}">{{ silk_request.method }}</span> <code>{{ silk_request.path }}</code>{% if cprofile.calls %} · {{ cprofile.calls }} function calls in {{ cprofile.ms|dur }}{% endif %}</p>
         </div>
         {% if silk_request.prof_file %}
         <a class="btn" href="{% url 'silk:request_profile_download' request_id=silk_request.pk %}"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-download"></use></svg>Download .prof</a>
@@ -31,7 +31,7 @@
         <div class="fnlist" style="margin-top:12px">
             {% for f in cprofile.rows|slice:":200" %}
             <div class="fn"><div class="fn__bar" style="width:{{ f.bar|floatformat:'1' }}%"></div>
-                <div class="fn__row"><span class="fn__name">{{ f.name }}</span><span class="fn__file">{% if f.file %}{{ f.file|app_path }}:{{ f.line }}{% endif %}</span><span class="fn__calls">{{ f.ncalls }}×</span><span class="fn__ms">{{ f.value|floatformat:"1" }} ms</span></div>
+                <div class="fn__row"><span class="fn__name">{{ f.name }}</span><span class="fn__file">{% if f.file %}{{ f.file|app_path }}:{{ f.line }}{% endif %}</span><span class="fn__calls">{{ f.ncalls }}×</span><span class="fn__ms">{{ f.value|dur }}</span></div>
             </div>
             {% endfor %}
         </div>

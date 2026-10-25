@@ -1,11 +1,11 @@
-<div class="tablewrap">
+{% load silk_filters %}<div class="tablewrap">
     <table class="reqs cmptable">
         <thead><tr><th>Metric</th><th class="num">A</th><th class="num">B</th><th class="num">Change</th></tr></thead>
         <tbody>
         {% for m in metrics %}
         <tr>
             <td>{{ m.label }}</td>
-            {% if m.fmt == 'ms' %}<td class="num mono">{{ m.a|floatformat:"0" }} ms</td><td class="num mono">{{ m.b|floatformat:"0" }} ms</td>
+            {% if m.fmt == 'ms' %}<td class="num mono">{{ m.a|dur }}</td><td class="num mono">{{ m.b|dur }}</td>
             {% elif m.fmt == 'f1' %}<td class="num mono">{{ m.a|floatformat:"1" }}</td><td class="num mono">{{ m.b|floatformat:"1" }}</td>
             {% elif m.fmt == 'pct' %}<td class="num mono">{{ m.a|floatformat:"1" }}%</td><td class="num mono">{{ m.b|floatformat:"1" }}%</td>
             {% else %}<td class="num mono">{{ m.a }}</td><td class="num mono">{{ m.b }}</td>{% endif %}

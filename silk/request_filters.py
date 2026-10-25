@@ -420,6 +420,20 @@ def filters_from_data(data):
     return filters
 
 
+class SlowerThanUsualFilter(BaseFilter):
+    """Requests far slower than their endpoint's median (see silk.utils.quick_views)."""
+
+    def __init__(self, value='1'):
+        super().__init__(value)
+
+    def contribute_to_query_set(self, query_set):
+        from silk.utils.quick_views import slower_than_usual_ids
+        return query_set.filter(pk__in=slower_than_usual_ids())
+
+    def __str__(self):
+        return 'Slower than usual for the endpoint'
+
+
 class FiltersManager:
     def __init__(self, filters_key):
         self.key = filters_key

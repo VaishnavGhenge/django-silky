@@ -1,4 +1,4 @@
-{# "Where the time goes": scatter and heatmap, re-rendered by htmx when the endpoint scope changes. #}
+{% load silk_filters %}{# "Where the time goes": scatter and heatmap, re-rendered by htmx when the endpoint scope changes. #}
 <section id="sum-where" class="sum-where">
     <div class="secthead">
         <h2>Where the time goes</h2>
@@ -21,7 +21,7 @@
             {% if scatter %}
             <p class="chart__verdict"><b>{{ scatter.verdict.0 }}</b> (ρ {{ scatter.rho|floatformat:"2" }}). {{ scatter.verdict.1 }}</p>
             <div class="plot">
-                <div class="plot__y">{% for t in scatter.yticks %}<span style="bottom:{{ t.pct|floatformat:'1' }}%">{{ t.label|floatformat:"0" }} ms</span>{% endfor %}</div>
+                <div class="plot__y">{% for t in scatter.yticks %}<span style="bottom:{{ t.pct|floatformat:'1' }}%">{{ t.label|dur }}</span>{% endfor %}</div>
                 <div class="plot__area">
                     {% for t in scatter.yticks %}<i class="plot__grid" style="bottom:{{ t.pct|floatformat:'1' }}%"></i>{% endfor %}
                     {% for d in scatter.dots %}<a class="dot {{ d.cls }}" href="{% url 'silk:request_detail' request_id=d.id %}" style="left:{{ d.x|floatformat:'1' }}%;bottom:{{ d.y|floatformat:'1' }}%" title="{{ d.title }}"></a>{% endfor %}
@@ -38,9 +38,9 @@
             <div class="chartcard__body">
             {% if heatmap %}
             <div class="plot">
-                <div class="plot__y">{% for t in heatmap.yticks %}<span style="bottom:{{ t.pct|floatformat:'1' }}%">{{ t.label|floatformat:"0" }} ms</span>{% endfor %}</div>
+                <div class="plot__y">{% for t in heatmap.yticks %}<span style="bottom:{{ t.pct|floatformat:'1' }}%">{{ t.label|dur }}</span>{% endfor %}</div>
                 <div class="heat" style="grid-template-columns:repeat({{ heatmap.ncols }},1fr)">
-                    {% for col in heatmap.columns %}<div class="heat__col">{% for c in col %}<i{% if c.n %} style="background:color-mix(in srgb, var(--brand) {{ c.alpha }}%, transparent)"{% endif %} title="{{ c.n }} request{{ c.n|pluralize }}, {{ c.lo|floatformat:'0' }} to {{ c.hi|floatformat:'0' }} ms"></i>{% endfor %}</div>{% endfor %}
+                    {% for col in heatmap.columns %}<div class="heat__col">{% for c in col %}<i{% if c.n %} style="background:color-mix(in srgb, var(--brand) {{ c.alpha }}%, transparent)"{% endif %} title="{{ c.n }} request{{ c.n|pluralize }}, {{ c.lo|floatformat:'0' }} to {{ c.hi|dur }}"></i>{% endfor %}</div>{% endfor %}
                 </div>
                 <div class="plot__x plot__x--ends"><span>{{ heatmap.first|date:"M j" }}</span><span>{{ heatmap.last|date:"M j" }}</span></div>
             </div>

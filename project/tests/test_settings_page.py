@@ -45,7 +45,7 @@ class TestSettingsPage(TestCase):
     def test_slow_chip_uses_cookie_threshold(self):
         RequestMinFactory()
         self.client.cookies['silky-slow-ms'] = '750'
-        self.assertContains(self.client.get(reverse('silk:requests')), 'Slow ≥ 750 ms')
+        self.assertContains(self.client.get(reverse('silk:requests')), 'Slow &gt; 750 ms')
 
     def test_run_gc_reports_removed_count(self):
         resp = self.client.post(reverse('silk:cleardb'), {'run_gc': '1'})

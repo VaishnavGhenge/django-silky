@@ -15,10 +15,10 @@
         <div>
             {% if silk_request and not profile %}
             <h1>SQL</h1>
-            <p class="sub"><span class="badge m-{{ silk_request.method }}">{{ silk_request.method }}</span> <code>{{ silk_request.path }}</code> ran {{ silk_request.num_sql_queries }} quer{{ silk_request.num_sql_queries|pluralize:"y,ies" }} in {{ silk_request.time_spent_on_sql_queries|floatformat:"0" }} ms of {{ silk_request.time_taken|floatformat:"0" }} ms.</p>
+            <p class="sub"><span class="badge m-{{ silk_request.method }}">{{ silk_request.method }}</span> <code>{{ silk_request.path }}</code> ran {{ silk_request.num_sql_queries }} quer{{ silk_request.num_sql_queries|pluralize:"y,ies" }} in {{ silk_request.time_spent_on_sql_queries|dur }} of {{ silk_request.time_taken|dur }}.</p>
             {% else %}
             <h1>Queries</h1>
-            <p class="sub">{{ profile.name|default:profile.func_name }} ran {{ items.paginator.count }} quer{{ items.paginator.count|pluralize:"y,ies" }} in {{ profile.time_spent_on_sql_queries|floatformat:"0" }} ms.</p>
+            <p class="sub">{{ profile.name|default:profile.func_name }} ran {{ items.paginator.count }} quer{{ items.paginator.count|pluralize:"y,ies" }} in {{ profile.time_spent_on_sql_queries|dur }}.</p>
             {% endif %}
         </div>
         <form method="get" class="menu">
@@ -36,7 +36,7 @@
         <a class="group" href="{% url 'silk:sql' %}?p={{ group.representative.pattern_hash }}" title="See this pattern across requests">
             <span class="group__n is-hot">{{ group.count }}×</span>
             <span class="wf__sql"><span class="sqltype t-{{ group.representative.query|sql_type }}">{{ group.representative.query|sql_type }}</span> <span class="muted">{{ group.representative.query|truncatechars:140 }}</span></span>
-            <span class="wf__ms">{{ group.total_time_taken|floatformat:"0" }} ms</span>
+            <span class="wf__ms">{{ group.total_time_taken|dur }}</span>
         </a>
         {% endfor %}
     </div>
@@ -56,7 +56,7 @@
                     <div class="pat__sql">{{ q.query|truncatechars:200 }}</div>
                 </td>
                 <td class="num mono">{{ q.num_joins }}</td>
-                <td class="num"><div class="timecell t-{% if q.time_taken >= 100 %}bad{% elif q.time_taken >= 20 %}ok{% else %}good{% endif %}"><b>{{ q.time_taken|floatformat:"1" }} ms</b><span class="timebar"><i style="width:{% widthratio q.time_taken max_ms 100 %}%"></i></span></div></td>
+                <td class="num"><div class="timecell t-{% if q.time_taken >= 100 %}bad{% elif q.time_taken >= 20 %}ok{% else %}good{% endif %}"><b>{{ q.time_taken|dur }}</b><span class="timebar"><i style="width:{% widthratio q.time_taken max_ms 100 %}%"></i></span></div></td>
             </tr>
             {% endfor %}
             </tbody>

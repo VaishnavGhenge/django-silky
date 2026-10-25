@@ -28,8 +28,8 @@
 {% else %}
 <div class="stats">
     <div class="stat"><div class="stat__label">Requests</div><div class="stat__value">{{ stats.count }}</div></div>
-    <div class="stat"><div class="stat__label">p50</div><div class="stat__value">{{ stats.p50|floatformat:"0" }}<small>ms</small></div></div>
-    <div class="stat"><div class="stat__label">p95</div><div class="stat__value">{{ stats.p95|floatformat:"0" }}<small>ms</small></div></div>
+    <div class="stat"><div class="stat__label">p50</div><div class="stat__value">{{ stats.p50|dur_num }}<small>{{ stats.p50|dur_unit }}</small></div></div>
+    <div class="stat"><div class="stat__label">p95</div><div class="stat__value">{{ stats.p95|dur_num }}<small>{{ stats.p95|dur_unit }}</small></div></div>
     <div class="stat"><div class="stat__label">5xx rate</div><div class="stat__value{% if stats.error_rate >= 5 %} is-bad{% endif %}">{{ stats.error_rate|floatformat:"1" }}<small>%</small></div><div class="stat__sub">{{ stats.errors }} server errors</div></div>
     <div class="stat"><div class="stat__label">Avg queries</div><div class="stat__value">{{ stats.avg_queries|floatformat:"1" }}</div><div class="stat__sub">per request</div></div>
     <div class="stat"><div class="stat__label">N+1 suspects</div><div class="stat__value">{{ stats.n1 }}</div><div class="stat__sub">requests</div></div>
@@ -41,7 +41,7 @@
         <div class="chartcard__body">
         {% if latency %}
         <div class="chartbox">
-            <div class="chart__y">{% for t in latency.ticks %}<span style="top:{{ t.pct|floatformat:'1' }}%">{{ t.label|floatformat:"0" }} ms</span>{% endfor %}</div>
+            <div class="chart__y">{% for t in latency.ticks %}<span style="top:{{ t.pct|floatformat:'1' }}%">{{ t.label|dur }}</span>{% endfor %}</div>
             <svg class="chart" viewBox="0 0 600 200" preserveAspectRatio="none" role="img" aria-label="p50 and p95 latency over time">
                 <g class="chart__grid">{% for y in latency.grid %}<line x1="0" x2="600" y1="{{ y }}" y2="{{ y }}"/>{% endfor %}</g>
                 <path class="chart__area" d="{{ latency.area }}"/>
@@ -83,8 +83,8 @@
         <tr>
             <td class="c-path-cell"><a class="row-link path" href="{% url 'silk:requests' %}?view={{ e.key|urlencode }}">{{ e.key }}</a>{% if e.n1 %} <span class="flag">N+1</span>{% endif %}</td>
             <td class="num mono">{{ e.count }}</td>
-            <td class="num mono">{{ e.p50|floatformat:"0" }} ms</td>
-            <td class="num mono{% if e.p95 >= thresholds.slow_ms %} is-bad{% endif %}">{{ e.p95|floatformat:"0" }} ms</td>
+            <td class="num mono">{{ e.p50|dur }}</td>
+            <td class="num mono{% if e.p95 >= thresholds.slow_ms %} is-bad{% endif %}">{{ e.p95|dur }}</td>
             <td class="num mono">{{ e.avg_q|floatformat:"1" }}</td>
             <td class="num mono{% if e.err >= 5 %} is-bad{% endif %}">{% if e.err %}{{ e.err|floatformat:"0" }}%{% else %}0{% endif %}</td>
             <td class="num"><div class="share"><span class="share__bar"><i style="width:{{ e.share|floatformat:'1' }}%"></i></span><span class="mono">{{ e.share|floatformat:"1" }}%</span></div></td>

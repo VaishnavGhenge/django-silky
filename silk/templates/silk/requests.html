@@ -9,6 +9,11 @@
     <script src="{% silk_asset 'silk/js/pages/requests.js' %}" defer></script>
 {% endblock %}
 
+{# On this page the top bar search filters the list in place: it joins #req-form. #}
+{% block top_search_name %}filter-search-value{% endblock %}
+{% block top_search_attrs %}form="req-form" {% endblock %}
+{% block top_search_value %}{{ filters.search.value|default:'' }}{% endblock %}
+
 {% block data %}
 {# Filters post to this view and are kept in the session, as before. htmx swaps only #req-dynamic, #}
 {# so the search box keeps focus while you type. Without JavaScript the form still posts normally. #}
@@ -16,18 +21,9 @@
 <section class="splitview__main">
 <form id="req-form" class="req" method="post" action="{% url 'silk:requests' %}"
       hx-post="{% url 'silk:requests' %}" hx-target="#req-dynamic" hx-swap="outerHTML"
-      hx-trigger="submit, input changed delay:300ms from:#req-search">
+      hx-trigger="submit, input changed delay:300ms from:#top-q">
     {% csrf_token %}
-    <div class="req-head">
-        <h1>Requests</h1>
-        <label class="search">
-            <svg class="silk-icon" aria-hidden="true"><use href="#i-search"></use></svg>
-            <input id="req-search" type="search" name="filter-search-value" value="{{ filters.search.value|default:'' }}"
-                   placeholder="Search path or view" autocomplete="off" spellcheck="false" aria-label="Search path or view">
-            <kbd>/</kbd>
-        </label>
-        <input type="hidden" name="filter-search-typ" value="SearchFilter">
-    </div>
+    <input type="hidden" name="filter-search-typ" value="SearchFilter">
     {% include 'silk/inclusion/requests_results.html' %}
 </form>
 </section>

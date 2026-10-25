@@ -1,0 +1,17 @@
+{# Request parameters, headers, bodies and replay snippets. #}
+{% url 'silk:raw' silk_request.pk as raw_url %}
+    {% if query_params %}{% include 'silk/inclusion/code_block.html' with title='Query parameters' id='b-query' text=query_params lang='json' %}{% endif %}
+
+    {% include 'silk/inclusion/headers_table.html' with title='Request headers' headers=silk_request.headers %}
+
+    {% if silk_request.raw_body %}
+        {% if silk_request.raw_body|length > 1000 %}{% include 'silk/inclusion/code_block.html' with title='Raw request body' id='b-req-raw' text=silk_request.raw_body more_url=raw_url|add:'?typ=request&subtyp=raw' %}
+        {% else %}{% include 'silk/inclusion/code_block.html' with title='Raw request body' id='b-req-raw' text=silk_request.raw_body %}{% endif %}
+    {% endif %}
+    {% if silk_request.body %}
+        {% if silk_request.body|length > 1000 %}{% include 'silk/inclusion/code_block.html' with title='Request body' id='b-req' text=silk_request.body note='formatted as JSON' more_url=raw_url|add:'?typ=request&subtyp=processed' %}
+        {% else %}{% include 'silk/inclusion/code_block.html' with title='Request body' id='b-req' text=silk_request.body note='formatted as JSON' lang='json' %}{% endif %}
+    {% endif %}
+
+    {% if curl %}{% include 'silk/inclusion/code_block.html' with title='curl' id='b-curl' text=curl.strip note='repeat this request from a terminal' lang='bash' %}{% endif %}
+    {% if client %}{% include 'silk/inclusion/code_block.html' with title='Django test client' id='b-client' text=client.strip note='replay this request in a unit test' lang='python' %}{% endif %}

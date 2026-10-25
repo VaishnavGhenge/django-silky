@@ -21,8 +21,8 @@
     </div>
 
     <div class="kpis">
-        <div class="kpi"><span>Time</span><b>{{ profile.time_taken|floatformat:"0" }} ms</b></div>
-        <div class="kpi"><span>Time in SQL</span><b>{{ profile.time_spent_on_sql_queries|floatformat:"0" }} ms</b></div>
+        <div class="kpi"><span>Time</span><b>{{ profile.time_taken|dur }}</b></div>
+        <div class="kpi"><span>Time in SQL</span><b>{{ profile.time_spent_on_sql_queries|dur }}</b></div>
         <div class="kpi"><span>Queries</span><b>{{ profile.queries.count }}</b></div>
     </div>
 

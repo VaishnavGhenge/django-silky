@@ -70,16 +70,12 @@
 .tablewrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: clip; }
 .reqs { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .reqs th {
-  position: sticky; top: 48px; z-index: 2; background: var(--surface-2); color: var(--muted); font-size: 12px; font-weight: 600;
+  position: sticky; top: 100px; z-index: 2; background: var(--surface-2); color: var(--muted); font-size: 12px; font-weight: 600;
   text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); box-shadow: 0 1px 0 var(--border);
 }
-:root[data-layout="top"] .reqs th { top: 100px; }
-// Pages without their own tabs hide the page bar (silky.js marks them .no-subbar),
-// so the table header sticks right under whatever bar is left. (CSS cannot nest :has(),
-// which is why this needs the class.)
-.no-subbar .reqs th { top: 0; }
-:root[data-layout="top"].no-subbar .reqs th { top: 52px; }
-@media (max-width: 760px) { .no-subbar .reqs th { top: 52px; } }
+// Headers stick below the top bar (52px) and, on pages with their own tabs, the page bar (48px).
+// silky.js marks pages without the page bar .no-subbar.
+.no-subbar .reqs th { top: 52px; }
 .reqs th.num { text-align: right; }
 .reqs td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .reqs tr:last-child td { border-bottom: 0; }
@@ -120,3 +116,19 @@
 .pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 2px; font-size: 13px; }
 .pager__links { display: flex; align-items: center; gap: 10px; }
 .empty { padding: 48px 16px; text-align: center; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+
+// Requests card trend line.
+.stat__spark { display: block; width: 100%; height: 26px; margin-top: 6px; }
+.stat__spark path { fill: none; stroke: var(--brand); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.stat__spark .stat__spark-area { fill: var(--brand-soft); stroke: none; }
+.chip .count { font: 500 11px var(--mono); opacity: .65; margin-left: 2px; }
+.chip .silk-icon { width: 14px; height: 14px; margin-right: -2px; }
+
+// "More" filters: a small panel of chips instead of a list of items.
+.menu__list.menu__list--panel { width: 300px; padding: 10px 12px 12px; white-space: normal; }
+.menu__list--panel .menu__section { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin: 10px 0 6px; }
+.menu__list--panel .menu__section:first-child { margin-top: 0; }
+.menu__list.menu__list--panel .chip { display: inline-flex; width: auto; padding: 0 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12.5px; }
+.menu__list.menu__list--panel .chip[aria-pressed="true"] { color: var(--nav-text) !important; background: var(--nav); border-color: var(--nav); }
+.menu__list.menu__list--panel .chip:hover { background: var(--row-hover); }
+.menu__list.menu__list--panel .chip[aria-pressed="true"]:hover { background: var(--nav); }

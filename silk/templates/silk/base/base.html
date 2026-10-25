@@ -34,6 +34,7 @@
 <body onload="{% block onload %}{% endblock %}" class="{% block body_class %}{% endblock %}">
 {% include "silk/inclusion/icon_sprite.html" %}
 {% block top %}{% endblock %}
+{% silky_nav_counts as nav %}
 <div class="app">
     <aside class="sidebar" id="sidebar" aria-label="Main navigation">
         <div class="side-head">
@@ -46,23 +47,42 @@
             </button>
         </div>
         <nav class="side-group" aria-label="Sections">
-            <a class="side-item {% navactive request 'silk:requests' class='is-active' %}" href="{% url 'silk:requests' %}">
-                <svg class="silk-icon" aria-hidden="true"><use href="#i-list"></use></svg><span class="side-label">Requests</span>
+            <a class="side-item {% if not request.GET.quick %}{% navactive request 'silk:requests' class='is-active' %}{% endif %}" href="{% url 'silk:requests' %}">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-list"></use></svg><span class="side-label">Requests</span>{% if nav.requests %}<span class="side-count">{{ nav.requests }}</span>{% endif %}
             </a>
             <a class="side-item {% navactive request 'silk:sql' class='is-active' %}" href="{% url 'silk:sql' %}">
-                <svg class="silk-icon" aria-hidden="true"><use href="#i-database"></use></svg><span class="side-label">SQL</span>
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-database"></use></svg><span class="side-label">SQL</span>{% if nav.sql %}<span class="side-count">{{ nav.sql }}</span>{% endif %}
             </a>
             <a class="side-item {% navactive request 'silk:hotspots' class='is-active' %}" href="{% url 'silk:hotspots' %}">
-                <svg class="silk-icon" aria-hidden="true"><use href="#i-flame"></use></svg><span class="side-label">Hotspots</span>
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-flame"></use></svg><span class="side-label">Hotspots</span>{% if nav.hotspots %}<span class="side-count">{{ nav.hotspots }}</span>{% endif %}
             </a>
             <a class="side-item {% navactive request 'silk:summary' class='is-active' %}" href="{% url 'silk:summary' %}">
                 <svg class="silk-icon" aria-hidden="true"><use href="#i-layout-dashboard"></use></svg><span class="side-label">Summary</span>
             </a>
             <a class="side-item {% navactive request 'silk:profiling' class='is-active' %}" href="{% url 'silk:profiling' %}">
-                <svg class="silk-icon" aria-hidden="true"><use href="#i-cpu"></use></svg><span class="side-label">Profiling</span>
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-cpu"></use></svg><span class="side-label">Profiling</span>{% if nav.profiling %}<span class="side-count">{{ nav.profiling }}</span>{% endif %}
             </a>
             <a class="side-item {% if request.resolver_match.url_name|slice:':7' == 'compare' %}is-active{% endif %}" href="{% url 'silk:compare' %}">
                 <svg class="silk-icon" aria-hidden="true"><use href="#i-git-compare"></use></svg><span class="side-label">Compare</span>
+            </a>
+        </nav>
+        {% url 'silk:requests' as requests_url %}
+        <nav class="side-group" aria-label="Quick views">
+            <div class="side-title side-label">Quick views</div>
+            <a class="side-item{% if request.GET.quick == 'slow' %} is-active{% endif %}" href="{{ requests_url }}?quick=slow">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-timer"></use></svg><span class="side-label">Slow requests</span>{% if nav.slow %}<span class="side-count">{{ nav.slow }}</span>{% endif %}
+            </a>
+            <a class="side-item{% if request.GET.quick == 'errors' %} is-active{% endif %}" href="{{ requests_url }}?quick=errors">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-alert-triangle"></use></svg><span class="side-label">Server errors</span>{% if nav.errors %}<span class="side-count">{{ nav.errors }}</span>{% endif %}
+            </a>
+            <a class="side-item{% if request.GET.quick == 'n1' %} is-active{% endif %}" href="{{ requests_url }}?quick=n1">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-list-ordered"></use></svg><span class="side-label">N+1 suspects</span>{% if nav.n1 %}<span class="side-count">{{ nav.n1 }}</span>{% endif %}
+            </a>
+            <a class="side-item{% if request.GET.quick == 'slower' %} is-active{% endif %}" href="{{ requests_url }}?quick=slower">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-trending-up"></use></svg><span class="side-label">Slower than usual</span>{% if nav.slower %}<span class="side-count">{{ nav.slower }}</span>{% endif %}
+            </a>
+            <a class="side-item{% if request.GET.quick == 'writes' %} is-active{% endif %}" href="{{ requests_url }}?quick=writes">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg><span class="side-label">Writes</span>{% if nav.writes %}<span class="side-count">{{ nav.writes }}</span>{% endif %}
             </a>
         </nav>
         <div class="side-foot">
@@ -91,10 +111,19 @@
                 <a class="tab {% if request.resolver_match.url_name|slice:':7' == 'compare' %}is-active{% endif %}" href="{% url 'silk:compare' %}">Compare</a>
             </nav>
             <div class="topbar__right">
-                <a class="iconbtn {% navactive request 'silk:cleardb' class='is-active' %}" href="{% url 'silk:cleardb' %}" aria-label="Settings" title="Settings">
+                <form class="search topsearch" method="get" action="{% url 'silk:requests' %}" role="search">
+                    <svg class="silk-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+                    <input id="top-q" type="search" name="{% block top_search_name %}q{% endblock %}" {% block top_search_attrs %}{% endblock %}value="{% block top_search_value %}{% endblock %}"
+                           placeholder="Search path or view" autocomplete="off" spellcheck="false" aria-label="Search requests by path or view">
+                    <kbd>/</kbd>
+                </form>
+                <button class="iconbtn" type="button" data-action="toggle-layout" aria-label="Switch layout" title="Switch between sidebar and top tabs">
+                    <svg class="silk-icon" aria-hidden="true"><use href="#i-panel-left"></use></svg>
+                </button>
+                <a class="iconbtn topnav-only {% navactive request 'silk:cleardb' class='is-active' %}" href="{% url 'silk:cleardb' %}" aria-label="Settings" title="Settings">
                     <svg class="silk-icon" aria-hidden="true"><use href="#i-settings"></use></svg>
                 </a>
-                <button class="iconbtn" type="button" data-action="cycle-theme" aria-label="Toggle theme" title="Toggle theme">
+                <button class="iconbtn topnav-only" type="button" data-action="cycle-theme" aria-label="Toggle theme" title="Toggle theme">
                     <svg class="silk-icon" aria-hidden="true"><use href="#i-moon"></use></svg>
                 </button>
             </div>

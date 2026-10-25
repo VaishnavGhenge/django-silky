@@ -1,40 +1,11 @@
 {% load silk_filters %}
-{# Request header and overview: shared by the full detail page and the side panel on the requests list. #}
+{# Request overview (KPIs, usual line, likely fix, slowest queries): shared by the full page and the side panel. #}
     {% with sc=silk_request.response.status_code ins=insights %}
-    <header class="rd-head">
-        <div class="rd-top">
-            <span class="badge m-{{ silk_request.method }}">{{ silk_request.method }}</span>
-            {% if sc %}<span class="status s-{{ sc|stringformat:'d'|slice:':1' }}">{{ sc }}</span>{% endif %}
-            <span class="muted" title="{{ silk_request.start_time|date:'c' }}">{{ silk_request.start_time|silk_full_datetime }}</span>
-        </div>
-        <h1 class="rd-path">{{ silk_request.path }}</h1>
-        <div class="rd-meta">
-            <span>{{ silk_request.view_name|default:"unresolved view" }}</span>
-            {% if silk_request.response.content_type %}<span>{{ silk_request.response.content_type }}</span>{% endif %}
-        </div>
-        <div class="rd-actions">
-            {% if curl %}
-            <button class="btn" type="button" data-copy-from="#copy-curl" data-copy-label="curl command copied" title="Copy as curl">
-                <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>curl
-            </button>
-            <textarea id="copy-curl" hidden>{{ curl }}</textarea>
-            {% endif %}
-            <button class="btn" type="button" data-copy-from="#copy-test" data-copy-label="Query-count test copied" title="Copy a Django test that fails if this request's query count goes up">
-                <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>Query-count test
-            </button>
-            <textarea id="copy-test" hidden>{{ ins.test_code }}</textarea>
-            {% if previous_id %}
-            <a class="btn" data-palette="Compare with the previous request" href="{% url 'silk:compare_requests' a_id=previous_id b_id=silk_request.pk %}" title="Compare with the previous request to this endpoint">
-                <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-git-compare"></use></svg>Compare with previous
-            </a>
-            {% endif %}
-        </div>
-    </header>
 
     <section class="rd-overview" aria-label="Overview">
         <div class="kpis">
-            <div class="kpi"><span>Total time</span><b>{{ silk_request.time_taken|floatformat:"0" }} ms</b></div>
-            <div class="kpi"><span>DB time</span><b>{{ ins.db_ms|floatformat:"0" }} ms</b></div>
+            <div class="kpi"><span>Total time</span><b>{{ silk_request.time_taken|dur }}</b></div>
+            <div class="kpi"><span>DB time</span><b>{{ ins.db_ms|dur }}</b></div>
             <div class="kpi"><span>Queries</span><b>{{ silk_request.num_sql_queries }}</b></div>
             <div class="kpi"><span>Repeated</span><b>{{ ins.repeat_queries }}</b></div>
         </div>
@@ -45,7 +16,7 @@
         </div>
         {% endif %}
         {% if ins.usual %}
-        <p class="usualline">Usual for <code>{{ ins.usual.endpoint }}</code>: {{ ins.usual.ms|floatformat:"0" }} ms, {{ ins.usual.queries|floatformat:"0" }} queries
+        <p class="usualline">Usual for <code>{{ ins.usual.endpoint }}</code>: {{ ins.usual.ms|dur }}, {{ ins.usual.queries|floatformat:"0" }} queries
             <span class="muted">(median of {{ ins.usual.n }} requests)</span>
             {% if ins.usual.slower_x %}<b class="usual">{{ ins.usual.slower_x|floatformat:"1" }}× slower</b>{% endif %}
             {% if ins.usual.extra_queries %}<b class="usual">+{{ ins.usual.extra_queries|floatformat:"0" }} queries</b>{% endif %}
@@ -55,7 +26,7 @@
         {% if ins.repeated %}{% with g=ins.repeated.0 %}
         <div class="alert alert--warn" role="status">
             <span><b>{% if g.kind == 'dup' %}Duplicate query:{% else %}Possible N+1:{% endif %}</b>
-            {% if g.kind == 'dup' %}identical query ran{% else %}the same query shape ran{% endif %} {{ g.count }} times ({{ g.total_ms|floatformat:"0" }} ms total){% if ins.repeated|length > 1 %}, plus {{ ins.repeated|length|add:"-1" }} more repeated pattern(s){% endif %}.</span>
+            {% if g.kind == 'dup' %}identical query ran{% else %}the same query shape ran{% endif %} {{ g.count }} times ({{ g.total_ms|dur }} total){% if ins.repeated|length > 1 %}, plus {{ ins.repeated|length|add:"-1" }} more repeated pattern(s){% endif %}.</span>
             <a class="alert__link" href="{% url 'silk:request_sql' request_id=silk_request.pk %}">Show in SQL</a>
         </div>
         <div class="fix">
@@ -76,7 +47,7 @@
             <a class="wf__row" href="{% url 'silk:request_sql_detail' request_id=silk_request.pk sql_id=item.query.pk %}">
                 <span class="wf__sql">{{ item.query.query|truncatechars:160 }}</span>
                 <span class="wf__track"><i style="width:{{ item.pct|floatformat:'0' }}%"></i></span>
-                <span class="wf__ms">{{ item.query.time_taken|floatformat:"0" }} ms</span>
+                <span class="wf__ms">{{ item.query.time_taken|dur }}</span>
             </a>
             {% endfor %}
         </div>

@@ -9,6 +9,8 @@ import statistics
 
 from django.db import connection
 
+from silk.utils.fmt import fmt_ms
+
 MAX_ROWS = 20000      # requests read for the page
 SCATTER_MAX = 400     # dots drawn in the scatter (newest); each is a link, so this bounds the HTML
 LINE_BUCKETS = 24
@@ -117,7 +119,7 @@ def focus(eps, slow_ms=1000):
     for e in eps[:3]:
         reasons = []
         if e['p95'] >= slow_ms:
-            reasons.append(('bad', f"p95 {e['p95']:.0f} ms"))
+            reasons.append(('bad', f"p95 {fmt_ms(e['p95'])}"))
         if e['n1']:
             reasons.append(('warn', f"N+1 in {e['n1']}/{e['count']}"))
         if e['avg_q'] >= 20:
@@ -184,7 +186,7 @@ def scatter(rows):
     return {
         'dots': [{'id': r['id'], 'x': r['q'] / max_q * 100, 'y': _log_pos(r['ms'], top) * 100,
                   'cls': 'is-err' if r['sc'] == 5 else 'is-n1' if r['n1'] else '',
-                  'title': f"{r['method']} {r['path']} · {r['ms']:.0f} ms · {r['q']} queries"} for r in pts],
+                  'title': f"{r['method']} {r['path']} · {fmt_ms(r['ms'])} · {r['q']} queries"} for r in pts],
         'yticks': _log_ticks(top), 'xticks': [round(max_q * f) for f in (0, .25, .5, .75, 1)],
         'rho': rho, 'verdict': verdict, 'shown': len(pts), 'total': len(rows),
     }

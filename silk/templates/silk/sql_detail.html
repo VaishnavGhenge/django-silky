@@ -32,7 +32,7 @@
     </div>
 
     <div class="kpis">
-        <div class="kpi"><span>Time</span><b>{{ sql_query.time_taken|floatformat:"1" }} ms</b></div>
+        <div class="kpi"><span>Time</span><b>{{ sql_query.time_taken|dur }}</b></div>
         <div class="kpi"><span>Joins</span><b>{{ sql_query.num_joins }}</b></div>
         <div class="kpi"><span>Tables</span><b>{{ sql_query.tables_involved|length }}</b></div>
         <div class="kpi"><span>App frames</span><b>{{ app_frames }}</b></div>

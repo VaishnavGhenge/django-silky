@@ -1,18 +1,47 @@
-{# A request opened in the side panel of the requests list. The full page is one click away. #}
+{% load silk_filters %}
+{# A request opened beside the requests list. Header first, then tabs that switch in place. #}
 <div class="rp" data-request-id="{{ silk_request.pk }}">
-    <div class="rp-bar">
-        <nav class="rp-tabs" aria-label="Request">
-            <span class="rp-tab is-active">Overview</span>
-            <a class="rp-tab" href="{% url 'silk:request_sql' request_id=silk_request.pk %}">SQL <span class="count">{{ silk_request.num_sql_queries }}</span></a>
-            <a class="rp-tab" href="{% url 'silk:request_profiling' request_id=silk_request.pk %}">Profiling</a>
-            <a class="rp-tab" href="{% url 'silk:cprofile' request_id=silk_request.pk %}">cProfile</a>
+    <div class="rp-head">
+        {% include 'silk/inclusion/request_header.html' with in_panel=True %}
+        <nav class="rp-tabs" role="tablist" aria-label="Request">
+            <button type="button" class="rp-tab" role="tab" data-rp-tab="overview" aria-selected="true">Overview</button>
+            <button type="button" class="rp-tab" role="tab" data-rp-tab="sql" aria-selected="false">SQL <span class="count">{{ silk_request.num_sql_queries }}</span></button>
+            <button type="button" class="rp-tab" role="tab" data-rp-tab="request" aria-selected="false">Request</button>
+            <button type="button" class="rp-tab" role="tab" data-rp-tab="response" aria-selected="false">Response</button>
+            <button type="button" class="rp-tab" role="tab" data-rp-tab="profile" aria-selected="false">Profile <span class="count">{{ profiles|length }}</span></button>
         </nav>
-        <a class="btn btn--sm" href="{% url 'silk:request_detail' request_id=silk_request.pk %}" title="Open the full request page">Full page</a>
-        <button class="d-close" type="button" data-panel-close aria-label="Close" title="Close (Esc)">
-            <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg>
-        </button>
     </div>
     <div class="rp-body">
-        {% include 'silk/inclusion/request_overview.html' %}
+        <div data-rp-pane="overview">{% include 'silk/inclusion/request_overview.html' %}</div>
+        <div data-rp-pane="sql" hidden>
+            {% if queries %}
+            <p class="note">In the order they ran.{% if queries|length == 100 %} The first 100.{% endif %} <a href="{% url 'silk:request_sql' request_id=silk_request.pk %}">Open the SQL tab</a></p>
+            <div class="wf">
+                {% for q in queries %}
+                <a class="wf__row" href="{% url 'silk:request_sql_detail' request_id=silk_request.pk sql_id=q.pk %}">
+                    <span class="wf__sql"><span class="sqltype t-{{ q.query|sql_type }}">{{ q.query|sql_type }}</span> {{ q.query|truncatechars:140 }}</span>
+                    <span class="wf__track"><i style="width:{% widthratio q.time_taken queries_max 100 %}%"></i></span>
+                    <span class="wf__ms">{{ q.time_taken|dur }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}<div class="empty"><p class="muted">This request ran no queries.</p></div>{% endif %}
+        </div>
+        <div data-rp-pane="request" hidden><div class="rp-io">{% include 'silk/inclusion/request_io_request.html' %}</div></div>
+        <div data-rp-pane="response" hidden><div class="rp-io">{% include 'silk/inclusion/request_io_response.html' %}</div></div>
+        <div data-rp-pane="profile" hidden>
+            {% if profiles %}
+            <div class="occ">
+                {% for p in profiles %}
+                <a class="occ__row" href="{% url 'silk:request_profile_detail' request_id=silk_request.pk profile_id=p.pk %}">
+                    <span class="occ__path">{{ p.name|default:p.func_name|default:"anonymous block" }}</span>
+                    <span class="occ__ms">{{ p.time_taken|dur }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if silk_request.pyprofile %}<p class="note"><a href="{% url 'silk:cprofile' request_id=silk_request.pk %}">See the cProfile output for this request</a></p>{% endif %}
+            {% if not profiles and not silk_request.pyprofile %}<div class="empty"><p class="muted">Nothing was profiled in this request. Wrap code in <code>@silk_profile()</code>, or set <code>SILKY_PYTHON_PROFILER = True</code>.</p></div>{% endif %}
+        </div>
     </div>
 </div>

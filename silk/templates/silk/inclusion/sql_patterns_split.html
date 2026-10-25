@@ -8,10 +8,10 @@
 
         {% if not detail %}
         <div class="stats">
-            <div class="stat"><div class="stat__label">Total DB time</div><div class="stat__value">{{ stats.total_ms|floatformat:"0" }}<small>ms</small></div><div class="stat__sub">all recorded queries</div></div>
+            <div class="stat"><div class="stat__label">Total DB time</div><div class="stat__value">{{ stats.total_ms|dur_num }}<small>{{ stats.total_ms|dur_unit }}</small></div><div class="stat__sub">all recorded queries</div></div>
             <div class="stat"><div class="stat__label">Patterns</div><div class="stat__value">{{ stats.patterns }}</div><div class="stat__sub">distinct query shapes</div></div>
             <div class="stat"><div class="stat__label">Repeating patterns</div><div class="stat__value">{{ stats.repeating }}</div><div class="stat__sub">run {{ repeat_min }}+ times in a request</div></div>
-            <div class="stat"><div class="stat__label">Slowest average</div><div class="stat__value">{{ stats.slowest.avg|floatformat:"0"|default:"·" }}<small>ms</small></div><div class="stat__sub">{{ stats.slowest.table|default:"" }}</div></div>
+            <div class="stat"><div class="stat__label">Slowest average</div><div class="stat__value">{% if stats.slowest %}{{ stats.slowest.avg|dur_num }}<small>{{ stats.slowest.avg|dur_unit }}</small>{% else %}·{% endif %}</div><div class="stat__sub">{{ stats.slowest.table|default:"" }}</div></div>
         </div>
         {% endif %}
 
@@ -22,7 +22,7 @@
                 {% for t in tables %}
                 <button type="button" class="tbar{% if f.table == t.table %} is-on{% endif %}" data-set-field="table" data-value="{{ t.table }}" aria-pressed="{% if f.table == t.table %}true{% else %}false{% endif %}">
                     <code>{{ t.table }}</code><span class="tbar__track"><i style="width:{{ t.bar }}%"></i></span>
-                    <span class="tbar__ms">{{ t.total|floatformat:"0" }} ms</span><span class="tbar__pct">{{ t.share|floatformat:"0" }}%</span>
+                    <span class="tbar__ms">{{ t.total|dur }}</span><span class="tbar__pct">{{ t.share|floatformat:"0" }}%</span>
                 </button>
                 {% endfor %}
                 {% if more_tables %}<p class="muted small">+{{ more_tables }} more tables</p>{% endif %}
@@ -64,9 +64,9 @@
                     </td>
                     <td class="num mono">{{ p.calls }}</td>
                     <td class="num mono">{{ p.requests }}</td>
-                    <td class="num"><div class="timecell t-good"><b>{{ p.total|floatformat:"0" }} ms</b><span class="timebar"><i style="width:{{ p.bar }}%"></i></span></div></td>
-                    <td class="num mono">{{ p.avg|floatformat:"1" }} ms</td>
-                    <td class="num mono">{{ p.max|floatformat:"0" }} ms</td>
+                    <td class="num"><div class="timecell t-good"><b>{{ p.total|dur }}</b><span class="timebar"><i style="width:{{ p.bar }}%"></i></span></div></td>
+                    <td class="num mono">{{ p.avg|dur }}</td>
+                    <td class="num mono">{{ p.max|dur }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>
@@ -94,8 +94,8 @@
         <div class="d-body">
             <div class="kpis">
                 <div class="kpi"><span>Calls</span><b>{{ d.stats.calls }}</b></div>
-                <div class="kpi"><span>Total</span><b>{{ d.stats.total|floatformat:"0" }} ms</b></div>
-                <div class="kpi"><span>Avg</span><b>{{ d.stats.avg|floatformat:"1" }} ms</b></div>
+                <div class="kpi"><span>Total</span><b>{{ d.stats.total|dur }}</b></div>
+                <div class="kpi"><span>Avg</span><b>{{ d.stats.avg|dur }}</b></div>
                 <div class="kpi"><span>Requests</span><b>{{ d.stats.requests }}</b></div>
             </div>
             <pre class="code" id="pattern-sql">{{ d.formatted }}</pre>
@@ -116,7 +116,7 @@
             {% if d.hist.bars %}
             <h2 class="h3">Duration spread</h2>
             <div class="hist" aria-hidden="true">{% for b in d.hist.bars %}<i style="height:{{ b }}%"></i>{% endfor %}</div>
-            <div class="hist__axis"><span>0</span><span>{{ d.hist.max|floatformat:"0" }} ms</span></div>
+            <div class="hist__axis"><span>0</span><span>{{ d.hist.max|dur }}</span></div>
             {% endif %}
             <h2 class="h3">Requests running it ({{ d.stats.requests }})</h2>
             <div class="occ">
@@ -125,7 +125,7 @@
                     <span class="badge m-{{ o.request.method }}">{{ o.request.method }}</span>
                     <span class="occ__path">{{ o.request.path }}</span>
                     <span class="occ__n{% if o.n >= d.repeat_min %} is-hot{% endif %}">{{ o.n }}×</span>
-                    <span class="occ__ms">{{ o.request.time_taken|floatformat:"0" }} ms</span>
+                    <span class="occ__ms">{{ o.request.time_taken|dur }}</span>
                 </a>
                 {% endfor %}
             </div>

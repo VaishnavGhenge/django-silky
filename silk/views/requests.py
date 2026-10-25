@@ -1,7 +1,7 @@
 import json
 import math
 
-from django.db.models import Avg, Q
+from django.db.models import Avg, Count, Q
 from django.shortcuts import render
 from django.template.context_processors import csrf
 from django.utils.decorators import method_decorator
@@ -15,7 +15,7 @@ from silk.request_filters import (
     TIME_RANGE_PRESETS,
     filters_from_request,
 )
-from silk.utils import prefs
+from silk.utils import prefs, quick_views
 from silk.utils.aggregation import db_time_expr
 from silk.utils.n_plus_one import fingerprint_query
 from silk.utils.pagination import get_page
@@ -153,7 +153,11 @@ class RequestsView(View):
         def pct(p):
             return times[min(timed - 1, int(p * timed))] if timed else None
         errors = qs.filter(response__status_code__gte=500).count()
+        from silk.utils.summary_data import repeating_request_ids
+        n1 = qs.filter(pk__in=repeating_request_ids()).count()
         return {
+            'n1': n1,
+            'spark': self._spark(qs),
             'count': count,
             'p50': pct(0.5),
             'p95': pct(0.95),
@@ -161,6 +165,29 @@ class RequestsView(View):
             'errors': errors,
             'error_rate': errors / count * 100,
         }
+
+    SPARK_BUCKETS = 40
+    SPARK_MAX = 20000
+
+    def _spark(self, qs):
+        """SVG path (120x28 box) of request counts over time for the filtered set, newest SPARK_MAX."""
+        times = list(qs.order_by('-start_time').values_list('start_time', flat=True)[:self.SPARK_MAX])
+        if len(times) < 2:
+            return ''
+        lo, hi = times[-1], times[0]
+        span = (hi - lo).total_seconds() or 1
+        counts = [0] * self.SPARK_BUCKETS
+        for t in times:
+            counts[min(self.SPARK_BUCKETS - 1, int((t - lo).total_seconds() / span * self.SPARK_BUCKETS))] += 1
+        top = max(counts) or 1
+        step = 120 / (self.SPARK_BUCKETS - 1)
+        return ' '.join(f"{'L' if i else 'M'}{i * step:.1f} {26 - c / top * 24:.1f}" for i, c in enumerate(counts))
+
+    def _method_chips(self):
+        """Recorded methods with their request counts, common methods first."""
+        counts = dict(Request.objects.order_by().values_list('method').annotate(n=Count('id')))
+        order = {m: i for i, m in enumerate(self.METHOD_ORDER)}
+        return [{'method': m, 'count': counts[m]} for m in sorted(counts, key=lambda m: (order.get(m, len(order)), m))]
 
     def _status_classes(self, raw_filters):
         """Status-code chips (2xx..5xx): which recorded codes belong to each, and whether it is on."""
@@ -170,12 +197,13 @@ class RequestsView(View):
                 selected = set(json.loads(raw_filters['status_code']['value']))
             except (TypeError, ValueError, KeyError):
                 selected = set()
-        recorded = list(self._get_status_codes())
+        recorded = dict(Response.objects.order_by().values_list('status_code').annotate(n=Count('id')))
         classes = []
         for digit in '2345':
-            codes = [c for c in recorded if str(c).startswith(digit)]
+            codes = sorted(c for c in recorded if str(c).startswith(digit))
             if codes:
                 classes.append({'label': digit + 'xx', 'digit': digit, 'codes': json.dumps(codes),
+                                'count': sum(recorded[c] for c in codes),
                                 'active': bool(codes) and set(codes) <= selected})
         return classes
 
@@ -307,6 +335,8 @@ class RequestsView(View):
             'options_paths': self._get_paths(),
             'options_status_codes': self._get_status_codes(),
             'options_methods': self._get_methods(),
+            'method_chips': self._method_chips(),
+            'more_active': sum(1 for k in ('seconds', 'numqueriesfilter') if raw_filters.get(k, {}).get('value')),
             'view_names': self._get_views(),
             'filters': raw_filters,
             'sort_list': sort_list,
@@ -360,6 +390,18 @@ class RequestsView(View):
             # per_page in URL is an alias for show (enables shared URLs to restore page size)
             if 'per_page' in request.GET and 'show' not in request.GET:
                 filters['show'] = request.GET['per_page']
+            # ?quick= from the sidebar quick views replaces the current filters.
+            if request.GET.get('quick') in quick_views.QUICK_VIEWS:
+                filters = {k: v for k, v in filters.items() if k in ('show', 'view_style')}
+                filters.update(quick_views.quick_filters(request.GET['quick'], prefs.thresholds(request)['slow_ms']))
+            # ?q= from the top bar search sets the free-text search.
+            if 'q' in request.GET:
+                from silk.request_filters import FilterValidationError, SearchFilter
+                filters.pop('search', None)
+                try:
+                    filters['search'] = SearchFilter(request.GET['q']).as_dict()
+                except FilterValidationError:
+                    pass
             # ?view= from N+1 suspects link — save as a proper ViewNameFilter in session
             if request.GET.get('view'):
                 from silk.request_filters import ViewNameFilter

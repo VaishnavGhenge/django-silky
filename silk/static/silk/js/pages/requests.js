@@ -71,9 +71,24 @@
     markOpen(null);
     if (push) history.pushState(null, '', split().dataset.listUrl);
   }
+  // Panel tabs switch in place; the chosen tab stays chosen as you move between requests.
+  var panelTab = 'overview';
+  function showTab(name) {
+    var p = panel();
+    if (!p || !p.querySelector('[data-rp-pane="' + name + '"]')) name = 'overview';
+    panelTab = name;
+    p.querySelectorAll('[data-rp-tab]').forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.rpTab === name)); });
+    p.querySelectorAll('[data-rp-pane]').forEach(function (pane) { pane.hidden = pane.dataset.rpPane !== name; });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-rp-tab]');
+    if (t) showTab(t.dataset.rpTab);
+  });
   document.addEventListener('htmx:afterSwap', function (e) {
     if (e.detail.target !== panel()) return;
     var p = panel(), rp = p.querySelector('.rp');
+    showTab(panelTab);
+    if (window.hljs) p.querySelectorAll('pre code[class*="language-"]').forEach(function (c) { window.hljs.highlightElement(c); });
     p.hidden = false;
     p.scrollTop = 0;
     split().classList.add('has-detail');
@@ -106,7 +121,7 @@
   }
   document.addEventListener('keydown', function (e) {
     var typing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
-    if (e.key === '/' && !typing) { e.preventDefault(); var s = document.getElementById('req-search'); s.focus(); s.select(); return; }
+    if (e.key === '/' && !typing) { e.preventDefault(); var s = document.getElementById('top-q'); s.focus(); s.select(); return; }
     if (e.key === 'Escape' && typing) { document.activeElement.blur(); return; }
     if (e.key === 'Escape' && panel() && !panel().hidden) { closePanel(true); return; }
     if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -121,7 +136,7 @@
     cursor = -1;
     // The search box sits outside the swapped region; keep it in step with the
     // server's filters (e.g. after "Clear filters") unless the user is typing in it.
-    var dyn = document.getElementById('req-dynamic'), search = document.getElementById('req-search');
+    var dyn = document.getElementById('req-dynamic'), search = document.getElementById('top-q');
     if (dyn && search && document.activeElement !== search) search.value = dyn.dataset.search || '';
   });
 })();

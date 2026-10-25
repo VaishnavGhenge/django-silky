@@ -190,6 +190,12 @@
     switch (t.dataset.action) {
       case 'cycle-theme': silky.cycleTheme(); break;
       case 'toggle-rail': silky.setRail(root.dataset.rail !== '1'); break;
+      case 'toggle-layout': {
+        var next = silky.layout() === 'top' ? 'sidebar' : 'top';
+        silky.setLayout(next);
+        silky.toast(next === 'top' ? 'Layout: top tabs' : 'Layout: sidebar');
+        break;
+      }
       case 'open-nav': sidebar.classList.add('is-open'); scrim.hidden = false; break;
       case 'close-nav': sidebar.classList.remove('is-open'); scrim.hidden = true; break;
     }
