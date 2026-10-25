@@ -26,6 +26,7 @@
     "esbuild": "^0.27.4",
     "highlight.js": "^11.11.1",
     "lucide": "^0.574.0",
+    "playwright-core": "^1.64.1",
     "sass": "^1.85.1"
   }
 }

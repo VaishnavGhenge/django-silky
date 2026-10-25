@@ -1,0 +1,217 @@
+{
+  "label": "baseline",
+  "base": "http://127.0.0.1:8010",
+  "runs": 5,
+  "cpu": 4,
+  "pages": {
+    "summary": {
+      "url": "/silk/",
+      "ttfb_ms": 473,
+      "dcl_ms": 611,
+      "load_ms": 613,
+      "lcp_ms": 632,
+      "cls": 0.016,
+      "tbt_ms": 0,
+      "requests": 22,
+      "total_kb": 1356.8,
+      "kb": {
+        "doc": 30.8,
+        "js": 1025.6,
+        "css": 68.6,
+        "font": 231.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "requests": {
+      "url": "/silk/requests/",
+      "ttfb_ms": 25,
+      "dcl_ms": 176,
+      "load_ms": 180,
+      "lcp_ms": 196,
+      "cls": 0.038,
+      "tbt_ms": 0,
+      "requests": 29,
+      "total_kb": 1852,
+      "kb": {
+        "doc": 696.6,
+        "js": 822.5,
+        "css": 101.1,
+        "font": 231.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "requests_sorted_time": {
+      "url": "/silk/requests/?order_by=time_taken",
+      "ttfb_ms": 32,
+      "dcl_ms": 189,
+      "load_ms": 193,
+      "lcp_ms": 208,
+      "cls": 0.031,
+      "tbt_ms": 0,
+      "requests": 29,
+      "total_kb": 1856.6,
+      "kb": {
+        "doc": 701.2,
+        "js": 822.5,
+        "css": 101.1,
+        "font": 231.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/",
+      "ttfb_ms": 6,
+      "dcl_ms": 140,
+      "load_ms": 143,
+      "lcp_ms": 156,
+      "cls": 0.005,
+      "tbt_ms": 0,
+      "requests": 25,
+      "total_kb": 1218.8,
+      "kb": {
+        "doc": 11.1,
+        "js": 761.5,
+        "css": 68.3,
+        "font": 377.9,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_sql": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/",
+      "ttfb_ms": 75,
+      "dcl_ms": 205,
+      "load_ms": 210,
+      "lcp_ms": 232,
+      "cls": 0.013,
+      "tbt_ms": 0,
+      "requests": 29,
+      "total_kb": 1330.6,
+      "kb": {
+        "doc": 83.8,
+        "js": 779.4,
+        "css": 89.5,
+        "font": 377.9,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_sql_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/67211/",
+      "ttfb_ms": 3,
+      "dcl_ms": 119,
+      "load_ms": 125,
+      "lcp_ms": 136,
+      "cls": 0.02,
+      "tbt_ms": 0,
+      "requests": 29,
+      "total_kb": 1222,
+      "kb": {
+        "doc": 10.4,
+        "js": 763.4,
+        "css": 70.3,
+        "font": 377.9,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_profiling": {
+      "url": "/silk/request/87c1aaa8-b248-47e2-96c1-69889219d80f/profiling/",
+      "ttfb_ms": 4,
+      "dcl_ms": 125,
+      "load_ms": 128,
+      "lcp_ms": 136,
+      "cls": 0.001,
+      "tbt_ms": 0,
+      "requests": 30,
+      "total_kb": 1156.8,
+      "kb": {
+        "doc": 14.8,
+        "js": 808.7,
+        "css": 101.5,
+        "font": 231.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "profiling": {
+      "url": "/silk/profiling/",
+      "ttfb_ms": 12,
+      "dcl_ms": 142,
+      "load_ms": 146,
+      "lcp_ms": 160,
+      "cls": 0.028,
+      "tbt_ms": 0,
+      "requests": 30,
+      "total_kb": 1186.6,
+      "kb": {
+        "doc": 44.6,
+        "js": 808.7,
+        "css": 101.5,
+        "font": 231.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "profile_detail": {
+      "url": "/silk/profile/1/",
+      "ttfb_ms": 3,
+      "dcl_ms": 129,
+      "load_ms": 131,
+      "lcp_ms": 144,
+      "cls": 0.044,
+      "tbt_ms": 0,
+      "requests": 29,
+      "total_kb": 2852.1,
+      "kb": {
+        "doc": 8.2,
+        "js": 2446.5,
+        "css": 69.8,
+        "font": 327.6,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "cprofile": {
+      "url": "/silk/request/001f69c5-79e5-4ef5-9749-c6098c89ba86/cprofile/",
+      "ttfb_ms": 2,
+      "dcl_ms": 111,
+      "load_ms": 114,
+      "lcp_ms": 124,
+      "cls": 0.002,
+      "tbt_ms": 0,
+      "requests": 29,
+      "total_kb": 2851,
+      "kb": {
+        "doc": 7.3,
+        "js": 2446.5,
+        "css": 69.6,
+        "font": 327.6,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "cleardb": {
+      "url": "/silk/cleardb/",
+      "ttfb_ms": 2,
+      "dcl_ms": 107,
+      "load_ms": 109,
+      "lcp_ms": 120,
+      "cls": 0.01,
+      "tbt_ms": 0,
+      "requests": 20,
+      "total_kb": 1052.3,
+      "kb": {
+        "doc": 24.6,
+        "js": 727.9,
+        "css": 68,
+        "font": 231.8,
+        "img": 0,
+        "other": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,82 @@
+# UI benchmarks
+
+Two scripts measure the Silk UI so each phase of the redesign can be compared
+against the old interface on the same data.
+
+| Script | Measures |
+|---|---|
+| `server_bench.py` | Server render time (median, p90), DB queries and HTML size for every Silk page, via Django's test client |
+| `browser_bench.mjs` | Load time, Largest Contentful Paint, layout shift, main-thread blocking, request count and asset weight, in headless Chromium |
+
+## Running
+
+```bash
+# 1. Server side. Seeds a deterministic dataset (random.seed(42)) into
+#    benchmarks/.data/bench-<N>.sqlite3 on first run, then reuses it.
+.venv/bin/python benchmarks/server_bench.py --requests 200  --label <name>
+.venv/bin/python benchmarks/server_bench.py --requests 5000 --label <name>
+
+# 2. Browser side, against a server on the same dataset.
+DB_ENGINE=sqlite3 DB_NAME=$PWD/benchmarks/.data/bench-5000.sqlite3 \
+  .venv/bin/python project/manage.py runserver 127.0.0.1:8010 --noreload &
+node benchmarks/browser_bench.mjs --pages benchmarks/results/<name>-server-5000.json --label <name>
+node benchmarks/browser_bench.mjs --pages benchmarks/results/<name>-server-5000.json --label <name> --cpu 4
+```
+
+`npm install` provides `playwright-core`, which drives an existing Chromium and
+downloads none. Point `CHROMIUM_PATH` at a Chromium binary if Playwright cannot
+find one. Results land in `results/` as JSON.
+
+## Baseline: old UI (v1.6.0), recorded 2026-10-25
+
+Apple Silicon laptop, SQLite, Django dev server on localhost. Server times are
+medians of 10 renders; browser times are medians of 5 cold loads (fresh context,
+empty cache). The large dataset is 5,000 requests, 75,973 queries and 4,885
+profiles; the small one is 200 requests.
+
+| Page | Render, 200 req | Render, 5k req | DB queries | HTML, 5k | Load | Load, CPU 4× | LCP, CPU 4× | CLS | Requests | JS | Total |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| summary | 21 ms | **465 ms** | 55 | 31 KB | 501 ms | 613 ms | 632 ms | 0.016 | 22 | 1,026 KB | 1,357 KB |
+| requests | 12 ms | 22 ms | **59** | **697 KB** | 75 ms | 180 ms | 196 ms | 0.039 | 29 | 823 KB | 1,852 KB |
+| requests, sorted by time | 14 ms | 29 ms | 63 | 701 KB | 83 ms | 193 ms | 208 ms | 0.032 | 29 | 823 KB | 1,857 KB |
+| request detail | 4 ms | 4 ms | 6 | 11 KB | 54 ms | 143 ms | 156 ms | 0.005 | 25 | 762 KB | 1,219 KB |
+| request SQL | 62 ms | 71 ms | 7 | 84 KB | 119 ms | 210 ms | 232 ms | 0.013 | 29 | 779 KB | 1,331 KB |
+| request SQL detail | 2 ms | 1 ms | 4 | 10 KB | 46 ms | 125 ms | 136 ms | 0.020 | 29 | 763 KB | 1,222 KB |
+| request profiling | 2 ms | 2 ms | 8 | 15 KB | 47 ms | 128 ms | 136 ms | 0.001 | 30 | 809 KB | 1,157 KB |
+| profiling | 8 ms | 9 ms | 31 | 45 KB | 56 ms | 146 ms | 160 ms | 0.028 | 30 | 809 KB | 1,187 KB |
+| profile detail | 1 ms | 1 ms | 6 | 8 KB | 53 ms | 131 ms | 144 ms | 0.044 | 29 | **2,447 KB** | 2,852 KB |
+| cProfile | 1 ms | 1 ms | 3 | 7 KB | 49 ms | 114 ms | 124 ms | 0.002 | 29 | **2,447 KB** | 2,851 KB |
+| clear DB / settings | 0 ms | 0 ms | 0 | 25 KB | 39 ms | 109 ms | 120 ms | 0.010 | 20 | 728 KB | 1,052 KB |
+
+Asset sizes are decoded (uncompressed) bytes. Every filter, sort or page change
+in the old UI is a full page load, so the "Load" column is also the cost of
+each interaction on that page.
+
+### What the baseline shows
+
+- **Summary grows with data.** 21 ms at 200 requests, 465 ms at 5,000: the page
+  aggregates over the whole table on every view.
+- **The requests list HTML grows with data.** 100 KB at 200 requests, 697 KB at
+  5,000, though it shows the same 25 rows. The path filter renders a checkbox
+  for every distinct path ever recorded (1,674 checkboxes at 5,000 requests).
+- **Silk's own views run 55 to 63 queries** on the summary and requests pages.
+- **Every page ships 730 KB to 1 MB of JavaScript** before it is useful;
+  profile pages ship 2.4 MB because the graph library loads on every visit.
+- **20 to 30 HTTP requests per page**, mostly separate CSS and JS files.
+- **Request SQL renders in about 65 ms** regardless of dataset size: the cost is
+  SQL formatting, not the database.
+- Layout shift stays under 0.05 everywhere, which is already acceptable.
+- Main-thread blocking reads 0 ms: none of the old pages run long tasks, so
+  their cost is download size and full reloads rather than script execution.
+
+### Targets for the redesign
+
+| Metric | Old UI | Target |
+|---|---|---|
+| JS per page (except profile graph) | 728 KB to 1,026 KB | under 60 KB |
+| HTTP requests per page | 20 to 30 | under 8 |
+| Requests HTML at 5k requests | 697 KB | under 120 KB, independent of dataset size |
+| Summary render at 5k requests | 465 ms | under 150 ms |
+| DB queries on summary / requests | 55 / 59 | under 15 each |
+| Filter, sort or page change | full reload (180 ms at CPU 4×) | partial update, under 100 ms at CPU 4× |
+| CLS | up to 0.044 | under 0.05 (keep) |
