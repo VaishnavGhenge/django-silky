@@ -1,3 +1,4 @@
+import hashlib
 import re
 
 # Only replace single-quoted string *literals* (values).
@@ -12,6 +13,11 @@ def fingerprint_query(sql: str) -> str:
     s = _RE_STRINGS.sub('?', sql)
     s = _RE_NUMBERS.sub('?', s)
     return _RE_WHITESPACE.sub(' ', s).strip().lower()
+
+
+def pattern_hash(sql: str) -> str:
+    """Stable id for a query's shape: SHA-1 of its fingerprint (values replaced by ?)."""
+    return hashlib.sha1(fingerprint_query(sql or '').encode('utf-8')).hexdigest()
 
 
 class NPlusOneGroup:

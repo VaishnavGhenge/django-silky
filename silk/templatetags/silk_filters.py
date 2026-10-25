@@ -126,6 +126,21 @@ def app_path(value):
 
 
 @register.filter
+@stringfilter
+def path_dir(value):
+    """Directory part of a path, with a trailing slash ('' when there is none)."""
+    head, sep, _ = value.rpartition('/')
+    return head + sep
+
+
+@register.filter
+@stringfilter
+def path_name(value):
+    """File name part of a path."""
+    return value.rpartition('/')[2]
+
+
+@register.filter
 def silk_json(value):
     """Serialize a Python value to JSON, marked safe for template output."""
     return mark_safe(json.dumps(value))

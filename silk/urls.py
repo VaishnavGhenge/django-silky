@@ -11,12 +11,15 @@ from silk.views.request_detail import RequestView
 from silk.views.requests import RequestsView
 from silk.views.sql import SQLView
 from silk.views.sql_detail import SQLDetailView
+from silk.views.sql_patterns import HotspotsView, SQLPatternsView
 from silk.views.summary import SummaryView
 
 app_name = 'silk'
 urlpatterns = [
     path(route='', view=SummaryView.as_view(), name='summary'),
     path(route='requests/', view=RequestsView.as_view(), name='requests'),
+    path(route='sql/', view=SQLPatternsView.as_view(), name='sql'),
+    path(route='hotspots/', view=HotspotsView.as_view(), name='hotspots'),
     path(
         route='request/<uuid:request_id>/',
         view=RequestView.as_view(),

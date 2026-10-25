@@ -36,6 +36,20 @@ class TestAppFrame(TestCase):
         self.assertEqual(frame['func'], 'product_list')
         self.assertEqual(frame['code'], 'products = Product.objects.filter(active=True)')
 
+    def test_innermost_first_stack_picks_frame_nearest_the_database(self):
+        # Silk's middleware stores stacks innermost first; the helper ran the query, not the view.
+        stack = '''  File "/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in execute
+    return self.cursor.execute(sql)
+  File "/app/shop/helpers.py", line 12, in load_prices
+    return list(Price.objects.filter(product=p))
+  File "/app/shop/views.py", line 40, in product_list
+    prices = load_prices(product)
+  File "/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request)
+'''
+        frame = app_frame(stack)
+        self.assertEqual((frame['file'], frame['line']), ('/app/shop/helpers.py', 12))
+
     def test_none_when_only_library_frames(self):
         only_lib = TRACEBACK.replace('/app/shop/views.py', '/venv/lib/python3.12/site-packages/x.py')
         self.assertIsNone(app_frame(only_lib))
@@ -53,7 +67,15 @@ class TestRepeatKind(TestCase):
 class TestSuggestFix(TestCase):
     def test_forward_fk_lookup_suggests_select_related(self):
         group = [q(f'SELECT "shop_product"."id" FROM "shop_product" WHERE "shop_product"."id" = {i}') for i in range(5)]
-        self.assertEqual(suggest_fix(group)['code'], "queryset = queryset.select_related('product')")
+        code = suggest_fix(group)['code']
+        self.assertIn("select_related('product')", code)
+        self.assertIn('Product.objects.in_bulk(ids)', code)
+
+    def test_app_label_with_underscores_uses_model_part(self):
+        group = [q(f'SELECT "example_app_blind"."name" FROM "example_app_blind" WHERE "example_app_blind"."id" = {i}') for i in range(5)]
+        code = suggest_fix(group)['code']
+        self.assertIn("select_related('blind')", code)
+        self.assertIn('Blind.objects.in_bulk(ids)', code)
 
     def test_reverse_fk_suggests_prefetch_related(self):
         group = [q(f'SELECT "shop_item"."id" FROM "shop_item" WHERE "shop_item"."order_id" = {i}') for i in range(5)]

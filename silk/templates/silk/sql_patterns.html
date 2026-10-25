@@ -1,0 +1,26 @@
+{% extends 'silk/base/base.html' %}
+{% load static %}
+
+{% block pagetitle %}Silky - SQL{% endblock %}
+
+{% block js %}
+    <script src="{% static 'silk/lib/htmx.min.js' %}" defer></script>
+{% endblock %}
+
+{% block data %}
+<form id="sql-form" method="get" action="{% url 'silk:sql' %}"
+      hx-get="{% url 'silk:sql' %}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true"
+      hx-trigger="submit, input changed delay:300ms from:#sql-q">
+    <div class="req-head">
+        <div>
+            <h1>SQL</h1>
+            <p class="sub">{{ stats.calls }} queries grouped into {{ stats.patterns }} patterns by shape, across every recorded request.</p>
+        </div>
+        <label class="search">
+            <svg class="silk-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+            <input id="sql-q" type="search" name="q" value="{{ f.q }}" placeholder="Filter by table or SQL" autocomplete="off" spellcheck="false" aria-label="Filter by table or SQL">
+        </label>
+    </div>
+    {% include 'silk/inclusion/sql_patterns_split.html' %}
+</form>
+{% endblock %}

@@ -48,6 +48,12 @@
             <a class="side-item {% navactive request 'silk:requests' class='is-active' %}" href="{% url 'silk:requests' %}">
                 <svg class="silk-icon" aria-hidden="true"><use href="#i-list"></use></svg><span class="side-label">Requests</span>
             </a>
+            <a class="side-item {% navactive request 'silk:sql' class='is-active' %}" href="{% url 'silk:sql' %}">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-database"></use></svg><span class="side-label">SQL</span>
+            </a>
+            <a class="side-item {% navactive request 'silk:hotspots' class='is-active' %}" href="{% url 'silk:hotspots' %}">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-flame"></use></svg><span class="side-label">Hotspots</span>
+            </a>
             <a class="side-item {% navactive request 'silk:summary' class='is-active' %}" href="{% url 'silk:summary' %}">
                 <svg class="silk-icon" aria-hidden="true"><use href="#i-layout-dashboard"></use></svg><span class="side-label">Summary</span>
             </a>
@@ -74,6 +80,8 @@
             <a class="brand" href="{% url 'silk:requests' %}">silky</a>
             <nav class="tabs" aria-label="Sections">
                 <a class="tab {% navactive request 'silk:requests' class='is-active' %}" href="{% url 'silk:requests' %}">Requests</a>
+                <a class="tab {% navactive request 'silk:sql' class='is-active' %}" href="{% url 'silk:sql' %}">SQL</a>
+                <a class="tab {% navactive request 'silk:hotspots' class='is-active' %}" href="{% url 'silk:hotspots' %}">Hotspots</a>
                 <a class="tab {% navactive request 'silk:summary' class='is-active' %}" href="{% url 'silk:summary' %}">Summary</a>
                 <a class="tab {% navactive request 'silk:profiling' class='is-active' %}" href="{% url 'silk:profiling' %}">Profiling</a>
             </nav>

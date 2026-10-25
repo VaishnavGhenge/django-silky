@@ -27,25 +27,48 @@ def _is_app_file(path):
     return not (lib_path and path.startswith(lib_path))
 
 
-def app_frame(traceback):
-    """The innermost frame of the app's own code in a recorded traceback, or None.
+def _is_db_frame(path):
+    return path.startswith(_SILK_DIR) or '/django/db/' in path.replace('\\', '/')
 
-    Returns a dict with file, line, func and code (the source line, if recorded).
+
+def app_frame(traceback):
+    """The app's own frame closest to the database call in a recorded traceback, or None.
+
+    Silk's middleware stores stacks innermost first (silk/sql.py reverses them);
+    a standard Python traceback is outermost first. The side the database and
+    Silk frames sit on tells the order. Returns a dict with file, line, func and
+    code (the source line, if recorded).
     """
     lines = (traceback or '').split('\n')
-    found = None
+    frames = []
     for i, raw in enumerate(lines):
         m = _FRAME.search(raw)
-        if not m or not _is_app_file(m.group('file')):
+        if not m:
             continue
         nxt = lines[i + 1].strip() if i + 1 < len(lines) else ''
-        found = {
+        frames.append({
             'file': m.group('file'),
             'line': int(m.group('line')),
             'func': m.group('func'),
             'code': '' if _FRAME.search(nxt) else nxt,
-        }
-    return found
+        })
+    app = [f for f in frames if _is_app_file(f['file'])]
+    if not app:
+        return None
+    innermost_first = _is_db_frame(frames[0]['file']) and not _is_db_frame(frames[-1]['file'])
+    return app[0] if innermost_first else app[-1]
+
+
+LOCATION_MAX = 300
+
+
+def code_location(traceback):
+    """'path:line' of the app frame that ran a query, sized for SQLQuery.code_location, or ''."""
+    frame = app_frame(traceback)
+    if not frame:
+        return ''
+    suffix = ':%d' % frame['line']
+    return frame['file'][-(LOCATION_MAX - len(suffix)):] + suffix
 
 
 def repeat_kind(queries):
@@ -58,8 +81,14 @@ def repeat_kind(queries):
     return 'dup' if len({q.query for q in queries}) == 1 else 'n1'
 
 
-_FK_LOOKUP = re.compile(r'FROM "(\w+?)_(\w+)".*WHERE "\1_\2"\."id" = ', re.S | re.I)
-_REVERSE_FK = re.compile(r'FROM "(\w+?)_(\w+)".*WHERE "\1_\2"\."(\w+)_id" = ', re.S | re.I)
+# Django names tables <app_label>_<model>. App labels may contain underscores but
+# model names never do, so the model is everything after the last underscore.
+_FK_LOOKUP = re.compile(r'FROM "(\w+)".*WHERE "\1"\."id" = ', re.S | re.I)
+_REVERSE_FK = re.compile(r'FROM "(\w+)".*WHERE "\1"\."(\w+)_id" = ', re.S | re.I)
+
+
+def _model_name(table):
+    return table.rsplit('_', 1)[-1]
 
 
 def suggest_fix(queries):
@@ -80,17 +109,22 @@ def suggest_fix(queries):
     sql = queries[0].query
     fk = _FK_LOOKUP.search(sql)
     if fk:
+        model = _model_name(fk.group(1))
+        cls = model.capitalize()
         return {
             'kind': kind,
-            'text': f'Each row looks up its related {fk.group(2)} separately. Fetch it in the original query with a join.',
-            'code': f"queryset = queryset.select_related('{fk.group(2)}')",
+            'text': f'Each row loads a {model} by its id, one query per row. If the rows reach it through a '
+                    f'relation, join it in the original query; if you have the ids, load them all at once.',
+            'code': f"queryset = queryset.select_related('{model}')  # rows reach {model} through a relation\n"
+                    f"{cls}.objects.in_bulk(ids)  # or: you already have the ids",
         }
     rev = _REVERSE_FK.search(sql)
     if rev:
+        model = _model_name(rev.group(1))
         return {
             'kind': kind,
-            'text': f'Each {rev.group(3)} loads its {rev.group(2)} rows separately. Load them all in one extra query.',
-            'code': f"queryset = queryset.prefetch_related('{rev.group(2)}_set')  # or the related_name you set",
+            'text': f'Each {rev.group(2)} loads its {model} rows separately. Load them all in one extra query.',
+            'code': f"queryset = queryset.prefetch_related('{model}_set')  # or the related_name you set",
         }
     return {
         'kind': kind,

@@ -1,0 +1,308 @@
+{
+  "label": "phase3",
+  "base": "http://127.0.0.1:8010",
+  "runs": 5,
+  "cpu": 4,
+  "pages": {
+    "summary": {
+      "url": "/silk/",
+      "ttfb_ms": 518,
+      "dcl_ms": 629,
+      "load_ms": 630,
+      "lcp_ms": 600,
+      "cls": 0.008,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 12,
+      "total_kb": 514,
+      "kb": {
+        "doc": 44.2,
+        "js": 308.6,
+        "css": 55.2,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "requests": {
+      "url": "/silk/requests/",
+      "ttfb_ms": 14,
+      "dcl_ms": 87,
+      "load_ms": 126,
+      "lcp_ms": 132,
+      "cls": 0,
+      "tbt_ms": 2,
+      "filter_ms": 62,
+      "requests": 13,
+      "total_kb": 298.4,
+      "kb": {
+        "doc": 50.2,
+        "js": 65.9,
+        "css": 46.5,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "requests_sorted_time": {
+      "url": "/silk/requests/?order_by=time_taken",
+      "ttfb_ms": 27,
+      "dcl_ms": 99,
+      "load_ms": 139,
+      "lcp_ms": 144,
+      "cls": 0,
+      "tbt_ms": 2,
+      "filter_ms": 72,
+      "requests": 13,
+      "total_kb": 299.7,
+      "kb": {
+        "doc": 51.5,
+        "js": 65.9,
+        "css": 46.5,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/",
+      "ttfb_ms": 8,
+      "dcl_ms": 77,
+      "load_ms": 128,
+      "lcp_ms": 136,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 15,
+      "total_kb": 265.9,
+      "kb": {
+        "doc": 30.6,
+        "js": 44.5,
+        "css": 55,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_sql": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/",
+      "ttfb_ms": 77,
+      "dcl_ms": 156,
+      "load_ms": 197,
+      "lcp_ms": 204,
+      "cls": 0,
+      "tbt_ms": 2,
+      "filter_ms": null,
+      "requests": 19,
+      "total_kb": 446.5,
+      "kb": {
+        "doc": 99.3,
+        "js": 149.8,
+        "css": 76.1,
+        "font": 121.3,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_sql_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/67211/",
+      "ttfb_ms": 4,
+      "dcl_ms": 69,
+      "load_ms": 104,
+      "lcp_ms": 108,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 19,
+      "total_kb": 321.9,
+      "kb": {
+        "doc": 24.5,
+        "js": 134.5,
+        "css": 56.9,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_profiling": {
+      "url": "/silk/request/87c1aaa8-b248-47e2-96c1-69889219d80f/profiling/",
+      "ttfb_ms": 4,
+      "dcl_ms": 84,
+      "load_ms": 109,
+      "lcp_ms": 112,
+      "cls": 0,
+      "tbt_ms": 4,
+      "filter_ms": null,
+      "requests": 22,
+      "total_kb": 402.8,
+      "kb": {
+        "doc": 28.8,
+        "js": 179.8,
+        "css": 88.2,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "profiling": {
+      "url": "/silk/profiling/",
+      "ttfb_ms": 13,
+      "dcl_ms": 97,
+      "load_ms": 125,
+      "lcp_ms": 132,
+      "cls": 0.001,
+      "tbt_ms": 10,
+      "filter_ms": null,
+      "requests": 22,
+      "total_kb": 431.3,
+      "kb": {
+        "doc": 57.3,
+        "js": 179.8,
+        "css": 88.2,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "profile_detail": {
+      "url": "/silk/profile/1/",
+      "ttfb_ms": 3,
+      "dcl_ms": 127,
+      "load_ms": 129,
+      "lcp_ms": 112,
+      "cls": 0.001,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 20,
+      "total_kb": 2002.2,
+      "kb": {
+        "doc": 22.2,
+        "js": 1817.6,
+        "css": 56.4,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "cprofile": {
+      "url": "/silk/request/001f69c5-79e5-4ef5-9749-c6098c89ba86/cprofile/",
+      "ttfb_ms": 3,
+      "dcl_ms": 107,
+      "load_ms": 112,
+      "lcp_ms": 112,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 20,
+      "total_kb": 2001.1,
+      "kb": {
+        "doc": 21.3,
+        "js": 1817.6,
+        "css": 56.2,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "cleardb": {
+      "url": "/silk/cleardb/",
+      "ttfb_ms": 2,
+      "dcl_ms": 27,
+      "load_ms": 66,
+      "lcp_ms": 72,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 10,
+      "total_kb": 199.5,
+      "kb": {
+        "doc": 27.9,
+        "js": 10.9,
+        "css": 54.7,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "sql_patterns": {
+      "url": "/silk/sql/",
+      "ttfb_ms": 87,
+      "dcl_ms": 168,
+      "load_ms": 181,
+      "lcp_ms": 164,
+      "cls": 0.004,
+      "tbt_ms": 1,
+      "filter_ms": null,
+      "requests": 12,
+      "total_kb": 281.1,
+      "kb": {
+        "doc": 36.9,
+        "js": 61.9,
+        "css": 46.5,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "sql_pattern_panel": {
+      "url": "/silk/sql/?p=4d70df0ef3f2e0979c92741414ddf5ed24149e3b",
+      "ttfb_ms": 118,
+      "dcl_ms": 210,
+      "load_ms": 228,
+      "lcp_ms": 212,
+      "cls": 0.003,
+      "tbt_ms": 10,
+      "filter_ms": null,
+      "requests": 12,
+      "total_kb": 299.7,
+      "kb": {
+        "doc": 55.5,
+        "js": 61.9,
+        "css": 46.5,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "hotspots": {
+      "url": "/silk/hotspots/",
+      "ttfb_ms": 89,
+      "dcl_ms": 154,
+      "load_ms": 163,
+      "lcp_ms": 152,
+      "cls": 0.004,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 12,
+      "total_kb": 268.8,
+      "kb": {
+        "doc": 24.6,
+        "js": 61.9,
+        "css": 46.5,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "hotspot_panel": {
+      "url": "/silk/hotspots/?loc=%2FUsers%2Fvaishnavghenge%2Fprojects%2Fdjango-silk%2Fproject%2Fexample_app%2Fviews.py%3A56",
+      "ttfb_ms": 146,
+      "dcl_ms": 224,
+      "load_ms": 238,
+      "lcp_ms": 224,
+      "cls": 0.002,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 12,
+      "total_kb": 280.2,
+      "kb": {
+        "doc": 36,
+        "js": 61.9,
+        "css": 46.5,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    }
+  }
+}

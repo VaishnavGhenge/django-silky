@@ -18,6 +18,7 @@ import statistics
 import sys
 import time
 from pathlib import Path
+from urllib.parse import urlencode
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = Path(__file__).resolve().parent / '.data'
@@ -69,6 +70,16 @@ def pages():
         'cprofile': reverse('silk:cprofile', args=[cprof.id]) if cprof else None,
         'cleardb': reverse('silk:cleardb'),
     }
+    # Pages added by the redesign (absent from the old UI, so only measured when they exist).
+    try:
+        pattern = SQLQuery.objects.order_by('-time_taken').values_list('pattern_hash', flat=True).first()
+        location = SQLQuery.objects.exclude(code_location='').values_list('code_location', flat=True).first()
+        urls['sql_patterns'] = reverse('silk:sql')
+        urls['sql_pattern_panel'] = reverse('silk:sql') + f'?p={pattern}'
+        urls['hotspots'] = reverse('silk:hotspots')
+        urls['hotspot_panel'] = reverse('silk:hotspots') + '?' + urlencode({'loc': location})
+    except Exception:  # NoReverseMatch / missing columns on the old UI
+        pass
     return {k: v for k, v in urls.items() if v}
 
 

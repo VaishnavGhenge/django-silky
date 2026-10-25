@@ -1,0 +1,135 @@
+{% load silk_filters %}{% url 'silk:sql' as sql_url %}
+<div id="split" class="splitview{% if detail %} has-detail{% endif %}">
+    <section class="splitview__main">
+        <input type="hidden" name="type" value="{{ f.type }}">
+        <input type="hidden" name="table" value="{{ f.table }}">
+        <input type="hidden" name="repeating" value="{% if f.repeating %}1{% endif %}">
+        <input type="hidden" name="sort" value="{% if f.sort != 'total' %}{{ f.sort }}{% endif %}">
+
+        {% if not detail %}
+        <div class="stats">
+            <div class="stat"><div class="stat__label">Total DB time</div><div class="stat__value">{{ stats.total_ms|floatformat:"0" }}<small>ms</small></div><div class="stat__sub">all recorded queries</div></div>
+            <div class="stat"><div class="stat__label">Patterns</div><div class="stat__value">{{ stats.patterns }}</div><div class="stat__sub">distinct query shapes</div></div>
+            <div class="stat"><div class="stat__label">Repeating patterns</div><div class="stat__value">{{ stats.repeating }}</div><div class="stat__sub">run {{ repeat_min }}+ times in a request</div></div>
+            <div class="stat"><div class="stat__label">Slowest average</div><div class="stat__value">{{ stats.slowest.avg|floatformat:"0"|default:"·" }}<small>ms</small></div><div class="stat__sub">{{ stats.slowest.table|default:"" }}</div></div>
+        </div>
+        {% endif %}
+
+        {% if tables %}
+        <div class="card tcard">
+            <div class="card__title">DB time by table <span class="muted">· {% if f.table %}showing <code>{{ f.table }}</code> only, click again to clear{% else %}click a table to filter{% endif %}</span></div>
+            <div class="tbars">
+                {% for t in tables %}
+                <button type="button" class="tbar{% if f.table == t.table %} is-on{% endif %}" data-set-field="table" data-value="{{ t.table }}" aria-pressed="{% if f.table == t.table %}true{% else %}false{% endif %}">
+                    <code>{{ t.table }}</code><span class="tbar__track"><i style="width:{{ t.bar }}%"></i></span>
+                    <span class="tbar__ms">{{ t.total|floatformat:"0" }} ms</span><span class="tbar__pct">{{ t.share|floatformat:"0" }}%</span>
+                </button>
+                {% endfor %}
+                {% if more_tables %}<p class="muted small">+{{ more_tables }} more tables</p>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="filters">
+            <div class="chipset">
+                {% for t in types %}{% if t.count %}
+                <button type="button" class="chip" data-set-field="type" data-value="{{ t.name }}" aria-pressed="{% if f.type == t.name %}true{% else %}false{% endif %}">{{ t.name }} <span class="count">{{ t.count }}</span></button>
+                {% endif %}{% endfor %}
+            </div>
+            <span class="sep" aria-hidden="true"></span>
+            <button type="button" class="chip" data-set-field="repeating" data-value="1" aria-pressed="{% if f.repeating %}true{% else %}false{% endif %}">Repeating</button>
+            <span class="muted small">{{ shown }} pattern{{ shown|pluralize }}</span>
+        </div>
+
+        {% if rows %}
+        <div class="tablewrap">
+            <table class="reqs reqs--sql">
+                <thead><tr>
+                    <th>Pattern</th>
+                    <th class="num c-80"><button type="button" class="th-sort" data-set-field="sort" data-value="calls" aria-sort="{% if f.sort == 'calls' %}descending{% else %}none{% endif %}">Calls</button></th>
+                    <th class="num c-80">Requests</th>
+                    <th class="num c-120"><button type="button" class="th-sort" data-set-field="sort" data-value="" aria-sort="{% if f.sort == 'total' %}descending{% else %}none{% endif %}">Total</button></th>
+                    <th class="num c-90"><button type="button" class="th-sort" data-set-field="sort" data-value="avg" aria-sort="{% if f.sort == 'avg' %}descending{% else %}none{% endif %}">Avg</button></th>
+                    <th class="num c-90"><button type="button" class="th-sort" data-set-field="sort" data-value="max" aria-sort="{% if f.sort == 'max' %}descending{% else %}none{% endif %}">Max</button></th>
+                </tr></thead>
+                <tbody>
+                {% for p in rows %}
+                <tr class="{% if p.pattern_hash == open_hash %}is-open{% endif %}">
+                    <td class="c-path-cell">
+                        <a class="row-link pat" href="{{ sql_url }}?{{ qs }}{% if qs %}&{% endif %}p={{ p.pattern_hash }}" hx-get="{{ sql_url }}?{{ qs }}{% if qs %}&{% endif %}p={{ p.pattern_hash }}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true">
+                            <span class="sqltype t-{{ p.type }}">{{ p.type }}</span><code>{{ p.table }}</code>
+                            {% if p.repeats %}<span class="flag" title="Ran {{ repeat_min }}+ times inside {{ p.repeats }} request(s)">Repeats</span>{% endif %}
+                        </a>
+                        <div class="pat__sql">{{ p.sql|truncatechars:220 }}</div>
+                    </td>
+                    <td class="num mono">{{ p.calls }}</td>
+                    <td class="num mono">{{ p.requests }}</td>
+                    <td class="num"><div class="timecell t-good"><b>{{ p.total|floatformat:"0" }} ms</b><span class="timebar"><i style="width:{{ p.bar }}%"></i></span></div></td>
+                    <td class="num mono">{{ p.avg|floatformat:"1" }} ms</td>
+                    <td class="num mono">{{ p.max|floatformat:"0" }} ms</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty"><p><strong>No patterns match.</strong></p></div>
+        {% endif %}
+    </section>
+
+    {% if detail %}{% with d=detail %}
+    <aside class="detail" aria-label="Pattern detail">
+        <div class="d-head">
+            <div class="d-top">
+                <span class="sqltype t-{{ d.type }}">{{ d.type }}</span><code class="d-table">{{ d.table }}</code>
+                {% if d.fix %}<span class="flag">{% if d.fix.kind == 'dup' %}Duplicate{% else %}N+1{% endif %}</span>{% endif %}
+                <a class="d-close" href="{{ sql_url }}?{{ qs }}" hx-get="{{ sql_url }}?{{ qs }}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true" aria-label="Close" title="Close">
+                    <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></a>
+            </div>
+            <div class="d-actions">
+                <button class="btn" type="button" data-copy-from="#pattern-sql" data-copy-label="SQL copied"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>Copy SQL</button>
+                {% if d.frame %}<a class="btn" data-editor-file="{{ d.frame.file }}" data-editor-line="{{ d.frame.line }}" href="vscode://file{{ d.frame.file }}:{{ d.frame.line }}"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-code"></use></svg>Open {{ d.frame.file|app_path }}:{{ d.frame.line }}</a>{% endif %}
+            </div>
+        </div>
+        <div class="d-body">
+            <div class="kpis">
+                <div class="kpi"><span>Calls</span><b>{{ d.stats.calls }}</b></div>
+                <div class="kpi"><span>Total</span><b>{{ d.stats.total|floatformat:"0" }} ms</b></div>
+                <div class="kpi"><span>Avg</span><b>{{ d.stats.avg|floatformat:"1" }} ms</b></div>
+                <div class="kpi"><span>Requests</span><b>{{ d.stats.requests }}</b></div>
+            </div>
+            <pre class="code" id="pattern-sql">{{ d.formatted }}</pre>
+            {% if d.frame %}
+            <h2 class="h3">Most often called from</h2>
+            <a class="frame is-top" data-editor-file="{{ d.frame.file }}" data-editor-line="{{ d.frame.line }}" href="vscode://file{{ d.frame.file }}:{{ d.frame.line }}">
+                <span class="frame__loc"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-code"></use></svg>{{ d.frame.file|app_path }}:{{ d.frame.line }} <em>{{ d.frame.func }}</em></span>
+                {% if d.frame.code %}<code class="frame__code">{{ d.frame.code }}</code>{% endif %}
+            </a>
+            {% endif %}
+            {% if d.fix %}
+            <div class="fix">
+                <div class="fix__head"><b>Likely fix</b></div>
+                <p>{{ d.fix.text }}</p>
+                <div class="fix__code"><pre id="pattern-fix">{{ d.fix.code }}</pre><button class="btn btn--sm" type="button" data-copy-from="#pattern-fix" data-copy-label="Fix copied"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>Copy</button></div>
+            </div>
+            {% endif %}
+            {% if d.hist.bars %}
+            <h2 class="h3">Duration spread</h2>
+            <div class="hist" aria-hidden="true">{% for b in d.hist.bars %}<i style="height:{{ b }}%"></i>{% endfor %}</div>
+            <div class="hist__axis"><span>0</span><span>{{ d.hist.max|floatformat:"0" }} ms</span></div>
+            {% endif %}
+            <h2 class="h3">Requests running it ({{ d.stats.requests }})</h2>
+            <div class="occ">
+                {% for o in d.occurrences %}
+                <a class="occ__row" href="{% url 'silk:request_detail' request_id=o.request.pk %}">
+                    <span class="badge m-{{ o.request.method }}">{{ o.request.method }}</span>
+                    <span class="occ__path">{{ o.request.path }}</span>
+                    <span class="occ__n{% if o.n >= d.repeat_min %} is-hot{% endif %}">{{ o.n }}×</span>
+                    <span class="occ__ms">{{ o.request.time_taken|floatformat:"0" }} ms</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+    {% endwith %}{% endif %}
+</div>

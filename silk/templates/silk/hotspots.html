@@ -1,0 +1,18 @@
+{% extends 'silk/base/base.html' %}
+{% load static %}
+
+{% block pagetitle %}Silky - Hotspots{% endblock %}
+
+{% block js %}
+    <script src="{% static 'silk/lib/htmx.min.js' %}" defer></script>
+{% endblock %}
+
+{% block data %}
+<div class="req-head">
+    <div>
+        <h1>Hotspots</h1>
+        <p class="sub">Lines of your code ranked by the database time they cause, across every recorded request.</p>
+    </div>
+</div>
+{% include 'silk/inclusion/hotspots_split.html' %}
+{% endblock %}

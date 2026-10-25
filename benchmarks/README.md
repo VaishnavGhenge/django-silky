@@ -138,3 +138,27 @@ through htmx instead of reloading the page. CPU 4×, 5,000 requests:
 - HTTP requests are 13 to 15 per page against a target of 8: four font files,
   two favicons and separate small scripts. Bundling the scripts is left for a
   later pass.
+
+## Phase 3: SQL patterns and Hotspots, recorded 2026-10-25
+
+New pages that group every recorded query by shape and by the line of app code
+that ran it. Migration 0010 adds `SQLQuery.pattern_hash` and
+`SQLQuery.code_location`, filled on save, with composite indexes on
+(column, request). Without them the same pages took about 1 s at 5,000
+requests (76,000 queries were normalised in Python on every view).
+
+| Page | DB queries | Render, 200 req | Render, 5k req | HTML | JS | Load, CPU 4× |
+|---|---:|---:|---:|---:|---:|---:|
+| SQL patterns | 5 | 4 ms | **82 ms** | 37 KB | 62 KB | 181 ms |
+| SQL, pattern open | 13 | 7 ms | **109 ms** | 56 KB | 62 KB | 228 ms |
+| Hotspots | 5 | 3 ms | **82 ms** | 25 KB | 62 KB | 163 ms |
+| Hotspots, line open | 13 | 7 ms | **137 ms** | 36 KB | 62 KB | 238 ms |
+
+- All four render under the 150 ms target at 5,000 requests; the open line
+  panel is the slowest at 137 ms median.
+- "Repeats inside one request" is a two-level GROUP BY read straight from the
+  (column, request) index: 8 to 9 ms, against 83 to 89 ms without it.
+- The backfill in migration 0010 took about 10 s for 76,000 existing queries
+  on SQLite.
+- No aggregate touches the SQL text column, so the pages keep working on
+  Oracle, where that column is a LOB that cannot be grouped.

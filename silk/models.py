@@ -29,6 +29,8 @@ from django.utils.safestring import mark_safe
 
 from silk.config import SilkyConfig
 from silk.utils.profile_parser import parse_profile
+from silk.utils.insights import code_location
+from silk.utils.n_plus_one import pattern_hash
 
 Logger = logging.getLogger('silk.models')
 
@@ -309,7 +311,19 @@ class SQLQuery(models.Model):
     )
     traceback = TextField()
     analysis = TextField(null=True, blank=True)
+    # Filled on save so the SQL and Hotspots pages can GROUP BY in the database
+    # instead of normalising every recorded query in Python.
+    pattern_hash = CharField(max_length=40, blank=True, default='')
+    code_location = CharField(max_length=300, blank=True, default='')
     objects = SQLQueryManager()
+
+    class Meta:
+        indexes = [
+            # Each serves lookups on its first column and the "does it repeat inside one
+            # request?" two-level GROUP BY, which reads (column, request) straight from the index.
+            models.Index(fields=['pattern_hash', 'request'], name='silk_sqlq_pattern_req_idx'),
+            models.Index(fields=['code_location', 'request'], name='silk_sqlq_location_req_idx'),
+        ]
 
     # TODO docstring
     @property
@@ -370,6 +384,10 @@ class SQLQuery(models.Model):
         return tables
 
     def prepare_save(self):
+        if not self.pattern_hash:
+            self.pattern_hash = pattern_hash(self.query)
+        if not self.code_location:
+            self.code_location = code_location(self.traceback)
         if self.end_time and self.start_time:
             interval = self.end_time - self.start_time
             self.time_taken = interval.total_seconds() * 1000

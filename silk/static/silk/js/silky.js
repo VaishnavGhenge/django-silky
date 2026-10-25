@@ -102,6 +102,18 @@
     });
   }
   document.addEventListener('click', function (e) {
+    // Filter controls: <button data-set-field="type" data-value="SELECT"> writes the form's
+    // hidden input (clicking the active value clears it) and resubmits through htmx.
+    var setter = e.target.closest('[data-set-field]');
+    if (setter) {
+      var form = setter.closest('form');
+      var input = form && form.querySelector('[name="' + setter.dataset.setField + '"]');
+      if (input) {
+        input.value = input.value === setter.dataset.value ? '' : setter.dataset.value;
+        if (form.requestSubmit) form.requestSubmit(); else form.submit();
+      }
+      return;
+    }
     var copyBtn = e.target.closest('[data-copy-from]');
     if (copyBtn) {
       var src = document.querySelector(copyBtn.dataset.copyFrom);
@@ -149,5 +161,9 @@
       document.getElementById('scrim').hidden = true;
     }
   });
-  document.addEventListener('DOMContentLoaded', silky.sync);
+  document.addEventListener('DOMContentLoaded', function () {
+    silky.sync();
+    var subbar = document.querySelector('.subbar');
+    root.classList.toggle('no-subbar', !subbar || getComputedStyle(subbar).display === 'none');
+  });
 })();

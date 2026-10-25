@@ -1,0 +1,88 @@
+{% load silk_filters %}{% url 'silk:hotspots' as hot_url %}
+<div id="split" class="splitview{% if detail %} has-detail{% endif %}">
+    <section class="splitview__main">
+        {% if rows %}
+        {% if count >= 3 %}
+        <div class="alert alert--neutral"><span><b>The top 3 lines cause {{ top3_share|floatformat:"0" }}% of all DB time.</b> Fixing these pays off first.</span></div>
+        {% endif %}
+        <div class="tablewrap">
+            <table class="reqs">
+                <thead><tr>
+                    <th>Code</th>
+                    <th class="num c-80">Queries</th>
+                    <th class="num c-80">Requests</th>
+                    <th class="num c-90">Per request</th>
+                    <th class="num c-140">DB time</th>
+                </tr></thead>
+                <tbody>
+                {% for r in rows %}
+                <tr class="{% if r.code_location == open_loc %}is-open{% endif %}">
+                    <td class="c-path-cell">
+                        <a class="row-link hot__loc" href="{{ hot_url }}?{{ r.link }}" hx-get="{{ hot_url }}?{{ r.link }}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true" title="{{ r.func }}()">
+                            <span class="loc"><span class="loc__dir">{{ r.file|app_path|path_dir }}</span><b>{{ r.file|path_name }}:{{ r.line }}</b></span>
+                            {% if r.repeats %}<span class="flag" title="Ran 3+ queries in one request ({{ r.repeats }} request{{ r.repeats|pluralize }}): it sits in a loop">In a loop</span>{% endif %}
+                        </a>
+                        {% if r.code %}<code class="hot__code">{{ r.code }}</code>{% endif %}
+                    </td>
+                    <td class="num mono">{{ r.calls }}</td>
+                    <td class="num mono">{{ r.requests }}</td>
+                    <td class="num mono">{{ r.per_request|floatformat:"1" }}</td>
+                    <td class="num"><div class="timecell t-good"><b>{{ r.total|floatformat:"0" }} ms <span class="muted">{{ r.share|floatformat:"0" }}%</span></b><span class="timebar"><i style="width:{{ r.bar }}%"></i></span></div></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty"><p><strong>No hotspots yet.</strong></p><p class="muted">Queries run from your own code appear here, grouped by the line that ran them.</p></div>
+        {% endif %}
+    </section>
+
+    {% if detail %}{% with d=detail %}
+    <aside class="detail" aria-label="Hotspot detail">
+        <div class="d-head">
+            <div class="d-top">
+                <strong class="d-title mono">{{ d.file|app_path }}:{{ d.line }}</strong>
+                <a class="d-close" href="{{ hot_url }}" hx-get="{{ hot_url }}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true" aria-label="Close" title="Close">
+                    <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></a>
+            </div>
+            {% if d.func %}<div class="d-meta"><span>{{ d.func }}()</span></div>{% endif %}
+            <div class="d-actions">
+                <a class="btn" data-editor-file="{{ d.file }}" data-editor-line="{{ d.line }}" href="vscode://file{{ d.file }}:{{ d.line }}"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-code"></use></svg>Open in editor</a>
+            </div>
+        </div>
+        <div class="d-body">
+            {% if d.code %}<pre class="code">{{ d.code }}</pre>{% endif %}
+            <div class="kpis">
+                <div class="kpi"><span>DB time</span><b>{{ d.stats.total|floatformat:"0" }} ms</b></div>
+                <div class="kpi"><span>Queries</span><b>{{ d.stats.calls }}</b></div>
+                <div class="kpi"><span>Requests</span><b>{{ d.stats.requests }}</b></div>
+                <div class="kpi"><span>Per request</span><b>{{ d.per_request|floatformat:"1" }}</b></div>
+            </div>
+            {% if d.fix %}
+            <div class="fix">
+                <div class="fix__head"><b>Likely fix</b><span class="flag">{% if d.fix.kind == 'dup' %}Duplicate{% else %}N+1{% endif %}</span></div>
+                <p>{{ d.fix.text }}</p>
+                <div class="fix__code"><pre id="hot-fix">{{ d.fix.code }}</pre><button class="btn btn--sm" type="button" data-copy-from="#hot-fix" data-copy-label="Fix copied"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>Copy</button></div>
+            </div>
+            {% endif %}
+            <h2 class="h3">Queries from this line ({{ d.patterns|length }})</h2>
+            <div class="groups">
+                {% for p in d.patterns %}
+                <a class="group" href="{% url 'silk:sql' %}?p={{ p.pattern_hash }}">
+                    <span class="group__n{% if p.repeats %} is-hot{% endif %}">{{ p.calls }}×</span>
+                    <span class="wf__sql"><span class="sqltype t-{{ p.type }}">{{ p.type }}</span> {{ p.table }} <span class="muted">{{ p.sql|truncatechars:120 }}</span></span>
+                    <span class="wf__ms">{{ p.total|floatformat:"0" }} ms</span>
+                </a>
+                {% endfor %}
+            </div>
+            <h2 class="h3">Endpoints that reach it</h2>
+            <div class="occ">
+                {% for e in d.endpoints %}
+                <div class="occ__row occ__row--ep"><span class="occ__path">{{ e.request__view_name|default:e.request__path }}</span><span class="occ__n">{{ e.n }} q</span></div>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+    {% endwith %}{% endif %}
+</div>
