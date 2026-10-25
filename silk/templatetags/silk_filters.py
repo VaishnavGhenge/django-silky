@@ -159,3 +159,10 @@ def time_tier(context, ms):
     from silk.utils.prefs import thresholds, tier
     th = context.get('thresholds') or thresholds(context.get('request'))
     return tier(ms, th)
+
+
+@register.filter(name='sql_type')
+def sql_type_filter(sql):
+    """SELECT, INSERT, UPDATE, DELETE or the query's first keyword."""
+    from silk.utils.sql_patterns import sql_type
+    return sql_type(sql or '')

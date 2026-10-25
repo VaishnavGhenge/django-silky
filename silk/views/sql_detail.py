@@ -10,6 +10,7 @@ from django.views.generic import View
 
 from silk.auth import login_possibly_required, permissions_possibly_required
 from silk.models import Profile, Request, SQLQuery
+from silk.utils.insights import app_frame, parse_frames
 from silk.views.code import _code
 
 
@@ -61,7 +62,14 @@ class SQLDetailView(View):
         if file_path and file_path not in files:
             raise PermissionDenied
         tb = [mark_safe(x) for x in str.split('\n')]
+        frames = parse_frames(sql_query.traceback)
+        top = app_frame(sql_query.traceback)
+        for n, f in enumerate(frames, start=1):
+            f['pos'] = n   # matches the numbering _urlify gives the source links
+            f['is_top'] = top is not None and (f['file'], f['line']) == (top['file'], top['line'])
         context = {
+            'frames': frames,
+            'app_frames': sum(1 for f in frames if f['app']),
             'sql_query': sql_query,
             'traceback': [(ln, _is_lib_frame(ln)) for ln in tb],
             'pos': pos,

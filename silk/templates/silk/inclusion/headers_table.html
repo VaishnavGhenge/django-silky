@@ -1,0 +1,6 @@
+<section class="card codeblock">
+    <div class="codeblock__head"><h2>{{ title }}</h2><span class="muted small">{{ headers|length }}</span></div>
+    <dl class="kv">
+        {% for k, v in headers.items %}<dt>{{ k }}</dt><dd>{{ v }}</dd>{% endfor %}
+    </dl>
+</section>

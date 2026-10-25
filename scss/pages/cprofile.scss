@@ -1,9 +1,0 @@
-/* cprofile.html uses silk-section cards and silk-pre (from request.css).
-   Only cprofile-specific styles live here. */
-
-/* Wide pre: let the profiler text scroll horizontally without truncation */
-.silk-pre--wide {
-  overflow-x: auto;
-  white-space: pre;
-  font-size: var(--silk-font-size-sm);
-}

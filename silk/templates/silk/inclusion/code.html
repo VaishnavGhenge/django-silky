@@ -1,7 +1,3 @@
-{% load silk_filters %}
-<div class="silk-code-snippet">
-  <div class="silk-code-ellipsis">...</div>
-  <pre class="silk-pre" data-active-indices="{{ active_indices|silk_json }}"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code class="language-python">{% for line in code %}{{ line }}
-{% endfor %}</code></pre>
-  <div class="silk-code-ellipsis">...</div>
-</div>
+{# Source lines around a profiled block or traceback frame; the matching lines are marked. #}
+<pre class="src">{% for line in code %}<span class="src__line{% if forloop.counter0 in active_indices %} is-active{% endif %}">{{ line }}</span>
+{% endfor %}</pre>

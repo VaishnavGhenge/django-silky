@@ -31,14 +31,8 @@ def _is_db_frame(path):
     return path.startswith(_SILK_DIR) or '/django/db/' in path.replace('\\', '/')
 
 
-def app_frame(traceback):
-    """The app's own frame closest to the database call in a recorded traceback, or None.
-
-    Silk's middleware stores stacks innermost first (silk/sql.py reverses them);
-    a standard Python traceback is outermost first. The side the database and
-    Silk frames sit on tells the order. Returns a dict with file, line, func and
-    code (the source line, if recorded).
-    """
+def parse_frames(traceback):
+    """Frames of a recorded traceback in stored order: file, line, func, code and whether it is app code."""
     lines = (traceback or '').split('\n')
     frames = []
     for i, raw in enumerate(lines):
@@ -51,8 +45,21 @@ def app_frame(traceback):
             'line': int(m.group('line')),
             'func': m.group('func'),
             'code': '' if _FRAME.search(nxt) else nxt,
+            'app': _is_app_file(m.group('file')),
         })
-    app = [f for f in frames if _is_app_file(f['file'])]
+    return frames
+
+
+def app_frame(traceback):
+    """The app's own frame closest to the database call in a recorded traceback, or None.
+
+    Silk's middleware stores stacks innermost first (silk/sql.py reverses them);
+    a standard Python traceback is outermost first. The side the database and
+    Silk frames sit on tells the order. Returns a dict with file, line, func and
+    code (the source line, if recorded).
+    """
+    frames = parse_frames(traceback)
+    app = [f for f in frames if f['app']]
     if not app:
         return None
     innermost_first = _is_db_frame(frames[0]['file']) and not _is_db_frame(frames[-1]['file'])

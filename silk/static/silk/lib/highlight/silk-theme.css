@@ -1,6 +1,6 @@
 /*
   silk-theme.css — highlight.js theme for django-silky
-  Uses CSS custom properties defined in theme.scss so it adapts
+  Uses the --code-* tokens from scss/silky/_tokens.scss so it adapts
   automatically to light and dark mode with no JavaScript.
   Token palette: GitHub Light / GitHub Dark.
 */
@@ -12,10 +12,10 @@
   padding: 1em 1.2em;
   border-radius: 6px;
   line-height: 1.65;
-  font-family: Fantasque, 'Fira Mono', 'Consolas', 'Menlo', monospace;
+  font-family: var(--mono);
   font-size: 13px;
-  background: var(--silk-code-bg);
-  color: var(--silk-code-text);
+  background: var(--code-bg);
+  color: var(--code-text);
 }
 
 /* ── Comments ── */
@@ -23,7 +23,7 @@
 .hljs-blockquote,
 .hljs-quote,
 .hljs-javadoc {
-  color: var(--silk-code-comment);
+  color: var(--code-comment);
   font-style: italic;
 }
 
@@ -36,7 +36,7 @@
 .hljs-section,
 .hljs-at_rule,
 .hljs-at_rule .hljs-keyword {
-  color: var(--silk-code-keyword);
+  color: var(--code-keyword);
   font-weight: 600;
 }
 
@@ -45,21 +45,21 @@
 .hljs-value,
 .hljs-link_label,
 .hljs-addition {
-  color: var(--silk-code-string);
+  color: var(--code-string);
 }
 
 /* ── Numbers ── */
 .hljs-number,
 .hljs-code,
 .hljs-hexcolor {
-  color: var(--silk-code-number);
+  color: var(--code-number);
 }
 
 /* ── Built-ins — SQL COUNT/MAX/SUM, Python print/len/range ── */
 .hljs-built_in,
 .hljs-literal,
 .hljs-name {
-  color: var(--silk-code-builtin);
+  color: var(--code-builtin);
 }
 
 /* ── Function / method names ── */
@@ -68,7 +68,7 @@
 .hljs-title.function_,
 .hljs-title.function_,
 .hljs-title.function_.invoke__ {
-  color: var(--silk-code-function);
+  color: var(--code-function);
   font-weight: 600;
 }
 
@@ -78,14 +78,14 @@
 .hljs-class .hljs-title,
 .hljs-title.class_,
 .hljs-title.class_.inherited__ {
-  color: var(--silk-code-type);
+  color: var(--code-type);
 }
 
 /* ── Variables ── */
 .hljs-variable,
 .hljs-template-variable,
 .hljs-id {
-  color: var(--silk-code-variable);
+  color: var(--code-builtin);
 }
 
 /* ── Attributes / properties ── */
@@ -93,7 +93,7 @@
 .hljs-attr,
 .hljs-horizontal_rule,
 .hljs-link_url {
-  color: var(--silk-code-attr);
+  color: var(--code-attr);
 }
 
 /* ── Meta / decorators / preprocessor ── */
@@ -108,12 +108,12 @@
 .hljs-bullet,
 .smartquote,
 .hljs-label {
-  color: var(--silk-code-meta);
+  color: var(--code-comment);
 }
 
 /* ── Function parameters ── */
 .hljs-params {
-  color: var(--silk-code-variable);
+  color: var(--code-builtin);
 }
 
 /* ── Symbols / constants / literals (True, False, None) ── */
@@ -121,28 +121,28 @@
 .hljs-constant,
 .hljs-pseudo,
 .hljs-literal {
-  color: var(--silk-code-builtin);
+  color: var(--code-builtin);
 }
 
 /* ── Tags (HTML/XML/template) ── */
 .hljs-tag {
-  color: var(--silk-code-tag);
+  color: var(--code-attr);
 }
 
 /* ── Operators ── */
 .hljs-operator {
-  color: var(--silk-code-operator);
+  color: var(--code-text);
 }
 
 /* ── Regexp ── */
 .hljs-regexp {
-  color: var(--silk-code-regexp);
+  color: var(--code-attr);
 }
 
 /* ── Diff additions / deletions ── */
 .hljs-deletion,
 .hljs-important {
-  color: var(--silk-code-deletion);
+  color: var(--code-deletion);
   font-weight: bold;
 }
 

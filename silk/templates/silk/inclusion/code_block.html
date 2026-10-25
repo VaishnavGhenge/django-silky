@@ -1,0 +1,13 @@
+{# A titled code block with a copy button. Params: title, id, text, lang (optional), note (optional), more_url (optional, when text is cut). #}
+<section class="card codeblock">
+    <div class="codeblock__head">
+        <h2>{{ title }}</h2>
+        {% if note %}<span class="muted small">{{ note }}</span>{% endif %}
+        {% if not more_url %}<button class="btn btn--sm" type="button" data-copy-from="#{{ id }}" data-copy-label="{{ title }} copied"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>Copy</button>{% endif %}
+    </div>
+    {% if more_url %}
+    <p class="muted small">{{ text|length }} characters, too long to show here. <a href="{{ more_url }}">Open it on its own page</a>.</p>
+    {% else %}
+    <pre class="code code--block"><code id="{{ id }}"{% if lang %} class="language-{{ lang }}"{% endif %}>{{ text }}</code></pre>
+    {% endif %}
+</section>

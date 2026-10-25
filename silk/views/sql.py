@@ -54,4 +54,5 @@ class SQLView(View):
             raise KeyError('no profile_id or request_id')
         # noinspection PyUnboundLocalVariable
         context['items'] = page
+        context['max_ms'] = max([q.time_taken or 0 for q in page] + [1])
         return render(request, 'silk/sql.html', context)

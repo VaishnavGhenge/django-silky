@@ -1,89 +1,62 @@
-{% extends "silk/base/detail_base.html" %}
+{% extends "silk/base/base.html" %}
 {% load silk_assets %}
-{% load static %}
 {% load silk_filters %}
-{% load silk_nav %}
 {% load silk_inclusion %}
 
-{% block pagetitle %}Silky - SQL Detail - {{ silk_request.path }}{% endblock %}
-
-{% block js %}
-    {{ block.super }}
-    <script src="{% silk_asset 'silk/js/pages/sql_detail.js' %}"></script>
-{% endblock %}
+{% block pagetitle %}Silky - SQL query{% endblock %}
 
 {% block style %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/sql_detail.css' %}"/>
+    <link rel="stylesheet" href="{% silk_asset 'silk/lib/highlight/silk-theme.css' %}"/>
+{% endblock %}
+
+{% block js %}
+    <script src="{% silk_asset 'silk/lib/highlight/highlight.pack.js' %}" defer></script>
+    <script src="{% silk_asset 'silk/js/pages/request.js' %}" defer></script>
 {% endblock %}
 
 {% block menu %}
-<a href="{% if silk_request and profile %}{% url "silk:request_and_profile_sql" silk_request.id profile.id %}{% elif silk_request %}{% url "silk:request_sql" silk_request.pk %}{% elif profile %}{% url "silk:profile_sql" profile.pk %}{% endif %}">
-    <div class="menu-item menu-item--back selectable-menu-item" title="Back to SQL">
-        <div class="menu-item-outer">
-            <div class="menu-item-inner">
-                <svg data-icon="chevron-left" class="silk-icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>
-            </div>
-        </div>
-    </div>
-</a>
-<div class="menu-item menu-item-selected">
-    <div class="menu-item-outer">
-        <div class="menu-item-inner">
-            <svg data-icon="database" class="silk-icon" aria-hidden="true"><use href="#i-database"></use></svg> SQL Query
-        </div>
-    </div>
-</div>
+<nav class="subtabs" aria-label="SQL query">
+    <a class="subtab subtab--back" href="{% if silk_request and profile %}{% url 'silk:request_and_profile_sql' silk_request.id profile.id %}{% elif silk_request %}{% url 'silk:request_sql' silk_request.pk %}{% elif profile %}{% url 'silk:profile_sql' profile.pk %}{% else %}{% url 'silk:sql' %}{% endif %}" title="Back to the queries" aria-label="Back to the queries"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-left"></use></svg></a>
+    <span class="subtab" aria-current="page">Query</span>
+</nav>
 {% endblock %}
 
 {% block data %}
-<div class="silk-detail-page">
-<div class="silk-detail-body">
-
-    {# ── Query ── #}
-    <section class="silk-section">
-        <h3 class="silk-section__heading">
-            <svg data-icon="database" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-database"></use></svg> Query
-        </h3>
-        <pre class="silk-pre"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code class="language-sql">{{ sql_query.formatted_query }}</code></pre>
-        <div class="silk-sql-meta">
-            <span class="silk-hero__metric">
-                <svg data-icon="clock" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
-                <span class="silk-num {% if sql_query.time_taken >= 1000 %}silk-num--very-bad{% elif sql_query.time_taken >= 500 %}silk-num--bad{% elif sql_query.time_taken >= 100 %}silk-num--ok{% else %}silk-num--very-good{% endif %}">{{ sql_query.time_taken }}</span><span class="silk-unit">ms</span>
-            </span>
-            <span class="silk-hero__metric">
-                <svg data-icon="git-merge" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-git-merge"></use></svg>
-                {{ sql_query.num_joins }} joins
-            </span>
+<div class="rd-overview">
+    <div class="req-head">
+        <div>
+            <h1><span class="sqltype t-{{ sql_query.query|sql_type }}">{{ sql_query.query|sql_type }}</span> {{ sql_query.tables_involved|join:", "|default:"query" }}</h1>
+            <p class="sub">{% if silk_request %}In <a href="{% url 'silk:request_detail' request_id=silk_request.pk %}">{{ silk_request.method }} {{ silk_request.path }}</a>, {% endif %}started {{ sql_query.start_time_relative }} into the request.</p>
         </div>
-    </section>
+        {% if sql_query.pattern_hash %}<a class="btn" href="{% url 'silk:sql' %}?p={{ sql_query.pattern_hash }}">This pattern across requests</a>{% endif %}
+    </div>
 
-    {# ── Query Plan ── #}
-    {% if analysis %}
-    <section class="silk-section">
-        <h3 class="silk-section__heading">
-            <svg data-icon="list-tree" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-list-tree"></use></svg> Query Plan
-        </h3>
-        <pre class="silk-pre"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code>{{ analysis }}</code></pre>
-    </section>
-    {% endif %}
+    <div class="kpis">
+        <div class="kpi"><span>Time</span><b>{{ sql_query.time_taken|floatformat:"1" }} ms</b></div>
+        <div class="kpi"><span>Joins</span><b>{{ sql_query.num_joins }}</b></div>
+        <div class="kpi"><span>Tables</span><b>{{ sql_query.tables_involved|length }}</b></div>
+        <div class="kpi"><span>App frames</span><b>{{ app_frames }}</b></div>
+    </div>
 
-    {# ── Traceback ── #}
-    <section class="silk-section">
-        <h3 class="silk-section__heading">
-            <svg data-icon="layers" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-layers"></use></svg> Traceback
-        </h3>
-        <p class="silk-detail-note">Python stack trace leading to this SQL query. Your code is highlighted; library frames are muted.</p>
-        <div class="silk-traceback">
-            {% for ln, is_lib in traceback %}
-                {% if ln %}
-                <div class="silk-traceback__line {% if is_lib %}silk-traceback__line--lib{% else %}silk-traceback__line--app{% endif %}">{{ ln }}</div>
-                {% if forloop.counter == pos %}{% code code actual_line %}{% endif %}
-                {% endif %}
+    {% include 'silk/inclusion/code_block.html' with title='Query' id='q-sql' text=sql_query.formatted_query lang='sql' %}
+    {% if analysis %}{% include 'silk/inclusion/code_block.html' with title='Query plan' id='q-plan' text=analysis %}{% endif %}
+
+    <section class="card codeblock">
+        <div class="codeblock__head"><h2>Traceback</h2><span class="muted small">innermost call first · your code is highlighted, library frames are muted</span></div>
+        <div class="frames">
+            {% for f in frames %}
+            <div class="tb{% if f.app %} tb--app{% endif %}{% if f.is_top %} is-top{% endif %}">
+                <div class="tb__loc">
+                    {% if f.app %}<a class="tb__file" data-editor-file="{{ f.file }}" data-editor-line="{{ f.line }}" href="vscode://file{{ f.file }}:{{ f.line }}" title="Open in editor">{{ f.file|app_path }}:{{ f.line }}</a>{% else %}<span class="tb__file">{{ f.file|app_path }}:{{ f.line }}</span>{% endif %}
+                    <em>{{ f.func }}</em>
+                    {% if f.is_top %}<span class="flag">ran the query</span>{% endif %}
+                    <a class="tb__src" href="?pos={{ f.pos }}&amp;file_path={{ f.file|urlencode }}&amp;line_num={{ f.line }}#f{{ f.pos }}" id="f{{ f.pos }}">source</a>
+                </div>
+                {% if f.code %}<code class="tb__code">{{ f.code }}</code>{% endif %}
+                {% if f.pos == pos and code %}{% code code actual_line %}{% endif %}
+            </div>
             {% endfor %}
         </div>
     </section>
-
-</div>
 </div>
 {% endblock %}

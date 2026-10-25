@@ -1,16 +1,15 @@
-{% load silk_assets %}{% load static %}
-<html>
+{% load silk_assets %}<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
+    <title>Silky - body</title>
+    <script>try { var t = localStorage.getItem('silky-theme'); if (t && t !== 'system') document.documentElement.dataset.theme = t; } catch (e) {}</script>
     <link rel="stylesheet" href="{% silk_asset 'silk/css/silky.css' %}"/>
     <link rel="stylesheet" href="{% silk_asset 'silk/lib/highlight/silk-theme.css' %}"/>
-
-    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/raw.css' %}"/>
-    <script src="{% silk_asset 'silk/lib/highlight/highlight.pack.js' %}"></script>
-    <script src="{% silk_asset 'silk/js/pages/raw.js' %}"></script>
-
+    <script src="{% silk_asset 'silk/lib/highlight/highlight.pack.js' %}" defer></script>
+    <script src="{% silk_asset 'silk/js/pages/request.js' %}" defer></script>
 </head>
-<body>
-<pre><code>{{ body }}</code></pre>
-
+<body class="rawpage">
+<pre class="code code--block"><code>{{ body }}</code></pre>
 </body>
 </html>

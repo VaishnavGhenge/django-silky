@@ -6,13 +6,12 @@
 {% block pagetitle %}Silky - {{ silk_request.method }} {{ silk_request.path }}{% endblock %}
 
 {% block style %}
-    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/request.css' %}"/>
     <link rel="stylesheet" href="{% silk_asset 'silk/lib/highlight/silk-theme.css' %}"/>
 {% endblock %}
 
 {% block js %}
-    <script src="{% silk_asset 'silk/lib/highlight/highlight.pack.js' %}"></script>
-    <script src="{% silk_asset 'silk/js/pages/request.js' %}"></script>
+    <script src="{% silk_asset 'silk/lib/highlight/highlight.pack.js' %}" defer></script>
+    <script src="{% silk_asset 'silk/js/pages/request.js' %}" defer></script>
 {% endblock %}
 
 {% block menu %}
@@ -20,111 +19,34 @@
 {% endblock %}
 
 {% block data %}
-<div class="silk-detail-page">
+{% include 'silk/inclusion/request_overview.html' %}
 
-    {% include 'silk/inclusion/request_overview.html' %}
+<div class="rd-sections">
+    {% if query_params %}{% include 'silk/inclusion/code_block.html' with title='Query parameters' id='b-query' text=query_params lang='json' %}{% endif %}
 
-    <div class="silk-detail-body">
-        {% if query_params %}
-        <section class="silk-section">
-            <h3 class="silk-section__heading">Query Parameters</h3>
-            <pre class="silk-pre"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code>{{ query_params }}</code></pre>
-        </section>
-        {% endif %}
+    {% include 'silk/inclusion/headers_table.html' with title='Request headers' headers=silk_request.headers %}
 
-        <section class="silk-section">
-            <h3 class="silk-section__heading">Request Headers</h3>
-            <table class="silk-headers">
-                {% for k, v in silk_request.headers.items %}
-                <tr class="silk-headers__row">
-                    <td class="silk-headers__key">{{ k.upper }}</td>
-                    <td class="silk-headers__val">{{ v }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </section>
+    {% url 'silk:raw' silk_request.pk as raw_url %}
+    {% if silk_request.raw_body %}
+        {% if silk_request.raw_body|length > 1000 %}{% include 'silk/inclusion/code_block.html' with title='Raw request body' id='b-req-raw' text=silk_request.raw_body more_url=raw_url|add:'?typ=request&subtyp=raw' %}
+        {% else %}{% include 'silk/inclusion/code_block.html' with title='Raw request body' id='b-req-raw' text=silk_request.raw_body %}{% endif %}
+    {% endif %}
+    {% if silk_request.body %}
+        {% if silk_request.body|length > 1000 %}{% include 'silk/inclusion/code_block.html' with title='Request body' id='b-req' text=silk_request.body note='formatted as JSON' more_url=raw_url|add:'?typ=request&subtyp=processed' %}
+        {% else %}{% include 'silk/inclusion/code_block.html' with title='Request body' id='b-req' text=silk_request.body note='formatted as JSON' lang='json' %}{% endif %}
+    {% endif %}
 
-        {% if silk_request.raw_body %}
-        <section class="silk-section">
-            <h3 class="silk-section__heading">Raw Request Body</h3>
-            {% if silk_request.raw_body|length > 1000 %}
-                <p class="silk-detail-note">The raw request body is <strong>{{ silk_request.raw_body|length }}</strong> characters — <a href="{% url "silk:raw" silk_request.pk %}?typ=request&subtyp=raw">view raw</a>.</p>
-            {% else %}
-                <pre class="silk-pre">{{ silk_request.raw_body }}</pre>
-            {% endif %}
-        </section>
-        {% endif %}
+    {% if silk_request.response.headers %}{% include 'silk/inclusion/headers_table.html' with title='Response headers' headers=silk_request.response.headers %}{% endif %}
+    {% if silk_request.response.raw_body %}{% with raw_body=silk_request.response.raw_body_decoded %}
+        {% if raw_body|length > 1000 %}{% include 'silk/inclusion/code_block.html' with title='Raw response body' id='b-res-raw' text=raw_body more_url=raw_url|add:'?typ=response&subtyp=raw' %}
+        {% else %}{% include 'silk/inclusion/code_block.html' with title='Raw response body' id='b-res-raw' text=raw_body %}{% endif %}
+    {% endwith %}{% endif %}
+    {% if silk_request.response.body %}
+        {% if silk_request.response.body|length > 1000 %}{% include 'silk/inclusion/code_block.html' with title='Response body' id='b-res' text=silk_request.response.body note='formatted as JSON' more_url=raw_url|add:'?typ=response&subtyp=processed' %}
+        {% else %}{% include 'silk/inclusion/code_block.html' with title='Response body' id='b-res' text=silk_request.response.body note='formatted as JSON' lang='json' %}{% endif %}
+    {% endif %}
 
-        {% if silk_request.body %}
-        <section class="silk-section">
-            <h3 class="silk-section__heading">Request Body</h3>
-            <p class="silk-detail-note">Processed as JSON for readability.</p>
-            {% if silk_request.body|length > 1000 %}
-                <p class="silk-detail-note">Body is <strong>{{ silk_request.body|length }}</strong> characters — <a href="{% url "silk:raw" silk_request.pk %}?typ=request&subtyp=processed">view body</a>.</p>
-            {% else %}
-                <pre class="silk-pre"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code>{{ silk_request.body }}</code></pre>
-            {% endif %}
-        </section>
-        {% endif %}
-
-        {% if silk_request.response.headers %}
-        <section class="silk-section">
-            <h3 class="silk-section__heading">Response Headers</h3>
-            <table class="silk-headers">
-                {% for k, v in silk_request.response.headers.items %}
-                <tr class="silk-headers__row">
-                    <td class="silk-headers__key">{{ k.upper }}</td>
-                    <td class="silk-headers__val">{{ v }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </section>
-        {% endif %}
-
-        {% if silk_request.response.raw_body %}
-        <section class="silk-section">
-            <h3 class="silk-section__heading">Raw Response Body</h3>
-            {% with raw_body=silk_request.response.raw_body_decoded %}
-                {% if raw_body|length > 1000 %}
-                    <p class="silk-detail-note">The raw response body is <strong>{{ raw_body|length }}</strong> characters — <a href="{% url "silk:raw" silk_request.pk %}?typ=response&subtyp=raw">view raw</a>.</p>
-                {% else %}
-                    <pre class="silk-pre">{{ raw_body }}</pre>
-                {% endif %}
-            {% endwith %}
-        </section>
-        {% endif %}
-
-        {% if silk_request.response.body %}
-        <section class="silk-section">
-            <h3 class="silk-section__heading">Response Body</h3>
-            <p class="silk-detail-note">Processed as JSON for readability.</p>
-            {% if silk_request.response.body|length > 1000 %}
-                <p class="silk-detail-note">Response body is <strong>{{ silk_request.response.body|length }}</strong> characters — <a href="{% url "silk:raw" silk_request.pk %}?typ=response&subtyp=processed">view body</a>.</p>
-            {% else %}
-                <pre class="silk-pre"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code>{{ silk_request.response.body }}</code></pre>
-            {% endif %}
-        </section>
-        {% endif %}
-
-        {% if curl %}
-        <section class="silk-section">
-            <h3 class="silk-section__heading">
-                <svg data-icon="terminal" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-terminal"></use></svg> Curl
-            </h3>
-            <p class="silk-detail-note">Paste into a terminal to repeat this request.</p>
-            <pre class="silk-pre"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code class="language-bash">{{ curl.strip }}</code></pre>
-        </section>
-        {% endif %}
-
-        {% if client %}
-        <section class="silk-section">
-            <h3 class="silk-section__heading">
-                <svg data-icon="code" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-code"></use></svg> Django Test Client
-            </h3>
-            <p class="silk-detail-note">Python code to replicate this request in a Django unit test.</p>
-            <pre class="silk-pre"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code class="language-python">{{ client.strip }}</code></pre>
-        </section>
-        {% endif %}
-    </div>
+    {% if curl %}{% include 'silk/inclusion/code_block.html' with title='curl' id='b-curl' text=curl.strip note='repeat this request from a terminal' lang='bash' %}{% endif %}
+    {% if client %}{% include 'silk/inclusion/code_block.html' with title='Django test client' id='b-client' text=client.strip note='replay this request in a unit test' lang='python' %}{% endif %}
 </div>
 {% endblock %}

@@ -59,7 +59,7 @@ class TestViewSQLDetail(TestCase):
         self.assertTrue(response.status_code == 403)
 
     def test_traceback_lib_frames_are_muted(self):
-        """site-packages frames must get --lib class regardless of VIRTUAL_ENV"""
+        """site-packages frames must render as muted library frames regardless of VIRTUAL_ENV"""
         request = MockSuite().mock_request()
         query = MockSuite().mock_sql_queries(request=request)[0]
         url = silky_reverse('request_sql_detail', kwargs={'sql_id': query.id, 'request_id': request.id})
@@ -68,17 +68,17 @@ class TestViewSQLDetail(TestCase):
             response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         # Real traceback always contains both lib and app frames
-        self.assertContains(response, 'silk-traceback__line--lib')
-        self.assertContains(response, 'silk-traceback__line--app')
+        self.assertContains(response, 'class="tb"')
+        self.assertContains(response, 'tb tb--app')
 
     def test_traceback_app_frames_are_highlighted(self):
-        """frames outside site-packages must get --app class"""
+        """frames outside site-packages must render as highlighted app frames"""
         request = MockSuite().mock_request()
         query = MockSuite().mock_sql_queries(request=request)[0]
         url = silky_reverse('request_sql_detail', kwargs={'sql_id': query.id, 'request_id': request.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'silk-traceback__line--app')
+        self.assertContains(response, 'tb tb--app')
         # Old marker classes must no longer appear
         self.assertNotContains(response, 'is-third-party')
         self.assertNotContains(response, 'not-third-party')
