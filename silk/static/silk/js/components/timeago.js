@@ -74,4 +74,5 @@
   }
 
   document.addEventListener('DOMContentLoaded', applyTimeAgo);
+  document.addEventListener('htmx:afterSettle', applyTimeAgo); // rows swapped in by htmx
 }());

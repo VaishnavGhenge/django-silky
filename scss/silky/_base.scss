@@ -42,3 +42,7 @@ kbd {
 
 .muted { color: var(--muted); }
 .mono { font-family: var(--mono); }
+
+// Animate between pages (Chrome, Edge, Safari 18); other browsers navigate normally.
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; }

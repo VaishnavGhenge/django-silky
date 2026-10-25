@@ -1,119 +1,34 @@
-{% extends 'silk/base/root_base.html' %}
-{% load silk_inclusion %}
-{% load silk_filters %}
+{% extends 'silk/base/base.html' %}
 {% load static %}
 
 {% block pagetitle %}Silky - Requests{% endblock %}
 
-{% block style %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% static 'silk/css/pages/requests.css' %}"/>
-{% endblock %}
-
-{% block menu %}
-    {% root_menu request %}
-{% endblock %}
-
-{% block filter %}
-    {# Theme toggle is injected by base.html; nothing extra needed here #}
-{% endblock %}
-
 {% block js %}
-    {{ block.super }}
-    <script src="{% static 'silk/js/pages/requests.js' %}"></script>
+    <script src="{% static 'silk/lib/htmx.min.js' %}" defer></script>
+    <script src="{% static 'silk/js/pages/requests.js' %}" defer></script>
+    {# Prefetch a request's page when the pointer rests on its row (Chrome; ignored elsewhere). #}
+    <script type="speculationrules">
+      {"prefetch": [{"source": "document", "where": {"selector_matches": "a.row-link"}, "eagerness": "moderate"}]}
+    </script>
 {% endblock %}
 
 {% block data %}
-<div class="silk-page">
-    {# ── Toolbar ── #}
-    <div class="silk-toolbar">
-        <form id="silk-sort-form" action="." method="post">
-            {% csrf_token %}
-            <div class="silk-toolbar__left">
-                {% include 'silk/inclusion/sort_chips.html' %}
-            </div>
-            <div class="silk-toolbar__right">
-                <label class="silk-toolbar-label">View:
-                    <select name="view_style" class="silk-select" onchange="document.getElementById('silk-sort-form').submit()">
-                        {% for option in options_view_style %}
-                        <option value="{{ option.value }}" {% if option.value == view_style %}selected{% endif %}>{{ option.label }}</option>
-                        {% endfor %}
-                    </select>
-                </label>
-                <label class="silk-toolbar-label">Per page:
-                    <select name="show" class="silk-select" onchange="document.getElementById('silk-sort-form').submit()">
-                        {% for n in options_show %}
-                        <option value="{{ n }}" {% if n == show %}selected{% endif %}>{{ n }}</option>
-                        {% endfor %}
-                    </select>
-                </label>
-                <button type="button" id="silk-filter-toggle" class="silk-btn silk-btn--outline" onclick="silkFilterToggle()" aria-expanded="false" aria-controls="silk-filter-bar">
-                    <svg data-icon="filter" class="silk-icon" aria-hidden="true"><use href="#i-filter"></use></svg>
-                    Filters{% if filters %} ({{ filters|length }}){% endif %}
-                </button>
-            </div>
-        </form>
+{# Filters post to this view and are kept in the session, as before. htmx swaps only #req-dynamic, #}
+{# so the search box keeps focus while you type. Without JavaScript the form still posts normally. #}
+<form id="req-form" class="req" method="post" action="{% url 'silk:requests' %}"
+      hx-post="{% url 'silk:requests' %}" hx-target="#req-dynamic" hx-swap="outerHTML"
+      hx-trigger="submit, input changed delay:300ms from:#req-search">
+    {% csrf_token %}
+    <div class="req-head">
+        <h1>Requests</h1>
+        <label class="search">
+            <svg class="silk-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+            <input id="req-search" type="search" name="filter-search-value" value="{{ filters.search.value|default:'' }}"
+                   placeholder="Search path or view" autocomplete="off" spellcheck="false" aria-label="Search path or view">
+            <kbd>/</kbd>
+        </label>
+        <input type="hidden" name="filter-search-typ" value="SearchFilter">
     </div>
-
-    {# ── Filter bar ── #}
-    <form id="silk-filter-form" action="." method="post">
-        {% csrf_token %}
-        {% include 'silk/inclusion/filter_bar.html' %}
-    </form>
-
-    {# ── Results ── #}
-    {% if results %}
-        {% if view_style == "row" %}
-        <div class="silk-table-wrapper">
-            <table class="silk-table">
-                <thead class="silk-table__head">
-                    <tr>
-                        <th class="silk-th silk-th--timestamp">Time</th>
-                        <th class="silk-th silk-th--method">Method</th>
-                        <th class="silk-th silk-th--status">Status</th>
-                        <th class="silk-th silk-th--path">Path</th>
-                        <th class="silk-th silk-th--numeric">Duration</th>
-                        <th class="silk-th silk-th--numeric">DB Time</th>
-                        <th class="silk-th silk-th--numeric">Queries</th>
-                    </tr>
-                </thead>
-                <tbody class="silk-table__body">
-                    {% for silk_request in results %}
-                    <tr class="silk-table__row" tabindex="0"
-                        onclick="window.location='{% url 'silk:request_detail' request_id=silk_request.pk %}'"
-                        onkeydown="if(event.key==='Enter')window.location='{% url 'silk:request_detail' request_id=silk_request.pk %}'"
-                        aria-label="View request {{ silk_request.method }} {{ silk_request.path }}">
-                        {% request_summary_row silk_request %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="silk-cards">
-            {% for silk_request in results %}
-            <a href="{% url 'silk:request_detail' request_id=silk_request.pk %}" class="silk-card-link">
-                {% request_summary silk_request %}
-            </a>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        {# ── Pagination ── #}
-        {% include 'silk/inclusion/pagination.html' %}
-
-    {% else %}
-        <div class="silk-empty">
-            <div class="silk-empty__icon">
-                <svg data-icon="layers" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-layers"></use></svg>
-            </div>
-            <h2 class="silk-empty__title">No requests found</h2>
-            <p class="silk-empty__desc">No requests match the current filters. Try adjusting your filters or clearing them.</p>
-            <form action="." method="post">
-                {% csrf_token %}
-                <button type="submit" name="clear_filters" value="1" class="silk-btn silk-btn--primary">Clear filters</button>
-            </form>
-        </div>
-    {% endif %}
-</div>
+    {% include 'silk/inclusion/requests_results.html' %}
+</form>
 {% endblock %}

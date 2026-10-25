@@ -143,6 +143,19 @@ class PathFilter(BaseFilter):
         return 'Path == %s' % self.value
 
 
+class SearchFilter(BaseFilter):
+    """Free-text search: the path or the view name contains the text, ignoring case."""
+
+    def __init__(self, text):
+        value = (text or '').strip()
+        if not value:
+            raise FilterValidationError('Empty search')
+        super().__init__(value, Q(path__icontains=value) | Q(view_name__icontains=value))
+
+    def __str__(self):
+        return 'Path or view contains "%s"' % self.value
+
+
 class NameFilter(BaseFilter):
     def __init__(self, name):
         value = name

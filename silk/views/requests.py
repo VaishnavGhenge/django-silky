@@ -1,6 +1,7 @@
 import json
+import math
 
-from django.db.models import Q
+from django.db.models import Avg, Q
 from django.shortcuts import render
 from django.template.context_processors import csrf
 from django.utils.decorators import method_decorator
@@ -130,8 +131,52 @@ class RequestsView(View):
             .distinct()
         )
 
+    METHOD_ORDER = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
+
     def _get_methods(self):
-        return Request.objects.values_list('method', flat=True).order_by('method').distinct()
+        """Recorded methods, most common kinds first (GET, POST, ...), then any others alphabetically."""
+        methods = Request.objects.values_list('method', flat=True).order_by('method').distinct()
+        order = {m: i for i, m in enumerate(self.METHOD_ORDER)}
+        return sorted(methods, key=lambda m: (order.get(m, len(order)), m))
+
+    def _stats(self, qs):
+        """Headline numbers for the filtered set, computed in the database."""
+        qs = qs.order_by()
+        count = qs.count()
+        if not count:
+            return {'count': 0}
+        agg = qs.aggregate(avg_ms=Avg('time_taken'), avg_queries=Avg('num_sql_queries'))
+        times = qs.filter(time_taken__isnull=False).order_by('time_taken').values_list('time_taken', flat=True)
+        timed = times.count()
+
+        def pct(p):
+            return times[min(timed - 1, int(p * timed))] if timed else None
+        errors = qs.filter(response__status_code__gte=500).count()
+        return {
+            'count': count,
+            'p50': pct(0.5),
+            'p95': pct(0.95),
+            'avg_queries': agg['avg_queries'] or 0,
+            'errors': errors,
+            'error_rate': errors / count * 100,
+        }
+
+    def _status_classes(self, raw_filters):
+        """Status-code chips (2xx..5xx): which recorded codes belong to each, and whether it is on."""
+        selected = set()
+        if raw_filters.get('status_code'):
+            try:
+                selected = set(json.loads(raw_filters['status_code']['value']))
+            except (TypeError, ValueError, KeyError):
+                selected = set()
+        recorded = list(self._get_status_codes())
+        classes = []
+        for digit in '2345':
+            codes = [c for c in recorded if str(c).startswith(digit)]
+            if codes:
+                classes.append({'label': digit + 'xx', 'digit': digit, 'codes': json.dumps(codes),
+                                'active': bool(codes) and set(codes) <= selected})
+        return classes
 
     def _get_sort_list(self, request):
         """Return the current sort list from session, falling back to defaults."""
@@ -205,7 +250,10 @@ class RequestsView(View):
             sort_list=sort_list,
         )
 
-        page_obj = get_page(request, qs, per_page)
+        stats = self._stats(qs)
+        # One query for the page: join the response (status code) and compute DB
+        # time as a subquery, instead of two extra queries per row.
+        page_obj = get_page(request, qs.select_related('response').annotate(db_ms=db_time_expr(Request)), per_page)
 
         # Batch N+1 detection for the current page (1 extra DB query)
         page_request_ids = [r.pk for r in page_obj.object_list]
@@ -228,6 +276,20 @@ class RequestsView(View):
             for r in page_obj.object_list:
                 r.has_n1 = r.pk in n1_request_ids
             has_n1_on_page = bool(n1_request_ids)
+
+        # Time bar (square-root scale so fast requests stay visible) and speed tier per row.
+        page_max = max([r.time_taken or 0 for r in page_obj.object_list] + [1])
+        for r in page_obj.object_list:
+            ms = r.time_taken or 0
+            r.bar_pct = max(2, round(math.sqrt(ms / page_max) * 100))
+            r.tier = 'good' if ms < 300 else 'ok' if ms < 1000 else 'bad'
+
+        selected_methods = []
+        if raw_filters.get('method'):
+            try:
+                selected_methods = json.loads(raw_filters['method']['value'])
+            except (TypeError, ValueError, KeyError):
+                selected_methods = []
 
         context = {
             'show': show,
@@ -254,6 +316,10 @@ class RequestsView(View):
                 {'key': k, 'seconds': v, 'label': k} for k, v in TIME_RANGE_PRESETS.items()
             ],
             'page_obj': page_obj,
+            'stats': stats,
+            'selected_methods': selected_methods,
+            'current_sort': sort_list[0] if sort_list else DEFAULT_SORT_LIST[0],
+            'status_classes': self._status_classes(raw_filters),
             'results': page_obj.object_list,  # backward compat
             'has_n1_on_page': has_n1_on_page,
         }
@@ -303,7 +369,12 @@ class RequestsView(View):
                 except Exception:
                     pass
             self.filters_manager.save(request, filters)
-        return render(request, 'silk/requests.html', self._create_context(request))
+        return self._render(request)
+
+    def _render(self, request):
+        # htmx asks for the results region only; everything else stays on the page.
+        template = 'silk/inclusion/requests_results.html' if request.headers.get('HX-Request') else 'silk/requests.html'
+        return render(request, template, self._create_context(request))
 
     @method_decorator(login_possibly_required)
     @method_decorator(permissions_possibly_required)
@@ -344,4 +415,4 @@ class RequestsView(View):
             filters = {**previous_session, **updated}
             self.filters_manager.save(request, filters)
 
-        return render(request, 'silk/requests.html', self._create_context(request))
+        return self._render(request)

@@ -56,6 +56,78 @@
   };
   window.setIcon = silky.setIcon; // used by older page scripts
 
+  // ── Copy to clipboard: <button data-copy-from="#id" data-copy-label="Copied"> ──
+  silky.copy = function (text, label) {
+    function done() { silky.toast(label || 'Copied'); }
+    function fallback() {
+      var t = document.createElement('textarea');
+      t.value = text; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); done(); } catch (e) { silky.toast('Copy failed'); }
+      t.remove();
+    }
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, fallback);
+    else fallback();
+  };
+
+  // ── Open-in-editor links: <a data-editor-file="/path" data-editor-line="12"> ──
+  // The editor (and an optional container-to-local path mapping) are per-browser preferences.
+  var EDITORS = {
+    vscode: function (f, l) { return 'vscode://file' + encodeURI(f) + ':' + l; },
+    cursor: function (f, l) { return 'cursor://file' + encodeURI(f) + ':' + l; },
+    pycharm: function (f, l) { return 'pycharm://open?file=' + encodeURIComponent(f) + '&line=' + l; },
+    sublime: function (f, l) { return 'subl://open?url=file://' + encodeURIComponent(f) + '&line=' + l; }
+  };
+  silky.editorHref = function (file, line) {
+    var from = read('silky-path-from', ''), to = read('silky-path-to', '');
+    if (from && file.indexOf(from) === 0) file = to + file.slice(from.length);
+    var editor = EDITORS[read('silky-editor', 'vscode')];
+    return editor ? editor(file, line) : null;
+  };
+  silky.linkEditors = function (scope) {
+    (scope || document).querySelectorAll('[data-editor-file]').forEach(function (a) {
+      var href = silky.editorHref(a.dataset.editorFile, a.dataset.editorLine || 1);
+      if (href) a.setAttribute('href', href); else a.removeAttribute('href');
+    });
+  };
+  document.addEventListener('DOMContentLoaded', function () { silky.linkEditors(); });
+  document.addEventListener('htmx:afterSettle', function (e) { silky.linkEditors(e.target); });
+
+  // Dropdown menus: <div class="menu"><button data-menu-toggle>…</button><div class="menu__list" hidden>…</div></div>
+  function closeMenus(except) {
+    document.querySelectorAll('.menu__list:not([hidden])').forEach(function (list) {
+      if (list === except) return;
+      list.hidden = true;
+      var btn = list.parentNode.querySelector('[data-menu-toggle]');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var copyBtn = e.target.closest('[data-copy-from]');
+    if (copyBtn) {
+      var src = document.querySelector(copyBtn.dataset.copyFrom);
+      if (src) silky.copy(src.value !== undefined && src.tagName === 'TEXTAREA' ? src.value : src.textContent, copyBtn.dataset.copyLabel);
+      return;
+    }
+    var toggle = e.target.closest('[data-menu-toggle]');
+    if (toggle) {
+      var list = toggle.parentNode.querySelector('.menu__list');
+      closeMenus(list);
+      list.hidden = !list.hidden;
+      toggle.setAttribute('aria-expanded', String(!list.hidden));
+      if (!list.hidden) { var current = list.querySelector('[aria-checked="true"]') || list.querySelector('a, button'); if (current) current.focus(); }
+      return;
+    }
+    if (!e.target.closest('.menu__list') || e.target.closest('a, button')) closeMenus();
+  });
+  document.addEventListener('keydown', function (e) {
+    var list = e.target.closest && e.target.closest('.menu__list');
+    if (!list) return;
+    var items = Array.prototype.slice.call(list.querySelectorAll('a, button')), i = items.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+    else if (e.key === 'Escape') { closeMenus(); var b = list.parentNode.querySelector('[data-menu-toggle]'); if (b) b.focus(); }
+  });
+
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-action], [data-set-theme], [data-set-accent], [data-set-layout]');
     if (!t) return;

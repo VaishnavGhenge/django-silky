@@ -51,6 +51,8 @@
 {% endblock %}
 
 {% block js %}
+    {# jQuery only where page scripts still need it #}
+    <script src="{% static 'silk/lib/jquery-3.6.0.min.js' %}"></script>
     <script src="{% static 'silk/js/components/cell.js' %}"></script>
     <script src="{% static 'silk/lib/jquery.datetimepicker.js' %}"></script>
     <script src="{% static 'silk/js/components/filters.js' %}"></script>

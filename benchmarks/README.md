@@ -111,3 +111,30 @@ the same as the baseline. Browser figures at CPU 4×, 5,000 requests:
   uncompressed (16 KB gzipped), and the earlier 60 KB figure assumed gzip.
 - Summary is still 617 ms because its time is server-side aggregation, fixed
   in the Summary phase.
+
+## Phase 2: requests list and request detail, recorded 2026-10-25
+
+Server-side changes: the list joins each row's response and computes DB time
+as a subquery instead of two extra queries per row; the path filter's
+checkbox per recorded path is replaced by a search box; jQuery loads only on
+pages whose scripts still need it. Filters, sort and paging update the list
+through htmx instead of reloading the page. CPU 4×, 5,000 requests:
+
+| Page | DB queries | Render | HTML, 200 / 5k requests | JS | Requests | Load |
+|---|---:|---:|---:|---:|---:|---:|
+| requests | 59 → **13** | 22 → 10 ms | 100 / 697 → **51 / 51 KB** | 822 → **65 KB** | 29 → 13 | 180 → 120 ms |
+| request detail | 6 → **6** | 4 → 5 ms | 11 / 11 → **31 / 31 KB** | 762 → **44 KB** | 25 → 15 | 143 → 118 ms |
+| settings | 0 → **0** | 0 → 0 ms | 25 / 25 → **28 / 28 KB** | 728 → **10 KB** | 20 → 10 | 109 → 67 ms |
+
+- **Changing a filter now takes 62 ms** (click to swapped results, CPU 4×),
+  against a 180 ms full reload before. Target was under 100 ms.
+- **The requests page HTML no longer grows with data**: 51 KB at both 200
+  and 5,000 requests, against 100 KB and 697 KB before.
+- **JS is under the 100 KB target** on the requests list (65 KB, of which
+  htmx is 52 KB), request detail (44 KB) and settings (10 KB).
+- The request detail page stays at 6 queries: the overview's endpoint median
+  adds one, and the header no longer runs its own DB-time aggregate. Repeated
+  query analysis and the likely fix reuse the queries the page already loads.
+- HTTP requests are 13 to 15 per page against a target of 8: four font files,
+  two favicons and separate small scripts. Bundling the scripts is left for a
+  later pass.

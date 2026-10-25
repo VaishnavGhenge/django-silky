@@ -1,0 +1,228 @@
+{
+  "label": "phase2",
+  "base": "http://127.0.0.1:8010",
+  "runs": 5,
+  "cpu": 4,
+  "pages": {
+    "summary": {
+      "url": "/silk/",
+      "ttfb_ms": 478,
+      "dcl_ms": 587,
+      "load_ms": 588,
+      "lcp_ms": 568,
+      "cls": 0.008,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 12,
+      "total_kb": 505.8,
+      "kb": {
+        "doc": 44.6,
+        "js": 307.8,
+        "css": 47.4,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "requests": {
+      "url": "/silk/requests/",
+      "ttfb_ms": 14,
+      "dcl_ms": 60,
+      "load_ms": 120,
+      "lcp_ms": 128,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": 62,
+      "requests": 13,
+      "total_kb": 290.1,
+      "kb": {
+        "doc": 50.5,
+        "js": 65.1,
+        "css": 38.7,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "requests_sorted_time": {
+      "url": "/silk/requests/?order_by=time_taken",
+      "ttfb_ms": 27,
+      "dcl_ms": 75,
+      "load_ms": 135,
+      "lcp_ms": 144,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": 78,
+      "requests": 13,
+      "total_kb": 291.4,
+      "kb": {
+        "doc": 51.8,
+        "js": 65.1,
+        "css": 38.7,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/",
+      "ttfb_ms": 8,
+      "dcl_ms": 64,
+      "load_ms": 118,
+      "lcp_ms": 124,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 15,
+      "total_kb": 257.6,
+      "kb": {
+        "doc": 30.9,
+        "js": 43.8,
+        "css": 47.1,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_sql": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/",
+      "ttfb_ms": 76,
+      "dcl_ms": 131,
+      "load_ms": 189,
+      "lcp_ms": 196,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 19,
+      "total_kb": 438.1,
+      "kb": {
+        "doc": 99.6,
+        "js": 149,
+        "css": 68.2,
+        "font": 121.3,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_sql_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/67211/",
+      "ttfb_ms": 3,
+      "dcl_ms": 66,
+      "load_ms": 108,
+      "lcp_ms": 108,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 19,
+      "total_kb": 313.6,
+      "kb": {
+        "doc": 24.8,
+        "js": 133.8,
+        "css": 49,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_profiling": {
+      "url": "/silk/request/87c1aaa8-b248-47e2-96c1-69889219d80f/profiling/",
+      "ttfb_ms": 4,
+      "dcl_ms": 63,
+      "load_ms": 106,
+      "lcp_ms": 112,
+      "cls": 0,
+      "tbt_ms": 3,
+      "filter_ms": null,
+      "requests": 22,
+      "total_kb": 394.4,
+      "kb": {
+        "doc": 29.1,
+        "js": 179,
+        "css": 80.3,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "profiling": {
+      "url": "/silk/profiling/",
+      "ttfb_ms": 12,
+      "dcl_ms": 75,
+      "load_ms": 122,
+      "lcp_ms": 124,
+      "cls": 0.001,
+      "tbt_ms": 7,
+      "filter_ms": null,
+      "requests": 22,
+      "total_kb": 422.9,
+      "kb": {
+        "doc": 57.6,
+        "js": 179,
+        "css": 80.3,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "profile_detail": {
+      "url": "/silk/profile/1/",
+      "ttfb_ms": 3,
+      "dcl_ms": 119,
+      "load_ms": 120,
+      "lcp_ms": 108,
+      "cls": 0.001,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 20,
+      "total_kb": 1993.9,
+      "kb": {
+        "doc": 22.5,
+        "js": 1816.8,
+        "css": 48.6,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "cprofile": {
+      "url": "/silk/request/001f69c5-79e5-4ef5-9749-c6098c89ba86/cprofile/",
+      "ttfb_ms": 2,
+      "dcl_ms": 99,
+      "load_ms": 102,
+      "lcp_ms": 104,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 20,
+      "total_kb": 1992.9,
+      "kb": {
+        "doc": 21.7,
+        "js": 1816.8,
+        "css": 48.4,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "cleardb": {
+      "url": "/silk/cleardb/",
+      "ttfb_ms": 2,
+      "dcl_ms": 21,
+      "load_ms": 67,
+      "lcp_ms": 68,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "requests": 10,
+      "total_kb": 191.2,
+      "kb": {
+        "doc": 28.2,
+        "js": 10.2,
+        "css": 46.8,
+        "font": 106,
+        "img": 0,
+        "other": 0
+      }
+    }
+  }
+}

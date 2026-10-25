@@ -1,537 +1,256 @@
-"""
-Management command: silk_seed
+"""Generate consistent, synthetic traffic for the example blind catalog.
 
-Populates the silk database with realistic dummy data so all UI features
-can be exercised in development:
+    DB_ENGINE=sqlite3 .venv/bin/python project/manage.py silk_seed --clear --example-data
 
-  DB_ENGINE=sqlite3 .venv/bin/python project/manage.py silk_seed
-  DB_ENGINE=sqlite3 .venv/bin/python project/manage.py silk_seed --requests 300 --days 14
-  DB_ENGINE=sqlite3 .venv/bin/python project/manage.py silk_seed --clear
+The records simulate production traffic; they do not replay HTTP requests.
 """
 
+import ast
 import json
-import os
 import random
 import sys
 from datetime import timedelta
 from pathlib import Path
 
-from django.core.management.base import BaseCommand
+from django.apps import apps
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from django.utils import timezone
 
 from silk import models
-from silk.models import Profile, SQLQuery
 
 
-# ---------------------------------------------------------------------------
-# Data pools
-# ---------------------------------------------------------------------------
-
-METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
-METHOD_WEIGHTS = [50, 20, 10, 8, 5, 4, 3]
-
-STATUS_CODES = [200, 201, 204, 301, 302, 400, 401, 403, 404, 422, 500, 502, 503]
-STATUS_WEIGHTS = [40, 8, 4, 3, 5, 5, 3, 4, 8, 3, 8, 4, 3]
-
-VIEW_NAMES = [
-    "api:user-list",
-    "api:user-detail",
-    "api:product-list",
-    "api:product-detail",
-    "api:order-list",
-    "api:order-detail",
-    "api:cart-view",
-    "api:checkout",
-    "api:search",
-    "api:auth-login",
-    "api:auth-logout",
-    "dashboard:index",
-    "dashboard:reports",
-    "dashboard:export",
-    "admin:index",
-    "admin:user-changelist",
-    "home",
-    "health-check",
+CATALOG = [
+    {"name": f"{colour} {style} Blind", "child_safe": safe}
+    for style, safe in [("Blackout Roller", True), ("Linen Roman", False),
+                        ("Cordless Venetian", True), ("Solar Screen", True)]
+    for colour in ["Chalk", "Oatmeal", "Slate", "Sand", "Ivory", "Charcoal"]
 ]
 
-PATHS = [
-    "/api/v1/users/",
-    "/api/v1/users/{id}/",
-    "/api/v1/products/",
-    "/api/v1/products/{id}/",
-    "/api/v1/orders/",
-    "/api/v1/orders/{id}/",
-    "/api/v1/cart/",
-    "/api/v1/checkout/",
-    "/api/v1/search/?q={q}",
-    "/api/v1/auth/login/",
-    "/api/v1/auth/logout/",
-    "/dashboard/",
-    "/dashboard/reports/?period=7d",
-    "/dashboard/export/?format=csv",
-    "/admin/",
-    "/admin/auth/user/",
-    "/",
-    "/health/",
-]
-
-PROFILE_NAMES = [
-    "slow_serializer",
-    "heavy_queryset",
-    "permission_check",
-    "cache_miss_handler",
-    "pdf_renderer",
-    "email_dispatch",
-    "search_index_update",
-    "data_export",
-    "image_resize",
-    "audit_log_write",
-]
-
-FUNC_NAMES = [
-    "",
-    "",
-    "serialize_user",
-    "build_queryset",
-    "check_permissions",
-    "render_template",
-    "send_notification",
-    "generate_report",
-    "process_payment",
-    "validate_input",
-]
-
-FILE_PATH = os.path.realpath(__file__)
-
-# ── Realistic traceback generation ──────────────────────────────────────────
-#
-# traceback.format_stack() called from inside a management command produces a
-# management-command call stack, which looks nothing like a real request.
-# Instead we construct a traceback that mirrors what Silk actually captures
-# during a live request: Django middleware / ORM frames (library, under
-# site-packages) interleaved with the user's view code.
-#
-# _is_lib_frame() in sql_detail.py classifies a frame as library when
-# 'site-packages' appears in the path, so we embed sys.prefix (which resolves
-# to the venv root) to make the library paths realistic and classifiable.
-
-_PY_VER = f"python{sys.version_info.major}.{sys.version_info.minor}"
-_SP = str(Path(sys.prefix) / "lib" / _PY_VER / "site-packages")
-# Real path to example_app/views.py so the user-code frame actually exists
-_APP_VIEWS = str(
-    Path(__file__).resolve().parents[3] / "project" / "example_app" / "views.py"
-)
-
-_VIEW_SCENARIOS = [
-    # (view_func_name, line_number, source_snippet)
-    ("api_blind_list",   42, "qs = models.Blind.objects.filter(**filters)"),
-    ("api_blind_detail", 56, "blind = get_object_or_404(models.Blind, pk=pk)"),
-    ("api_blind_stats",  70, "total = models.Blind.objects.count()"),
-    ("api_blind_stats",  74, "child_safe_count = models.Blind.objects.filter(child_safe=True).count()"),
-    ("index",            14, "blinds = models.Blind.objects.all()"),
-]
+_APP_VIEWS = Path(__file__).resolve().parents[3] / "project" / "example_app" / "views.py"
+_SITE_PACKAGES = Path(sys.prefix) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
+_SELECT = 'SELECT "example_app_blind"."id", "example_app_blind"."photo", "example_app_blind"."name", "example_app_blind"."child_safe" FROM "example_app_blind"'
+_COUNT = 'SELECT COUNT(*) AS "__count" FROM "example_app_blind"'
 
 
-def _make_realistic_traceback() -> str:
-    """Return a traceback string that mixes Django library frames with user-code frames."""
-    view_func, lineno, snippet = random.choice(_VIEW_SCENARIOS)
-    frames = [
-        (_SP + "/django/core/handlers/exception.py",  55, "inner",            "response = get_response(request)"),
-        (_SP + "/django/core/handlers/base.py",       197, "_get_response",   "response = wrapped_callback(request, *callback_args, **callback_kwargs)"),
-        (_APP_VIEWS,                                   lineno, view_func,      snippet),
-        (_SP + "/django/db/models/manager.py",         87, "manager_method",  "return getattr(self.get_queryset(), name)(*args, **kwargs)"),
-        (_SP + "/django/db/models/query.py",          350, "__iter__",        "self._fetch_all()"),
-        (_SP + "/django/db/models/sql/compiler.py",   1547, "execute_sql",    "cursor.execute(sql, params)"),
-        (_SP + "/django/db/backends/utils.py",         67, "execute",         "return self.cursor.execute(sql, params)"),
-        (_SP + "/django/db/backends/sqlite3/base.py", 357, "execute",         "return Database.Cursor.execute(self, query, params_T)"),
+def _source_frames():
+    """Resolve source locations so clicking a sample traceback opens the right line."""
+    if not _APP_VIEWS.exists():
+        return {}
+    source = _APP_VIEWS.read_text().splitlines()
+    result = {}
+    for node in ast.walk(ast.parse("\n".join(source))):
+        if isinstance(node, ast.FunctionDef):
+            for child in ast.walk(node):
+                if isinstance(child, (ast.Assign, ast.Return)):
+                    result.setdefault(node.name, []).append((child.lineno, source[child.lineno - 1].strip()))
+    return result
+
+
+def _location(frames, function, snippet):
+    candidates = frames.get(function, [])
+    return next(((line, code) for line, code in candidates if snippet in code),
+                candidates[0] if candidates else (1, ""))
+
+
+def _traceback(frames, function, snippet):
+    line, code = _location(frames, function, snippet)
+    stack = [
+        (_SITE_PACKAGES / "django/core/handlers/base.py", 197, "_get_response",
+         "response = wrapped_callback(request, *callback_args, **callback_kwargs)"),
+        (_APP_VIEWS, line, function, code),
+        (_SITE_PACKAGES / "django/db/models/sql/compiler.py", 1547, "execute_sql",
+         "cursor.execute(sql, params)"),
     ]
-    lines = []
-    for filepath, lineno_, funcname, code in frames:
-        lines.append(f'  File "{filepath}", line {lineno_}, in {funcname}')
-        lines.append(f"    {code}")
-    return "\n".join(lines)
-
-SQL_TEMPLATES = [
-    'SELECT "auth_user"."id", "auth_user"."username", "auth_user"."email" FROM "auth_user" WHERE "auth_user"."id" = %s',
-    'SELECT "auth_user"."id", "auth_user"."username" FROM "auth_user" ORDER BY "auth_user"."date_joined" DESC LIMIT %s',
-    'SELECT COUNT(*) AS "__count" FROM "auth_user"',
-    'SELECT "app_product"."id", "app_product"."name", "app_product"."price" FROM "app_product" WHERE "app_product"."is_active" = TRUE',
-    'SELECT "app_product"."id", "app_product"."name", "app_product"."price", "app_category"."name" FROM "app_product" LEFT OUTER JOIN "app_category" ON ("app_product"."category_id" = "app_category"."id") WHERE "app_product"."price" > %s ORDER BY "app_product"."name"',
-    'SELECT "app_order"."id", "app_order"."status", "app_order"."total", "auth_user"."username" FROM "app_order" INNER JOIN "auth_user" ON ("app_order"."user_id" = "auth_user"."id") WHERE "app_order"."status" = %s',
-    'SELECT "app_orderitem"."id", "app_orderitem"."quantity", "app_orderitem"."unit_price", "app_product"."name" FROM "app_orderitem" INNER JOIN "app_product" ON ("app_orderitem"."product_id" = "app_product"."id") WHERE "app_orderitem"."order_id" = %s',
-    'INSERT INTO "app_auditlog" ("user_id", "action", "timestamp", "details") VALUES (%s, %s, %s, %s)',
-    'UPDATE "app_order" SET "status" = %s, "updated_at" = %s WHERE "app_order"."id" = %s',
-    'DELETE FROM "app_session" WHERE "app_session"."expire_date" < %s',
-    # N+1-style query (same template executed many times per request)
-    'SELECT "app_product"."id", "app_product"."name" FROM "app_product" WHERE "app_product"."id" = %s',
-]
-
-# The last SQL_TEMPLATE is the N+1 one — we'll repeat it intentionally
-N1_QUERY = SQL_TEMPLATES[-1]
-
-REQUEST_CONTENT_TYPES = ["application/json", "application/x-www-form-urlencoded", "multipart/form-data"]
-RESPONSE_CONTENT_TYPES = ["application/json", "text/html", "text/csv", "application/pdf"]
-
-SAMPLE_JSON_BODIES = [
-    '{"username": "alice", "password": "s3cr3t"}',
-    '{"name": "Widget Pro", "price": 49.99, "category_id": 3}',
-    '{"status": "shipped", "tracking_number": "TRK-1234567"}',
-    '{"q": "blue widget", "page": 2, "per_page": 20}',
-    '{"items": [{"product_id": 7, "qty": 2}, {"product_id": 12, "qty": 1}]}',
-]
-
-RESPONSE_BODIES = {
-    "application/json": [
-        '{"id": 42, "username": "alice", "email": "alice@example.com"}',
-        '{"count": 150, "results": [{"id": 1, "name": "Widget"}, {"id": 2, "name": "Gadget"}]}',
-        '{"order_id": 9981, "status": "created", "total": "149.97"}',
-        '{"detail": "Not found."}',
-        '{"detail": "Authentication credentials were not provided."}',
-        '{"non_field_errors": ["Invalid username or password."]}',
-        '{"task_id": "abc-123", "status": "queued"}',
-    ],
-    "text/html": ["<html><body><h1>Dashboard</h1></body></html>"],
-    "text/csv": ["id,name,email\n1,Alice,alice@example.com\n2,Bob,bob@example.com"],
-    "application/pdf": [""],
-}
-
-FAKE_CPROFILE = """\
-         1234 function calls (1198 primitive calls) in 0.543 seconds
-
-   Ordered by: cumulative time
-
-   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-      100    0.200    0.002    0.543    0.005 views/api.py:42(get_queryset)
-      100    0.050    0.001    0.300    0.003 models.py:88(serialize)
-      500    0.150    0.000    0.180    0.000 db/models/query.py:350(__iter__)
-       50    0.100    0.002    0.100    0.002 serializers.py:120(validate)
-"""
+    return "\n".join(f'  File "{path}", line {lineno}, in {func}\n    {text}'
+                     for path, lineno, func, text in stack)
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+def _quote(value):
+    return "'" + value.replace("'", "''") + "'"
 
-def _rand_time(ago_days: int, spread_days: int) -> tuple:
-    """Return (start_time, end_time) at a random point within the window."""
-    base = timezone.now() - timedelta(days=ago_days)
-    offset = timedelta(
-        seconds=random.randint(0, int(spread_days * 86400))
+
+def _scenario(kind, catalog, rng):
+    """Keep routing, payloads and interpolated SQL together for each endpoint."""
+    item = rng.choice(catalog)
+    data = {"method": "GET", "path": "/example_app/api/blinds/", "params": {},
+            "function": "api_blind_list", "status": 200, "body": None,
+            "content_type": "application/json", "queries": []}
+    if kind in ("list", "search"):
+        results = catalog
+        sql = _SELECT
+        if kind == "search":
+            term = rng.choice(["Roller", "Roman", "Slate", "Cordless"])
+            data["params"] = {"search": [term], "child_safe": ["true"]}
+            results = [b for b in catalog if term.lower() in b["name"].lower() and b["child_safe"]]
+            sql += f' WHERE "example_app_blind"."name" LIKE {_quote("%" + term + "%")} ESCAPE '\
+                   "'\\' AND \"example_app_blind\".\"child_safe\""
+        data["response"] = {"results": results, "count": len(results)}
+        data["queries"] = [(sql, "for b in qs")]
+    elif kind in ("detail", "missing"):
+        pk = item["id"] if kind == "detail" else max(b["id"] for b in catalog) + rng.randint(100, 1000)
+        data.update(path=f"/example_app/api/blinds/{pk}/", function="api_blind_detail")
+        data["queries"] = [(f'{_SELECT} WHERE "example_app_blind"."id" = {pk} LIMIT 21', "get_object_or_404")]
+        data["response"] = item
+        if kind == "missing":
+            data.update(status=404, content_type="text/html",
+                        response="<!doctype html><html><head><title>Not Found</title></head>"
+                                 "<body><h1>Not Found</h1><p>The requested resource was not found.</p></body></html>")
+    elif kind in ("create", "invalid"):
+        data.update(method="POST", path="/example_app/api/blinds/create/", function="api_blind_create")
+        if kind == "invalid":
+            data.update(body={"name": "", "child_safe": True}, status=400,
+                        response={"error": "name is required"})
+        else:
+            # A distinct made-to-measure name avoids the model's unique-name constraint.
+            name = f'{item["name"]} — Custom {rng.randrange(100000, 999999)}'
+            pk = max(b["id"] for b in catalog) + 1
+            created = {"id": pk, "name": name, "child_safe": item["child_safe"]}
+            catalog.append(created)
+            data.update(body={"name": name, "child_safe": item["child_safe"]}, status=201, response=created)
+            sql = ('INSERT INTO "example_app_blind" ("photo", "name", "child_safe") '
+                   f'VALUES (\'\', {_quote(name)}, {str(item["child_safe"]).upper()}) RETURNING "example_app_blind"."id"')
+            data["queries"] = [(sql, "objects.create")]
+    elif kind == "stats":
+        safe = sum(b["child_safe"] for b in catalog)
+        data.update(path="/example_app/api/blinds/stats/", function="api_blind_stats",
+                    response={"total": len(catalog), "child_safe": safe, "unsafe": len(catalog) - safe,
+                              "names": [b["name"] for b in catalog]})
+        data["queries"] = [(_COUNT, "objects.count"),
+                           (_COUNT + ' WHERE "example_app_blind"."child_safe"', "child_safe=True"),
+                           (_COUNT + ' WHERE NOT "example_app_blind"."child_safe"', "child_safe=False"),
+                           (_SELECT, "objects.all")]
+        data["queries"] += [
+            (f'SELECT "example_app_blind"."name" FROM "example_app_blind" WHERE "example_app_blind"."id" = {b["id"]} ORDER BY "example_app_blind"."id" ASC LIMIT 1', "values_list")
+            for b in catalog
+        ]
+    else:  # The example homepage intentionally sleeps for 1.345 seconds.
+        data.update(path="/example_app/", function="index", content_type="text/html",
+                    response="<!doctype html><html><head><title>Blind catalog</title></head>"
+                             "<body><h1>Made-to-measure blinds</h1></body></html>",
+                    queries=[(_SELECT, "render(request")])
+    return data
+
+
+def _make_request(scenario, start, rng, frames):
+    function = scenario["function"]
+    is_home = function == "index"
+    is_stats = function == "api_blind_stats"
+    duration = rng.uniform(1355, 1650) if is_home else rng.lognormvariate(3.5, 0.55)
+    if is_stats:
+        duration += len(scenario["queries"]) * rng.uniform(2, 5)
+    # An occasional slow DB/worker produces a long tail, as in real traffic.
+    if not is_home and rng.random() < 0.02:
+        duration += rng.uniform(400, 1400)
+    end = start + timedelta(milliseconds=duration)
+    body = json.dumps(scenario["body"]) if scenario["body"] is not None else ""
+    headers = {"accept": scenario["content_type"], "host": "catalog.example.test",
+               "user-agent": rng.choice(["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36",
+                                         "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148"])}
+    if body:
+        headers["content-type"] = "application/json"
+        headers["content-length"] = str(len(body.encode()))
+    req = models.Request.objects.create(
+        method=scenario["method"], path=scenario["path"], query_params=json.dumps(scenario["params"]),
+        start_time=start, end_time=end, view_name=f"example_app:{function}",
+        encoded_headers=json.dumps(headers), body=body, raw_body=body,
+        meta_time=rng.uniform(0.2, 1.5), meta_num_queries=3,
+        meta_time_spent_queries=rng.uniform(0.1, 0.8),
     )
-    start_time = base + offset
-    # request duration: mostly fast, occasionally slow
-    weights = [60, 25, 10, 4, 1]
-    bucket = random.choices([50, 300, 800, 2000, 5000], weights=weights)[0]
-    duration_ms = random.randint(max(1, bucket - 50), bucket + 200)
-    end_time = start_time + timedelta(milliseconds=duration_ms)
-    return start_time, end_time
-
-
-def _resolve_path(path_template: str) -> str:
-    return (
-        path_template
-        .replace("{id}", str(random.randint(1, 9999)))
-        .replace("{q}", random.choice(["widget", "gadget", "blue+thing", "sale"]))
+    response_body = json.dumps(scenario["response"]) if scenario["content_type"] == "application/json" else scenario["response"]
+    models.Response.objects.create(
+        request=req, status_code=scenario["status"], body=response_body, raw_body=response_body,
+        encoded_headers=json.dumps({"content-type": scenario["content_type"],
+                                    "content-length": str(len(response_body.encode()))}),
     )
-
-
-def _make_sql(request=None, profile=None, n=1, force_query=None) -> list:
-    """Create n SQLQuery objects, optionally bound to request/profile."""
-    now = timezone.now()
+    sqls = scenario["queries"]
     queries = []
-    for _ in range(n):
-        duration_ms = random.randint(1, 150)
-        start = now - timedelta(milliseconds=random.randint(0, 5000))
-        end = start + timedelta(milliseconds=duration_ms)
-        tb = _make_realistic_traceback()
-        q = SQLQuery.objects.create(
-            query=force_query or random.choice(SQL_TEMPLATES[:-1]),
-            start_time=start,
-            end_time=end,
-            time_taken=duration_ms,
-            request=request,
-            traceback=tb,
+    # Execute sequentially inside the request, leaving time for application work.
+    if sqls:
+        budget = duration * (0.03 if is_home else rng.uniform(0.25, 0.65))
+        weights = [rng.uniform(0.5, 2) for _ in sqls]
+        total_weight = sum(weights)
+        cursor = start + timedelta(milliseconds=duration * 0.08)
+        for (sql, snippet), weight in zip(sqls, weights):
+            finish = cursor + timedelta(milliseconds=budget * weight / total_weight)
+            queries.append(models.SQLQuery.objects.create(
+                request=req, query=sql, start_time=cursor, end_time=finish,
+                traceback=_traceback(frames, function, snippet),
+            ))
+            cursor = finish + timedelta(milliseconds=duration * 0.05 / len(sqls))
+    if is_home or is_stats or rng.random() < 0.12:
+        profile_start = start + timedelta(milliseconds=duration * 0.04)
+        profile_end = end - timedelta(milliseconds=duration * 0.04)
+        line, _ = _location(frames, function, "")
+        profile = models.Profile.objects.create(
+            request=req, name="Catalog statistics" if is_stats else "Render catalog" if is_home else "Catalog lookup",
+            file_path=str(_APP_VIEWS), line_num=line, func_name=function,
+            start_time=profile_start, end_time=profile_end,
         )
-        queries.append(q)
-    if profile:
         profile.queries.set(queries)
-    return queries
+    if is_home:
+        # Synthetic pstats text with the same total duration as this recording.
+        seconds = duration / 1000
+        line, _ = _location(frames, "index", "render(request")
+        req.pyprofile = (
+            f"         64 function calls in {seconds:.3f} seconds\n\n"
+            "   Ordered by: cumulative time\n\n"
+            "   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n"
+            f"        1    0.001    0.001    {seconds:.3f}    {seconds:.3f} {_APP_VIEWS}:{line}(index)\n"
+            "        1    1.345    1.345    1.345    1.345 {built-in method time.sleep}\n"
+        )
+        req.save(update_fields=["pyprofile"])
+    return req
 
-
-def _make_profile(request=None) -> Profile:
-    start_time, end_time = _rand_time(
-        ago_days=random.randint(0, 6), spread_days=1
-    )
-    dynamic = random.choice([True, False])
-    p = Profile.objects.create(
-        start_time=start_time,
-        end_time=end_time,
-        time_taken=(end_time - start_time).total_seconds() * 1000,
-        request=request,
-        name=random.choice(PROFILE_NAMES),
-        file_path=FILE_PATH,
-        line_num=random.randint(1, 50),
-        func_name=random.choice(FUNC_NAMES),
-        dynamic=dynamic,
-        end_line_num=random.randint(51, 100) if dynamic else None,
-        exception_raised=random.random() < 0.05,
-    )
-    _make_sql(request=request, profile=p, n=random.randint(0, 8))
-    return p
-
-
-# ---------------------------------------------------------------------------
-# Scenario builders
-# ---------------------------------------------------------------------------
-
-def _make_normal_request(ago_days: int, spread_days: int) -> models.Request:
-    start_time, end_time = _rand_time(ago_days, spread_days)
-    time_taken = (end_time - start_time).total_seconds() * 1000
-    num_sql = random.randint(0, 15)
-    method = random.choices(METHODS, weights=METHOD_WEIGHTS)[0]
-    path_tmpl, view = random.choice(list(zip(PATHS, VIEW_NAMES)))
-    path = _resolve_path(path_tmpl)
-    req_ct = random.choice(REQUEST_CONTENT_TYPES)
-    req_body = random.choice(SAMPLE_JSON_BODIES) if req_ct == "application/json" else ""
-
-    request = models.Request.objects.create(
-        method=method,
-        path=path,
-        query_params=json.dumps({"page": str(random.randint(1, 5))}) if "?" not in path else "{}",
-        num_sql_queries=num_sql,
-        start_time=start_time,
-        end_time=end_time,
-        time_taken=time_taken,
-        view_name=view,
-        encoded_headers=json.dumps({"content-type": req_ct, "accept": "application/json"}),
-        body=req_body,
-        meta_time=round(random.uniform(0.5, 5.0), 3),
-        meta_time_spent_queries=round(random.uniform(0.0, time_taken * 0.8), 3),
-    )
-
-    res_ct = random.choice(RESPONSE_CONTENT_TYPES)
-    res_body = random.choice(RESPONSE_BODIES[res_ct])
-    models.Response.objects.create(
-        request=request,
-        status_code=random.choices(STATUS_CODES, weights=STATUS_WEIGHTS)[0],
-        encoded_headers=json.dumps({"content-type": res_ct}),
-        body=res_body,
-    )
-
-    _make_sql(request=request, n=num_sql)
-
-    for _ in range(random.randint(0, 2)):
-        _make_profile(request=request)
-
-    return request
-
-
-def _make_n1_request(ago_days: int, spread_days: int) -> models.Request:
-    """A request that triggers N+1 detection (same query repeated 15 times)."""
-    start_time, end_time = _rand_time(ago_days, spread_days)
-    # Make it slow due to N+1
-    end_time = start_time + timedelta(milliseconds=random.randint(800, 2500))
-    n1_count = random.randint(15, 30)
-    time_taken = (end_time - start_time).total_seconds() * 1000
-    path = _resolve_path("/api/v1/orders/{id}/")
-
-    request = models.Request.objects.create(
-        method="GET",
-        path=path,
-        query_params="{}",
-        num_sql_queries=n1_count + random.randint(1, 3),
-        start_time=start_time,
-        end_time=end_time,
-        time_taken=time_taken,
-        view_name="api:order-detail",
-        encoded_headers=json.dumps({"content-type": "application/json"}),
-        body="",
-        meta_time=round(random.uniform(1.0, 8.0), 3),
-        meta_time_spent_queries=round(time_taken * 0.7, 3),
-    )
-
-    models.Response.objects.create(
-        request=request,
-        status_code=200,
-        encoded_headers=json.dumps({"content-type": "application/json"}),
-        body='{"id": 9981, "items": [...]}',
-    )
-
-    # The repeated N+1 query
-    _make_sql(request=request, n=n1_count, force_query=N1_QUERY)
-    # A few normal queries too
-    _make_sql(request=request, n=random.randint(1, 3))
-
-    return request
-
-
-def _make_error_request(ago_days: int, spread_days: int) -> models.Request:
-    """500 / 4xx requests."""
-    start_time, end_time = _rand_time(ago_days, spread_days)
-    time_taken = (end_time - start_time).total_seconds() * 1000
-    path = _resolve_path(random.choice(["/api/v1/users/{id}/", "/api/v1/products/{id}/"]))
-    status = random.choice([400, 401, 403, 404, 500])
-
-    request = models.Request.objects.create(
-        method=random.choice(["GET", "POST", "DELETE"]),
-        path=path,
-        query_params="{}",
-        num_sql_queries=random.randint(0, 5),
-        start_time=start_time,
-        end_time=end_time,
-        time_taken=time_taken,
-        view_name=random.choice(VIEW_NAMES),
-        encoded_headers=json.dumps({"content-type": "application/json"}),
-        body="",
-        meta_time=round(random.uniform(0.1, 2.0), 3),
-        meta_time_spent_queries=0.0,
-    )
-
-    error_body = (
-        '{"detail": "Not found."}' if status == 404
-        else '{"detail": "Internal server error."}' if status == 500
-        else '{"detail": "Permission denied."}'
-    )
-    models.Response.objects.create(
-        request=request,
-        status_code=status,
-        encoded_headers=json.dumps({"content-type": "application/json"}),
-        body=error_body,
-    )
-
-    _make_sql(request=request, n=request.num_sql_queries)
-    return request
-
-
-def _make_slow_request(ago_days: int, spread_days: int) -> models.Request:
-    """Very slow request with cProfile data."""
-    start_time = timezone.now() - timedelta(
-        days=ago_days, seconds=random.randint(0, int(spread_days * 86400))
-    )
-    duration_ms = random.randint(3000, 10000)
-    end_time = start_time + timedelta(milliseconds=duration_ms)
-    num_sql = random.randint(20, 60)
-
-    request = models.Request.objects.create(
-        method="GET",
-        path="/dashboard/reports/?period=7d",
-        query_params='{"period": "7d", "format": "json"}',
-        num_sql_queries=num_sql,
-        start_time=start_time,
-        end_time=end_time,
-        time_taken=duration_ms,
-        view_name="dashboard:reports",
-        encoded_headers=json.dumps({"content-type": "application/json"}),
-        body="",
-        meta_time=round(random.uniform(5.0, 20.0), 3),
-        meta_time_spent_queries=round(duration_ms * 0.85, 3),
-        pyprofile=FAKE_CPROFILE,
-    )
-
-    models.Response.objects.create(
-        request=request,
-        status_code=200,
-        encoded_headers=json.dumps({"content-type": "application/json"}),
-        body='{"rows": 1500, "generated_at": "2024-01-15T12:00:00Z"}',
-    )
-
-    _make_sql(request=request, n=num_sql)
-
-    for _ in range(random.randint(2, 5)):
-        _make_profile(request=request)
-
-    return request
-
-
-# ---------------------------------------------------------------------------
-# Command
-# ---------------------------------------------------------------------------
 
 class Command(BaseCommand):
-    help = "Seed the silk database with realistic dummy data for UI development."
+    help = "Seed consistent, synthetic production-style traffic for the example catalog."
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "--requests",
-            type=int,
-            default=200,
-            help="Total number of requests to create (default: 200)",
-        )
-        parser.add_argument(
-            "--days",
-            type=int,
-            default=7,
-            help="Spread requests over this many past days (default: 7)",
-        )
-        parser.add_argument(
-            "--clear",
-            action="store_true",
-            help="Clear existing silk data before seeding",
-        )
+        parser.add_argument("--requests", type=int, default=200, help="Requests to create (default: 200)")
+        parser.add_argument("--days", type=int, default=7, help="Past days to cover (default: 7)")
+        parser.add_argument("--clear", action="store_true", help="Replace existing Silk profiling records")
+        parser.add_argument("--seed", type=int, help="Random seed for repeatable traffic")
+        parser.add_argument("--example-data", action="store_true", help="Also populate the example app's blind catalog")
 
+    @transaction.atomic
     def handle(self, *args, **options):
-        n_requests = options["requests"]
-        days = options["days"]
-
+        count, days = options["requests"], options["days"]
+        if count < 0:
+            raise CommandError("--requests must be zero or greater")
+        if days < 1:
+            raise CommandError("--days must be at least 1")
+        catalog = [{"id": i, **item} for i, item in enumerate(CATALOG, 1)]
+        if options["example_data"]:
+            if not apps.is_installed("example_app"):
+                raise CommandError("--example-data requires the example_app application")
+            blind_model = apps.get_model("example_app", "Blind")
+            for item in CATALOG:
+                blind_model.objects.get_or_create(name=item["name"], defaults={"child_safe": item["child_safe"]})
+            catalog = list(blind_model.objects.order_by("pk").values("id", "name", "child_safe"))
         if options["clear"]:
-            self.stdout.write("Clearing existing silk data…")
-            Profile.objects.all().delete()
-            SQLQuery.objects.all().delete()
-            models.Response.objects.all().delete()
+            self.stdout.write("Clearing existing Silk profiling records…")
+            models.Profile.objects.all().delete()
+            models.SQLQuery.objects.all().delete()
             models.Request.objects.all().delete()
-            self.stdout.write(self.style.SUCCESS("  Cleared."))
-
-        self.stdout.write(f"Seeding {n_requests} requests spread over {days} days…")
-
-        # Scenario mix (percentages)
-        n_normal = int(n_requests * 0.70)
-        n_n1 = int(n_requests * 0.10)
-        n_error = int(n_requests * 0.12)
-        n_slow = n_requests - n_normal - n_n1 - n_error  # remainder (~8%)
-
-        created = 0
-
-        for i in range(n_normal):
-            ago = random.randint(0, days - 1)
-            _make_normal_request(ago_days=ago, spread_days=1)
-            created += 1
-            if created % 50 == 0:
-                self.stdout.write(f"  …{created}/{n_requests}")
-
-        for i in range(n_n1):
-            ago = random.randint(0, days - 1)
-            _make_n1_request(ago_days=ago, spread_days=1)
-            created += 1
-
-        for i in range(n_error):
-            ago = random.randint(0, days - 1)
-            _make_error_request(ago_days=ago, spread_days=1)
-            created += 1
-
-        for i in range(n_slow):
-            ago = random.randint(0, days - 1)
-            _make_slow_request(ago_days=ago, spread_days=1)
-            created += 1
-
-        # Summary
-        req_count = models.Request.objects.count()
-        sql_count = SQLQuery.objects.count()
-        prof_count = Profile.objects.count()
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"\nDone! Created {created} requests.\n"
-                f"  Total requests in DB : {req_count}\n"
-                f"  Total SQL queries    : {sql_count}\n"
-                f"  Total profiles       : {prof_count}\n"
-                f"\nFeatures exercised:\n"
-                f"  ✓ Multi-method requests (GET/POST/PUT/PATCH/DELETE)\n"
-                f"  ✓ Various status codes (2xx / 3xx / 4xx / 5xx)\n"
-                f"  ✓ N+1 detection (repeated queries per request)\n"
-                f"  ✓ Slow requests with cProfile data\n"
-                f"  ✓ SQL query list + detail views\n"
-                f"  ✓ Profile list + detail views\n"
-                f"  ✓ Time-range distribution for timeline chart\n"
-                f"  ✓ Multiple view names for top-N tables\n"
-            )
-        )
+        # Preserve compatibility with callers using random.seed(), such as benchmarks.
+        rng = random.Random(options["seed"]) if options["seed"] is not None else random
+        now = timezone.now()
+        window_start = now - timedelta(days=days)
+        frames = _source_frames()
+        # Mostly reads and successful responses. Rare errors and expensive stats
+        # leave enough examples to exercise the profiler without dominating it.
+        kinds = ["list", "search", "detail", "create", "invalid", "missing", "stats", "home"]
+        weights = [30, 24, 29, 5, 2, 3, 3, 4]
+        # Sort chronologically so simulated creates affect only subsequent reads.
+        starts = sorted(window_start + timedelta(seconds=rng.uniform(0, days * 86400 - 10))
+                        for _ in range(count))
+        for start in starts:
+            kind = rng.choices(kinds, weights=weights)[0]
+            scenario = _scenario(kind, catalog, rng)
+            _make_request(scenario, start, rng, frames)
+        self.stdout.write(self.style.SUCCESS(
+            f"Created {count} requests across {days} days. "
+            f"Database totals: {models.Request.objects.count()} requests, "
+            f"{models.SQLQuery.objects.count()} SQL queries, {models.Profile.objects.count()} profiles."
+        ))

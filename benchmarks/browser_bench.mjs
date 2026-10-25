@@ -59,6 +59,15 @@ for (const [name, info] of Object.entries(pages)) {
     if (cpu > 1) await (await ctx.newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: cpu });
     await page.goto(base + info.url, { waitUntil: 'load' });
     const m = await page.evaluate(PAGE_METRICS);
+    // Pages with htmx filter chips: time from a chip click until the swapped results settle.
+    m.interaction = await page.evaluate(() => new Promise((resolve) => {
+      const chip = document.querySelector('[data-chip="method"]');
+      if (!chip || !window.htmx) return resolve(null);
+      const start = performance.now();
+      document.addEventListener('htmx:afterSettle', () => resolve(performance.now() - start), { once: true });
+      chip.click();
+      setTimeout(() => resolve(null), 5000);
+    }));
     samples.push(m);
     if (!assets) assets = { requests: m.requests, kb: Object.fromEntries(Object.entries(m.kb).map(([k, v]) => [k, round(v, 1)])) };
     await ctx.close();
@@ -68,10 +77,11 @@ for (const [name, info] of Object.entries(pages)) {
     url: info.url,
     ttfb_ms: round(pick('ttfb')), dcl_ms: round(pick('dcl')), load_ms: round(pick('load')), lcp_ms: round(pick('lcp')),
     cls: round(pick('cls'), 3), tbt_ms: round(pick('tbt')),
+    filter_ms: samples[0].interaction == null ? null : round(median(samples.map((x) => x.interaction))),
     requests: assets.requests, total_kb: round(Object.values(assets.kb).reduce((a, b) => a + b, 0), 1), kb: assets.kb,
   };
   const r = result.pages[name];
-  console.log(`${name.padEnd(22)} load ${String(r.load_ms).padStart(5)} ms  lcp ${String(r.lcp_ms).padStart(5)} ms  cls ${r.cls.toFixed(3)}  tbt ${String(r.tbt_ms).padStart(4)} ms  ${String(r.requests).padStart(3)} req  ${r.total_kb} KB (js ${r.kb.js})`);
+  console.log(`${name.padEnd(22)} load ${String(r.load_ms).padStart(5)} ms  lcp ${String(r.lcp_ms).padStart(5)} ms  cls ${r.cls.toFixed(3)}  tbt ${String(r.tbt_ms).padStart(4)} ms  ${String(r.requests).padStart(3)} req  ${r.total_kb} KB (js ${r.kb.js})${r.filter_ms != null ? `  filter ${r.filter_ms} ms` : ''}`);
 }
 
 await browser.close();

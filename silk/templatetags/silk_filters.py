@@ -1,4 +1,5 @@
 import json
+import os
 import re
 
 from django.template import Library
@@ -114,6 +115,14 @@ def body_filter(value):
         return 'Too big!'
     else:
         return value
+
+
+@register.filter
+@stringfilter
+def app_path(value):
+    """Show a source path relative to the project directory when it lives inside it."""
+    root = os.getcwd().rstrip(os.sep) + os.sep
+    return value[len(root):] if value.startswith(root) else value
 
 
 @register.filter

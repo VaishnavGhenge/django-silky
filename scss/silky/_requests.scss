@@ -1,0 +1,36 @@
+// Requests page.
+
+.req-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.req-head h1 { margin: 0; font-size: 20px; letter-spacing: -.01em; }
+.c-method { width: 84px; } .c-status { width: 72px; } .c-time { width: 150px; }
+.c-q { width: 92px; } .c-db { width: 92px; } .c-when { width: 100px; }
+
+// The path link stretches over the whole row, so any click opens the request
+// and the browser can prefetch it on hover.
+.row-link::after { content: ""; position: absolute; inset: 0; }
+.row-link:hover { text-decoration: none; }
+.reqs tbody tr:has(.row-link) { cursor: pointer; }
+.c-path-cell { min-width: 0; }
+
+// htmx marks the swap target while a request is in flight.
+#req-dynamic.htmx-request { opacity: .6; transition: opacity .15s .1s; }
+
+@media (max-width: 1100px) { .c-db, .reqs td:nth-child(6) { display: none; } }
+@media (max-width: 760px) {
+  .req-head { flex-wrap: wrap; }
+  .search { width: 100%; }
+  .filters { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px 12px; padding: 0 16px 4px; scrollbar-width: none; }
+  .filters .chipset { flex-wrap: nowrap; }
+  .chip { flex: none; }
+  .filters__end { margin-left: 0; }
+  .reqs thead { display: none; }
+  .reqs, .reqs tbody, .reqs tr, .reqs td { display: block; }
+  .reqs tbody tr { display: grid; grid-template-columns: auto auto 1fr; grid-template-areas: "m s t" "p p p" "q q w"; gap: 6px 10px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .reqs td { padding: 0; border: 0; }
+  .reqs td:nth-child(1) { grid-area: m; } .reqs td:nth-child(2) { grid-area: s; } .reqs td:nth-child(3) { grid-area: p; }
+  .reqs td:nth-child(4) { grid-area: t; } .reqs td:nth-child(5) { grid-area: q; text-align: left; }
+  .reqs td:nth-child(6) { display: none; } .reqs td:nth-child(7) { grid-area: w; text-align: right; font-size: 12px; }
+  .reqs .timebar { width: 90px; }
+  .reqs td:nth-child(5) .qcell { justify-content: flex-start; }
+  .reqs td:nth-child(5) .qcell::after { content: "queries"; font: 400 12px var(--sans); color: var(--muted); }
+}

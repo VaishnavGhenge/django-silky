@@ -1,0 +1,99 @@
+{
+  "label": "phase2",
+  "dataset": {
+    "requests": 5000,
+    "queries": 75973,
+    "profiles": 4885
+  },
+  "runs": 10,
+  "pages": {
+    "summary": {
+      "url": "/silk/",
+      "status": 200,
+      "median_ms": 441.6,
+      "p90_ms": 446.8,
+      "queries": 55,
+      "html_kb": 44.6
+    },
+    "requests": {
+      "url": "/silk/requests/",
+      "status": 200,
+      "median_ms": 10.5,
+      "p90_ms": 10.6,
+      "queries": 13,
+      "html_kb": 50.6
+    },
+    "requests_sorted_time": {
+      "url": "/silk/requests/?order_by=time_taken",
+      "status": 200,
+      "median_ms": 21.6,
+      "p90_ms": 22.1,
+      "queries": 17,
+      "html_kb": 51.9
+    },
+    "request_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/",
+      "status": 200,
+      "median_ms": 4.7,
+      "p90_ms": 4.8,
+      "queries": 6,
+      "html_kb": 31.0
+    },
+    "request_sql": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/",
+      "status": 200,
+      "median_ms": 69.2,
+      "p90_ms": 69.8,
+      "queries": 7,
+      "html_kb": 99.6
+    },
+    "request_sql_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/67211/",
+      "status": 200,
+      "median_ms": 1.4,
+      "p90_ms": 1.5,
+      "queries": 4,
+      "html_kb": 24.8
+    },
+    "request_profiling": {
+      "url": "/silk/request/87c1aaa8-b248-47e2-96c1-69889219d80f/profiling/",
+      "status": 200,
+      "median_ms": 1.6,
+      "p90_ms": 1.7,
+      "queries": 8,
+      "html_kb": 29.1
+    },
+    "profiling": {
+      "url": "/silk/profiling/",
+      "status": 200,
+      "median_ms": 8.7,
+      "p90_ms": 8.7,
+      "queries": 31,
+      "html_kb": 57.6
+    },
+    "profile_detail": {
+      "url": "/silk/profile/1/",
+      "status": 200,
+      "median_ms": 1.2,
+      "p90_ms": 1.3,
+      "queries": 6,
+      "html_kb": 22.4
+    },
+    "cprofile": {
+      "url": "/silk/request/001f69c5-79e5-4ef5-9749-c6098c89ba86/cprofile/",
+      "status": 200,
+      "median_ms": 0.7,
+      "p90_ms": 0.7,
+      "queries": 3,
+      "html_kb": 21.6
+    },
+    "cleardb": {
+      "url": "/silk/cleardb/",
+      "status": 200,
+      "median_ms": 0.4,
+      "p90_ms": 0.4,
+      "queries": 0,
+      "html_kb": 28.2
+    }
+  }
+}

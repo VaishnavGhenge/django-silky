@@ -1,0 +1,53 @@
+// Request detail: header and overview. Older sections below still use pages/request.css.
+
+.rd-head, .rd-overview { max-width: 1100px; margin: 0 auto; }
+.rd-head { padding: 4px 0 16px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+.rd-top { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.rd-path { font: 600 18px/1.35 var(--mono); margin: 10px 0 2px; word-break: break-all; }
+.rd-meta { color: var(--muted); font-size: 13px; display: flex; gap: 14px; flex-wrap: wrap; }
+.rd-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.rd-overview { margin-bottom: 28px; }
+
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+.kpi { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; background: var(--surface); }
+.kpi span { display: block; font-size: 12px; color: var(--muted); }
+.kpi b { font: 600 18px var(--mono); }
+
+.split { margin-bottom: 14px; }
+.split__bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--track); }
+.split__bar i { display: block; height: 100%; }
+.split__legend { display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.split__legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; background: var(--c); }
+
+.usualline { font-size: 13px; color: var(--text-2); margin: 0 0 14px; }
+.usualline code { font: 500 12px var(--mono); }
+.usual { color: var(--bad); font-weight: 600; margin-left: 6px; font-size: 12px; }
+
+.fix { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px; background: var(--surface); }
+.fix__head { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.fix__loc { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; font: 500 12px var(--mono); }
+.fix__line { display: block; margin-top: 8px; font: 12px/1.5 var(--mono); color: var(--text); background: var(--surface-2); border-radius: 6px; padding: 6px 8px; }
+.fix p { margin: 8px 0; font-size: 13px; color: var(--text-2); }
+.fix__code { position: relative; }
+.fix__code pre { margin: 0; padding: 10px 80px 10px 12px; border-radius: 6px; background: var(--brand-soft); color: var(--text); font: 12px/1.6 var(--mono); white-space: pre-wrap; }
+.fix__code .btn { position: absolute; top: 6px; right: 6px; }
+.btn--sm { height: 26px; font-size: 12px; }
+
+.h3 { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 18px 0 8px; }
+.wf { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.wf__row {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 26%) 70px; gap: 12px; align-items: center;
+  padding: 7px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-2) !important;
+}
+.wf__row:last-child { border-bottom: 0; }
+.wf__row:hover { background: var(--row-hover); text-decoration: none; }
+.wf__sql { font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wf__track { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+.wf__track i { display: block; height: 100%; border-radius: 4px; background: var(--bar-sql); }
+.wf__ms { text-align: right; font: 500 12px var(--mono); color: var(--text); }
+
+@media (max-width: 760px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wf__row { grid-template-columns: minmax(0, 1fr) 60px; }
+  .wf__track { display: none; }
+}

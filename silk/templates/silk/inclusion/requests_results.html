@@ -1,0 +1,159 @@
+{% load silk_filters %}
+{# The part of the requests page that htmx re-renders after a filter, sort or page change. #}
+<div id="req-dynamic" data-search="{{ filters.search.value|default:'' }}">
+    {% url 'silk:requests' as list_url %}
+
+    <div class="stats">
+        <div class="stat"><div class="stat__label">Requests</div><div class="stat__value">{{ stats.count }}</div></div>
+        <div class="stat"><div class="stat__label">p95 time</div>
+            <div class="stat__value">{% if stats.p95 is not None %}{{ stats.p95|floatformat:"0" }}<small>ms</small>{% else %}·{% endif %}</div>
+            <div class="stat__sub">p50 {{ stats.p50|floatformat:"0"|default:"·" }} ms</div></div>
+        <div class="stat"><div class="stat__label">5xx rate</div>
+            <div class="stat__value{% if stats.error_rate >= 5 %} is-bad{% endif %}">{{ stats.error_rate|default:0|floatformat:"1" }}<small>%</small></div>
+            <div class="stat__sub">{{ stats.errors|default:0 }} server errors</div></div>
+        <div class="stat"><div class="stat__label">Avg queries</div><div class="stat__value">{{ stats.avg_queries|default:0|floatformat:"1" }}</div><div class="stat__sub">per request</div></div>
+    </div>
+
+    <div class="filters" role="toolbar" aria-label="Filters">
+        <div class="chipset" aria-label="Time range">
+            <button type="button" class="chip" data-chip="seconds" data-value="" aria-pressed="{% if not filters.seconds.value %}true{% else %}false{% endif %}">All time</button>
+            {% for preset in time_presets %}
+            <button type="button" class="chip" data-chip="seconds" data-value="{{ preset.seconds|unlocalize }}" aria-pressed="{% if filters.seconds.value == preset.seconds %}true{% else %}false{% endif %}">{{ preset.label }}</button>
+            {% endfor %}
+        </div>
+        <input type="hidden" name="filter-seconds-typ" value="SecondsFilter">
+        <input type="hidden" name="filter-seconds-value" value="{{ filters.seconds.value|unlocalize|default:'' }}">
+        <span class="sep" aria-hidden="true"></span>
+
+        <div class="chipset" aria-label="Method">
+            {% for method in options_methods %}
+            <button type="button" class="chip" data-chip="method" data-value="{{ method }}" aria-pressed="{% if method in selected_methods %}true{% else %}false{% endif %}">{{ method }}</button>
+            {% endfor %}
+        </div>
+        <input type="hidden" name="filter-method-typ" value="MultiMethodFilter">
+        <input type="hidden" name="filter-method-value" value="{{ filters.method.value|default:'' }}">
+        <span class="sep" aria-hidden="true"></span>
+
+        <div class="chipset" aria-label="Status">
+            {% for sc in status_classes %}
+            <button type="button" class="chip" data-chip="status" data-codes="{{ sc.codes }}" aria-pressed="{% if sc.active %}true{% else %}false{% endif %}"><span class="status s-{{ sc.digit }}"></span>{{ sc.label }}</button>
+            {% endfor %}
+        </div>
+        <input type="hidden" name="filter-status_code-typ" value="MultiStatusCodeFilter">
+        <input type="hidden" name="filter-status_code-value" value="{{ filters.status_code.value|default:'' }}">
+        <span class="sep" aria-hidden="true"></span>
+
+        <button type="button" class="chip" data-chip="slow" aria-pressed="{% if filters.overalltime.value %}true{% else %}false{% endif %}">{% if filters.overalltime.value and filters.overalltime.value != 1000 %}Time ≥ {{ filters.overalltime.value }} ms{% else %}Slow ≥ 1 s{% endif %}</button>
+        <input type="hidden" name="filter-overalltime-typ" value="OverallTimeFilter">
+        <input type="hidden" name="filter-overalltime-value" value="{{ filters.overalltime.value|default:'' }}">
+        <button type="button" class="chip" data-chip="flag" data-field="nplusone" aria-pressed="{% if filters.nplusone.value %}true{% else %}false{% endif %}">N+1</button>
+        <input type="hidden" name="filter-nplusone-typ" value="NPlusOneFilter">
+        <input type="hidden" name="filter-nplusone-value" value="{{ filters.nplusone.value|default:'' }}">
+        <label class="chip chip--input" title="Only requests with at least this many queries">Queries ≥
+            <input type="number" min="0" name="filter-numqueriesfilter-value" value="{{ filters.numqueriesfilter.value|default:'' }}" placeholder="any" data-submit-on-change>
+        </label>
+        <input type="hidden" name="filter-numqueriesfilter-typ" value="NumQueriesFilter">
+
+        {# Filters set from other pages (Summary links) show as removable chips. #}
+        {% if filters.view.value %}
+        <button type="button" class="chip chip--on" data-clear="filter-view-value" title="Remove filter">View: {{ filters.view.value }} <span aria-hidden="true">✕</span></button>
+        {% endif %}
+        <input type="hidden" name="filter-view-typ" value="ViewNameFilter">
+        <input type="hidden" name="filter-view-value" value="{{ filters.view.value|default:'' }}">
+        {% if filters.path.value %}
+        <button type="button" class="chip chip--on" data-clear="filter-path-value" title="Remove filter">{{ filters.path.str }} <span aria-hidden="true">✕</span></button>
+        {% endif %}
+        <input type="hidden" name="filter-path-typ" value="MultiPathFilter">
+        <input type="hidden" name="filter-path-value" value="{{ filters.path.value|default:'' }}">
+
+        {% if filters %}<button type="submit" class="linkbtn" name="clear_filters" value="1">Clear filters</button>{% endif %}
+
+        <div class="filters__end">
+            {% with f=current_sort.field d=current_sort.dir %}
+            <div class="menu">
+                <span class="menu__label">Sort</span>
+                <button type="button" class="menu__btn" data-menu-toggle aria-haspopup="menu" aria-expanded="false">
+                    {% if f == 'time_taken' %}Slowest{% elif f == 'num_sql_queries' %}Most queries{% elif f == 'db_time' %}Most DB time{% elif f == 'path' %}Path{% else %}Most recent{% endif %}
+                    <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+                </button>
+                <div class="menu__list" role="menu" hidden>
+                    <a role="menuitemradio" aria-checked="{% if f == 'start_time' %}true{% else %}false{% endif %}" href="{{ list_url }}?order_by=start_time&order_dir=DESC" hx-get="{{ list_url }}?order_by=start_time&order_dir=DESC" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">Most recent</a>
+                    <a role="menuitemradio" aria-checked="{% if f == 'time_taken' %}true{% else %}false{% endif %}" href="{{ list_url }}?order_by=time_taken&order_dir=DESC" hx-get="{{ list_url }}?order_by=time_taken&order_dir=DESC" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">Slowest</a>
+                    <a role="menuitemradio" aria-checked="{% if f == 'num_sql_queries' %}true{% else %}false{% endif %}" href="{{ list_url }}?order_by=num_sql_queries&order_dir=DESC" hx-get="{{ list_url }}?order_by=num_sql_queries&order_dir=DESC" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">Most queries</a>
+                    <a role="menuitemradio" aria-checked="{% if f == 'db_time' %}true{% else %}false{% endif %}" href="{{ list_url }}?order_by=db_time&order_dir=DESC" hx-get="{{ list_url }}?order_by=db_time&order_dir=DESC" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">Most DB time</a>
+                    <a role="menuitemradio" aria-checked="{% if f == 'path' %}true{% else %}false{% endif %}" href="{{ list_url }}?order_by=path&order_dir=ASC" hx-get="{{ list_url }}?order_by=path&order_dir=ASC" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">Path</a>
+                </div>
+            </div>
+            {% endwith %}
+            <div class="menu">
+                <button type="button" class="menu__btn" data-menu-toggle aria-haspopup="menu" aria-expanded="false" title="Rows per page">
+                    {{ per_page }} per page
+                    <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+                </button>
+                <div class="menu__list" role="menu" hidden>
+                    {% for n in options_show %}
+                    <a role="menuitemradio" aria-checked="{% if n == per_page %}true{% else %}false{% endif %}" href="{{ list_url }}?show={{ n }}" hx-get="{{ list_url }}?show={{ n }}" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">{{ n }} per page</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if results %}
+    <div class="tablewrap">
+        <table class="reqs">
+            <thead>
+            <tr>
+                <th class="c-method">Method</th>
+                <th class="c-status">Status</th>
+                <th>Path</th>
+                {% with f=current_sort.field %}
+                <th class="c-time num"><a class="th-sort" aria-sort="{% if f == 'time_taken' %}descending{% else %}none{% endif %}" href="{{ list_url }}?order_by=time_taken&order_dir=DESC" hx-get="{{ list_url }}?order_by=time_taken&order_dir=DESC" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">Time</a></th>
+                <th class="c-q num"><a class="th-sort" aria-sort="{% if f == 'num_sql_queries' %}descending{% else %}none{% endif %}" href="{{ list_url }}?order_by=num_sql_queries&order_dir=DESC" hx-get="{{ list_url }}?order_by=num_sql_queries&order_dir=DESC" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">Queries</a></th>
+                <th class="c-db num"><a class="th-sort" aria-sort="{% if f == 'db_time' %}descending{% else %}none{% endif %}" href="{{ list_url }}?order_by=db_time&order_dir=DESC" hx-get="{{ list_url }}?order_by=db_time&order_dir=DESC" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">DB</a></th>
+                <th class="c-when num"><a class="th-sort" aria-sort="{% if f == 'start_time' %}descending{% else %}none{% endif %}" href="{{ list_url }}?order_by=start_time&order_dir=DESC" hx-get="{{ list_url }}?order_by=start_time&order_dir=DESC" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">When</a></th>
+                {% endwith %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for r in results %}
+            {% with sc=r.response.status_code %}
+            <tr>
+                <td><span class="badge m-{{ r.method }}">{{ r.method }}</span></td>
+                <td>{% if sc %}<span class="status s-{{ sc|stringformat:'d'|slice:':1' }}">{{ sc }}</span>{% else %}<span class="muted">·</span>{% endif %}</td>
+                <td class="c-path-cell">
+                    <a class="row-link path" href="{% url 'silk:request_detail' request_id=r.pk %}" title="{{ r.path }}">{{ r.path }}</a>
+                    <div class="view">{{ r.view_name|default:"unresolved view" }}</div>
+                </td>
+                <td class="num"><div class="timecell t-{{ r.tier }}"><b>{{ r.time_taken|floatformat:"0" }} ms</b><span class="timebar"><i style="width:{{ r.bar_pct }}%"></i></span></div></td>
+                <td class="num"><span class="qcell">{% if r.has_n1 %}<span class="flag" title="Repeated queries">N+1</span>{% endif %}{{ r.num_sql_queries }}</span></td>
+                <td class="num mono">{% if r.db_ms is not None %}{{ r.db_ms|floatformat:"0" }} ms{% else %}<span class="muted">·</span>{% endif %}</td>
+                <td class="num muted"><span data-time="{{ r.start_time|date:'c' }}">{{ r.start_time|silk_date_time }}</span></td>
+            </tr>
+            {% endwith %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="pager" aria-label="Pages">
+        <span class="muted">{{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}</span>
+        <div class="pager__links">
+            {% if page_obj.has_previous %}
+            <a class="btn btn--sm" href="{{ list_url }}?page={{ page_obj.previous_page_number }}" hx-get="{{ list_url }}?page={{ page_obj.previous_page_number }}" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">‹ Previous</a>
+            {% endif %}
+            <span class="muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a class="btn btn--sm" href="{{ list_url }}?page={{ page_obj.next_page_number }}" hx-get="{{ list_url }}?page={{ page_obj.next_page_number }}" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">Next ›</a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+    {% else %}
+    <div class="empty">
+        <p><strong>No requests match.</strong></p>
+        {% if filters %}<button type="submit" class="btn" name="clear_filters" value="1">Clear filters</button>{% else %}<p class="muted">Make a request to your app and it will appear here.</p>{% endif %}
+    </div>
+    {% endif %}
+</div>

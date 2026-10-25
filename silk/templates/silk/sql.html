@@ -17,6 +17,8 @@
 {% endblock %}
 
 {% block js %}
+    {# jQuery only where page scripts still need it #}
+    <script src="{% static 'silk/lib/jquery-3.6.0.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'silk/lib/sortable.js' %}"></script>
     {{ block.super }}
     <script src="{% static 'silk/lib/highlight/highlight.pack.js' %}"></script>
