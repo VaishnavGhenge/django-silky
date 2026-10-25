@@ -5,6 +5,10 @@
         <input type="hidden" name="sort" value="{% if sort != 'total' %}{{ sort }}{% endif %}">
 
         <div class="filters">
+            <label class="search search--inline">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+                <input id="prof-q" type="search" name="q" value="{{ q }}" placeholder="Filter by block or function" autocomplete="off" spellcheck="false" aria-label="Filter by block or function">
+            </label>
             {% if not silk_request %}
             <div class="seg" role="group" aria-label="View">
                 <button type="button" data-set-field="tab" data-value="" aria-pressed="{% if tab == 'blocks' %}true{% else %}false{% endif %}">Code blocks <span class="count">{{ blocks|length }}</span></button>
@@ -19,7 +23,7 @@
 
         {% if tab == 'blocks' %}
         {% if blocks %}
-        <p class="note">Blocks wrapped in <code>@silk_profile</code> or <code>with silk_profile()</code>, grouped by where they are defined.</p>
+        <p class="note">Blocks wrapped in <code>@silk_profile</code> or <code>with silk_profile()</code>. Click the location to open it in your editor.</p>
         <div class="tablewrap">
             <table class="reqs">
                 <thead><tr>
@@ -35,9 +39,8 @@
                 <tr{% if detail and detail.stats.id == b.id %} class="is-open"{% endif %}>
                     <td class="c-path-cell">
                         <a class="row-link path" href="{{ request.path }}?b={{ b.id }}{% if sort != 'total' %}&amp;sort={{ sort }}{% endif %}{% if q %}&amp;q={{ q|urlencode }}{% endif %}"
-                           hx-get="{{ request.path }}?b={{ b.id }}{% if sort != 'total' %}&amp;sort={{ sort }}{% endif %}{% if q %}&amp;q={{ q|urlencode }}{% endif %}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true">{{ b.name|default:b.func_name|default:"anonymous block" }}</a>
-                        {% if b.raised %}<span class="flag flag--bad">{{ b.raised }} raised</span>{% endif %}
-                        <div class="view">{% if b.func_name %}{{ b.func_name }}() · {% endif %}{{ b.file_path|app_path }}{% if b.line_num %}:{{ b.line_num }}{% endif %}</div>
+                           hx-get="{{ request.path }}?b={{ b.id }}{% if sort != 'total' %}&amp;sort={{ sort }}{% endif %}{% if q %}&amp;q={{ q|urlencode }}{% endif %}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true">{{ b.name|default:b.func_name|default:"anonymous block" }}{% if b.raised %} <span class="flag flag--bad">{{ b.raised }} raised</span>{% endif %}</a>
+                        {% if b.file_path %}<a class="loc-link" data-editor-file="{{ b.file_path }}" data-editor-line="{{ b.line_num|default:1 }}" href="vscode://file{{ b.file_path }}:{{ b.line_num|default:1 }}" title="Open in editor">{% if b.func_name %}{{ b.func_name }}() · {% endif %}{{ b.file_path|app_path }}{% if b.line_num %}:{{ b.line_num }}{% endif %}</a>{% elif b.func_name %}<div class="view">{{ b.func_name }}()</div>{% endif %}
                     </td>
                     <td class="num mono">{{ b.runs }}</td>
                     <td class="num"><div class="timecell t-{% time_tier b.avg %}"><b>{{ b.total|dur }}</b><span class="timebar"><i style="width:{{ b.bar|floatformat:'1' }}%"></i></span></div></td>

@@ -30,3 +30,7 @@
 details.card > summary { cursor: pointer; margin: 0; list-style-position: inside; }
 details.card[open] > summary { margin-bottom: 10px; }
 .splitview.has-detail .col-opt { display: none; }
+
+// A location link inside a row whose path link covers the whole row.
+.loc-link { position: relative; z-index: 2; display: block; font: 12px var(--mono); color: var(--link) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.loc-link:hover { text-decoration: underline; }

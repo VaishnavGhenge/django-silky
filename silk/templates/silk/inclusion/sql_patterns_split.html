@@ -4,21 +4,22 @@
         <input type="hidden" name="type" value="{{ f.type }}">
         <input type="hidden" name="table" value="{{ f.table }}">
         <input type="hidden" name="repeating" value="{% if f.repeating %}1{% endif %}">
+        <input type="hidden" name="slow" value="{% if f.slow %}1{% endif %}">
         <input type="hidden" name="sort" value="{% if f.sort != 'total' %}{{ f.sort }}{% endif %}">
 
         {% if not detail %}
         <div class="stats">
             <div class="stat"><div class="stat__label">Total DB time</div><div class="stat__value">{{ stats.total_ms|dur_num }}<small>{{ stats.total_ms|dur_unit }}</small></div><div class="stat__sub">all recorded queries</div></div>
-            <div class="stat"><div class="stat__label">Patterns</div><div class="stat__value">{{ stats.patterns }}</div><div class="stat__sub">distinct query shapes</div></div>
-            <div class="stat"><div class="stat__label">Repeating patterns</div><div class="stat__value">{{ stats.repeating }}</div><div class="stat__sub">run {{ repeat_min }}+ times in a request</div></div>
-            <div class="stat"><div class="stat__label">Slowest average</div><div class="stat__value">{% if stats.slowest %}{{ stats.slowest.avg|dur_num }}<small>{{ stats.slowest.avg|dur_unit }}</small>{% else %}·{% endif %}</div><div class="stat__sub">{{ stats.slowest.table|default:"" }}</div></div>
+            <div class="stat"><div class="stat__label">Patterns</div><div class="stat__value">{{ stats.patterns }}</div><div class="stat__sub">{{ stats.selects }} are SELECTs</div></div>
+            <div class="stat"><div class="stat__label">N+1 patterns</div><div class="stat__value">{{ stats.repeating }}</div><div class="stat__sub">repeated {{ repeat_min }}+ times in a request</div></div>
+            <div class="stat"><div class="stat__label">Slowest p95</div><div class="stat__value">{% if stats.slowest %}{{ stats.slowest.p95|dur_num }}<small>{{ stats.slowest.p95|dur_unit }}</small>{% else %}·{% endif %}</div><div class="stat__sub">{{ stats.slowest.table|default:"" }}</div></div>
         </div>
         {% endif %}
 
         {% if tables %}
-        <div class="card tcard">
-            <div class="card__title">DB time by table <span class="muted">· {% if f.table %}showing <code>{{ f.table }}</code> only, click again to clear{% else %}click a table to filter{% endif %}</span></div>
-            <div class="tbars">
+        <div class="card tcard chartcard" data-chart="sql-tables">
+            <div class="chartcard__head"><div class="card__title">DB time by table <span class="muted">· {% if f.table %}showing <code>{{ f.table }}</code> only, click again to clear{% else %}click a table to filter patterns{% endif %}</span></div><button type="button" class="chartcard__toggle" data-chart-toggle>Hide</button></div>
+            <div class="tbars chartcard__body">
                 {% for t in tables %}
                 <button type="button" class="tbar{% if f.table == t.table %} is-on{% endif %}" data-set-field="table" data-value="{{ t.table }}" aria-pressed="{% if f.table == t.table %}true{% else %}false{% endif %}">
                     <code>{{ t.table }}</code><span class="tbar__track"><i style="width:{{ t.bar }}%"></i></span>
@@ -31,13 +32,19 @@
         {% endif %}
 
         <div class="filters">
+            <label class="search search--inline">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+                <input id="sql-q" type="search" name="q" value="{{ f.q }}" placeholder="Filter by table or SQL" autocomplete="off" spellcheck="false" aria-label="Filter by table or SQL">
+            </label>
+            <span class="sep" aria-hidden="true"></span>
             <div class="chipset">
                 {% for t in types %}{% if t.count %}
                 <button type="button" class="chip" data-set-field="type" data-value="{{ t.name }}" aria-pressed="{% if f.type == t.name %}true{% else %}false{% endif %}">{{ t.name }} <span class="count">{{ t.count }}</span></button>
                 {% endif %}{% endfor %}
             </div>
             <span class="sep" aria-hidden="true"></span>
-            <button type="button" class="chip" data-set-field="repeating" data-value="1" aria-pressed="{% if f.repeating %}true{% else %}false{% endif %}">Repeating</button>
+            <button type="button" class="chip" data-set-field="repeating" data-value="1" aria-pressed="{% if f.repeating %}true{% else %}false{% endif %}">N+1 patterns</button>
+            <button type="button" class="chip" data-set-field="slow" data-value="1" aria-pressed="{% if f.slow %}true{% else %}false{% endif %}">p95 ≥ {{ slow_pattern_ms }} ms</button>
             <span class="muted small">{{ shown }} pattern{{ shown|pluralize }}</span>
         </div>
 
@@ -50,7 +57,7 @@
                     <th class="num c-80">Requests</th>
                     <th class="num c-120"><button type="button" class="th-sort" data-set-field="sort" data-value="" aria-sort="{% if f.sort == 'total' %}descending{% else %}none{% endif %}">Total</button></th>
                     <th class="num c-90"><button type="button" class="th-sort" data-set-field="sort" data-value="avg" aria-sort="{% if f.sort == 'avg' %}descending{% else %}none{% endif %}">Avg</button></th>
-                    <th class="num c-90"><button type="button" class="th-sort" data-set-field="sort" data-value="max" aria-sort="{% if f.sort == 'max' %}descending{% else %}none{% endif %}">Max</button></th>
+                    <th class="num c-90" title="Estimated over the newest {{ p95_sample }} queries"><button type="button" class="th-sort" data-set-field="sort" data-value="p95" aria-sort="{% if f.sort == 'p95' %}descending{% else %}none{% endif %}">p95</button></th>
                 </tr></thead>
                 <tbody>
                 {% for p in rows %}
@@ -58,7 +65,7 @@
                     <td class="c-path-cell">
                         <a class="row-link pat" href="{{ sql_url }}?{{ qs }}{% if qs %}&{% endif %}p={{ p.pattern_hash }}" hx-get="{{ sql_url }}?{{ qs }}{% if qs %}&{% endif %}p={{ p.pattern_hash }}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true">
                             <span class="sqltype t-{{ p.type }}">{{ p.type }}</span><code>{{ p.table }}</code>
-                            {% if p.repeats %}<span class="flag" title="Ran {{ repeat_min }}+ times inside {{ p.repeats }} request(s)">Repeats</span>{% endif %}
+                            {% if p.repeats %}<span class="flag" title="Ran {{ repeat_min }}+ times inside {{ p.repeats }} request(s)">N+1</span>{% endif %}
                         </a>
                         <div class="pat__sql">{{ p.sql|truncatechars:220 }}</div>
                     </td>
@@ -66,7 +73,7 @@
                     <td class="num mono">{{ p.requests }}</td>
                     <td class="num"><div class="timecell t-good"><b>{{ p.total|dur }}</b><span class="timebar"><i style="width:{{ p.bar }}%"></i></span></div></td>
                     <td class="num mono">{{ p.avg|dur }}</td>
-                    <td class="num mono">{{ p.max|dur }}</td>
+                    <td class="num mono{% if p.p95 >= slow_pattern_ms %} is-warn{% endif %}">{{ p.p95|dur }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>

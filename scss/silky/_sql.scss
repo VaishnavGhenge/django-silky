@@ -106,3 +106,6 @@ a.group:hover { background: var(--row-hover); text-decoration: none; }
 .loc { display: inline-flex; min-width: 0; max-width: 100%; }
 .loc__dir { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .75; }
 .loc b { flex: none; font-weight: 600; }
+
+td.is-warn { color: var(--warn); }
+.search--inline { width: 260px; height: 30px; }

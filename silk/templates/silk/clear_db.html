@@ -33,12 +33,12 @@
         <section class="card sec" id="sec-editor">
             <h2>Editor</h2>
             <p class="note">Where “Open in editor” and traceback links go.</p>
-            <div class="seg" role="radiogroup" aria-label="Editor">
-                <button type="button" data-editor="vscode">VS Code</button>
-                <button type="button" data-editor="cursor">Cursor</button>
-                <button type="button" data-editor="pycharm">PyCharm</button>
-                <button type="button" data-editor="sublime">Sublime Text</button>
-                <button type="button" data-editor="none">No links</button>
+            <div class="editors" role="radiogroup" aria-label="Editor">
+                <button type="button" class="editor" data-editor="vscode">VS Code</button>
+                <button type="button" class="editor" data-editor="cursor">Cursor</button>
+                <button type="button" class="editor" data-editor="pycharm">PyCharm</button>
+                <button type="button" class="editor" data-editor="sublime">Sublime Text</button>
+                <button type="button" class="editor" data-editor="none">No links</button>
             </div>
             <h3 class="h3">Path mapping</h3>
             <p class="note">Running Django in Docker or a VM? Map the path in recorded tracebacks to your local checkout.</p>

@@ -17,10 +17,6 @@
             <h1>SQL</h1>
             <p class="sub">{{ stats.calls }} queries grouped into {{ stats.patterns }} patterns by shape, across every recorded request.</p>
         </div>
-        <label class="search">
-            <svg class="silk-icon" aria-hidden="true"><use href="#i-search"></use></svg>
-            <input id="sql-q" type="search" name="q" value="{{ f.q }}" placeholder="Filter by table or SQL" autocomplete="off" spellcheck="false" aria-label="Filter by table or SQL">
-        </label>
     </div>
     {% include 'silk/inclusion/sql_patterns_split.html' %}
 </form>

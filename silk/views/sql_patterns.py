@@ -12,6 +12,7 @@ SQL_SORTS = {
     'calls': lambda p: -p['calls'],
     'avg': lambda p: -p['avg'],
     'max': lambda p: -p['max'],
+    'p95': lambda p: -p['p95'],
 }
 SQL_TYPES = ['SELECT', 'INSERT', 'UPDATE', 'DELETE']
 
@@ -31,17 +32,22 @@ class SQLPatternsView(View):
         typ = request.GET.get('type', '')
         table = request.GET.get('table', '')
         repeating = request.GET.get('repeating') == '1'
+        slow = request.GET.get('slow') == '1'
         sort = request.GET.get('sort', 'total')
         if sort not in SQL_SORTS:
             sort = 'total'
 
         all_patterns = sql_patterns.patterns()
+        p95 = sql_patterns.p95_by_pattern()
+        for p in all_patterns:
+            p['p95'] = p95.get(p['pattern_hash'], p['avg'])
         rows = [
             p for p in all_patterns
             if (not q or q in p['sql'].lower())
             and (not typ or p['type'] == typ)
             and (not table or p['table'] == table)
             and (not repeating or p['repeats'])
+            and (not slow or p['p95'] >= sql_patterns.SLOW_PATTERN_MS)
         ]
         rows.sort(key=SQL_SORTS[sort])
         total_ms = sum(p['total'] for p in all_patterns)
@@ -56,7 +62,7 @@ class SQLPatternsView(View):
 
         # Current filters as a query string, so row and close links keep them.
         qs = urlencode([(k, v) for k, v in [('q', q), ('type', typ), ('table', table),
-                                             ('repeating', '1' if repeating else ''),
+                                             ('repeating', '1' if repeating else ''), ('slow', '1' if slow else ''),
                                              ('sort', '' if sort == 'total' else sort)] if v])
         open_hash = request.GET.get('p', '')
         context = {
@@ -67,12 +73,15 @@ class SQLPatternsView(View):
                 'calls': sum(p['calls'] for p in all_patterns),
                 'patterns': len(all_patterns),
                 'repeating': sum(1 for p in all_patterns if p['repeats']),
-                'slowest': max(all_patterns, key=lambda p: p['avg']) if all_patterns else None,
+                'slowest': max(all_patterns, key=lambda p: p['p95']) if all_patterns else None,
+                'selects': sum(1 for p in all_patterns if p['type'] == 'SELECT'),
             },
             'tables': table_rows[:8],
             'more_tables': max(0, len(table_rows) - 8),
             'types': [{'name': t, 'count': sum(1 for p in all_patterns if p['type'] == t)} for t in SQL_TYPES],
-            'f': {'q': q, 'type': typ, 'table': table, 'repeating': repeating, 'sort': sort},
+            'f': {'q': q, 'type': typ, 'table': table, 'repeating': repeating, 'slow': slow, 'sort': sort},
+            'slow_pattern_ms': sql_patterns.SLOW_PATTERN_MS,
+            'p95_sample': sql_patterns.P95_SAMPLE,
             'detail': sql_patterns.pattern_detail(open_hash) if open_hash else None,
             'repeat_min': sql_patterns.REPEAT_MIN,
             'qs': qs,

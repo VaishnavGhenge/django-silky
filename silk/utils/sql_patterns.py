@@ -16,6 +16,8 @@ from silk.utils.insights import app_frame, repeat_kind, suggest_fix
 
 # A pattern that runs this many times inside one request is flagged as repeating.
 REPEAT_MIN = 3
+P95_SAMPLE = 20000      # newest queries read to estimate each pattern's p95
+SLOW_PATTERN_MS = 100   # the "p95 ≥" chip on the SQL page
 _TABLE = re.compile(r'\b(?:FROM|INTO|UPDATE)\s+[`"\[]?([\w.]+)', re.I)
 _TYPE = re.compile(r'^\s*(SELECT|INSERT|UPDATE|DELETE)\b', re.I)
 
@@ -88,6 +90,18 @@ def patterns():
         r.update(sql=sql, table=sql_table(sql), type=sql_type(sql), repeats=repeats.get(r['pattern_hash'], 0),
                  total=r['total'] or 0, avg=r['avg'] or 0, max=r['max'] or 0)
     return rows
+
+
+def p95_by_pattern():
+    """p95 query time per pattern, over the newest P95_SAMPLE queries (bounded cost on big tables)."""
+    by = {}
+    for h, t in _queries().order_by('-id').values_list('pattern_hash', 'time_taken')[:P95_SAMPLE]:
+        by.setdefault(h, []).append(t or 0)
+    out = {}
+    for h, vals in by.items():
+        vals.sort()
+        out[h] = vals[min(len(vals) - 1, int(.95 * len(vals)))]
+    return out
 
 
 def tables(pattern_rows):

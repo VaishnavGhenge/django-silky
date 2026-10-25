@@ -78,3 +78,11 @@
   .cfg__row { grid-template-columns: minmax(0, 1fr) auto; }
   .cfg__def { display: none; }
 }
+
+.editors { display: flex; flex-wrap: wrap; gap: 8px; }
+.editor {
+  height: 36px; padding: 0 14px; border-radius: 8px; cursor: pointer; font: 600 13px var(--sans);
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-2); transition: border-color .12s, background .12s;
+}
+.editor:hover { border-color: var(--border-strong); }
+.editor[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--brand); }

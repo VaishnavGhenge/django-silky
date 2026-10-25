@@ -21,10 +21,6 @@
             <h1>Profiling</h1>
             <p class="sub">{% if silk_request %}Code blocks profiled during <code>{{ silk_request.method }} {{ silk_request.path }}</code>.{% else %}{{ profile_count }} profiled run{{ profile_count|pluralize }} in {{ blocks|length }} code block{{ blocks|length|pluralize }}, and {{ cprofile_count }} request{{ cprofile_count|pluralize }} with cProfile output.{% endif %}</p>
         </div>
-        <label class="search">
-            <svg class="silk-icon" aria-hidden="true"><use href="#i-search"></use></svg>
-            <input id="prof-q" type="search" name="q" value="{{ q }}" placeholder="Filter by block or function" autocomplete="off" spellcheck="false" aria-label="Filter by block or function">
-        </label>
     </div>
     {% include 'silk/inclusion/profiling_split.html' %}
 </form>

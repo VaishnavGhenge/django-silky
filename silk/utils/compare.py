@@ -164,11 +164,16 @@ def presets():
         {'id': '24h', 'label': 'Last 24 h vs the 24 h before', 'a': (end - 2 * day, end - day), 'b': (end - day, end)},
         {'id': '7d', 'label': 'Last 7 days vs the 7 before', 'a': (end - 14 * day, end - 7 * day), 'b': (end - 7 * day, end)},
     ]
+    # Split the busiest stretch: three days either side of the median request time.
+    total = Request.objects.count()
+    median = Request.objects.order_by('start_time').values_list('start_time', flat=True)[total // 2]
+    out.insert(0, {'id': 'split', 'label': 'Split busiest stretch',
+                   'a': (median - 3 * day, median), 'b': (median, median + 3 * day)})
     d2 = local(newest).replace(hour=0, minute=0, second=0, microsecond=0)
     prev = Request.objects.filter(start_time__lt=d2).order_by('-start_time').values_list('start_time', flat=True).first()
     if prev:
         d1 = local(prev).replace(hour=0, minute=0, second=0, microsecond=0)
-        out.insert(0, {'id': 'days', 'label': 'Last active day vs the one before', 'a': (d1, d1 + day), 'b': (d2, d2 + day)})
+        out.insert(1, {'id': 'days', 'label': 'Last active day vs the one before', 'a': (d1, d1 + day), 'b': (d2, d2 + day)})
     for p in out:
         p['na'] = Request.objects.filter(_range_q(p['a'], '')).count()
         p['nb'] = Request.objects.filter(_range_q(p['b'], '')).count()
