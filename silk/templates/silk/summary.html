@@ -6,7 +6,6 @@
 {% block pagetitle %}Silky - Summary{% endblock %}
 
 {% block style %}
-    <link rel="stylesheet" href="{% static 'silk/css/components/fonts.css' %}"/>
     <link rel="stylesheet" href="{% static 'silk/css/pages/summary.css' %}"/>
 {% endblock %}
 
@@ -29,7 +28,7 @@
     {# ── Page heading ── #}
     <div class="silk-summary-header">
         <h1 class="silk-summary-title">
-            <i data-lucide="activity" class="silk-icon silk-icon--large-sm"></i>
+            <svg data-icon="activity" class="silk-icon silk-icon--large-sm" aria-hidden="true"><use href="#i-activity"></use></svg>
             Summary
         </h1>
 
@@ -55,32 +54,32 @@
     {# ── Metric cards ── #}
     <div class="silk-metric-row">
         <div class="silk-metric-card">
-            <div class="silk-metric-card__icon"><i data-lucide="layers" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__icon"><svg data-icon="layers" class="silk-icon silk-icon--lg" aria-hidden="true"><use href="#i-layers"></use></svg></div>
             <div class="silk-metric-card__value">{{ num_requests }}</div>
             <div class="silk-metric-card__label">Requests</div>
         </div>
         <div class="silk-metric-card">
-            <div class="silk-metric-card__icon"><i data-lucide="cpu" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__icon"><svg data-icon="cpu" class="silk-icon silk-icon--lg" aria-hidden="true"><use href="#i-cpu"></use></svg></div>
             <div class="silk-metric-card__value">{{ num_profiles }}</div>
             <div class="silk-metric-card__label">Profiles</div>
         </div>
         <div class="silk-metric-card {% if avg_overall_time >= 2000 %}silk-metric-card--bad{% elif avg_overall_time >= 500 %}silk-metric-card--warn{% endif %}">
-            <div class="silk-metric-card__icon"><i data-lucide="clock" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__icon"><svg data-icon="clock" class="silk-icon silk-icon--lg" aria-hidden="true"><use href="#i-clock"></use></svg></div>
             <div class="silk-metric-card__value">{{ avg_overall_time|floatformat:0 }}<span class="silk-unit">ms</span></div>
             <div class="silk-metric-card__label">Avg Response Time</div>
         </div>
         <div class="silk-metric-card {% if avg_num_queries >= 50 %}silk-metric-card--bad{% elif avg_num_queries >= 20 %}silk-metric-card--warn{% endif %}">
-            <div class="silk-metric-card__icon"><i data-lucide="database" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__icon"><svg data-icon="database" class="silk-icon silk-icon--lg" aria-hidden="true"><use href="#i-database"></use></svg></div>
             <div class="silk-metric-card__value">{{ avg_num_queries|floatformat:1 }}</div>
             <div class="silk-metric-card__label">Avg Queries</div>
         </div>
         <div class="silk-metric-card {% if avg_time_spent_on_queries >= 1000 %}silk-metric-card--bad{% elif avg_time_spent_on_queries >= 200 %}silk-metric-card--warn{% endif %}">
-            <div class="silk-metric-card__icon"><i data-lucide="database" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__icon"><svg data-icon="database" class="silk-icon silk-icon--lg" aria-hidden="true"><use href="#i-database"></use></svg></div>
             <div class="silk-metric-card__value">{{ avg_time_spent_on_queries|floatformat:0 }}<span class="silk-unit">ms</span></div>
             <div class="silk-metric-card__label">Avg DB Time</div>
         </div>
         <div class="silk-metric-card {% if db_pressure >= 80 %}silk-metric-card--bad{% elif db_pressure >= 50 %}silk-metric-card--warn{% endif %}">
-            <div class="silk-metric-card__icon"><i data-lucide="gauge" class="silk-icon silk-icon--lg"></i></div>
+            <div class="silk-metric-card__icon"><svg data-icon="gauge" class="silk-icon silk-icon--lg" aria-hidden="true"><use href="#i-gauge"></use></svg></div>
             <div class="silk-metric-card__value">{{ db_pressure|floatformat:0 }}<span class="silk-unit">%</span></div>
             <div class="silk-metric-card__label">DB-Bound</div>
         </div>
@@ -91,7 +90,7 @@
 
         <div class="silk-top-table">
             <h2 class="silk-top-table__heading">
-                <i data-lucide="clock" class="silk-icon"></i> Most Time Overall
+                <svg data-icon="clock" class="silk-icon" aria-hidden="true"><use href="#i-clock"></use></svg> Most Time Overall
             </h2>
             {% if longest_queries_by_view %}
             <table class="silk-table">
@@ -121,7 +120,7 @@
 
         <div class="silk-top-table">
             <h2 class="silk-top-table__heading">
-                <i data-lucide="database" class="silk-icon"></i> Most DB Time
+                <svg data-icon="database" class="silk-icon" aria-hidden="true"><use href="#i-database"></use></svg> Most DB Time
             </h2>
             {% if most_time_spent_in_db %}
             <table class="silk-table">
@@ -151,7 +150,7 @@
 
         <div class="silk-top-table">
             <h2 class="silk-top-table__heading">
-                <i data-lucide="database" class="silk-icon"></i> Most DB Queries
+                <svg data-icon="database" class="silk-icon" aria-hidden="true"><use href="#i-database"></use></svg> Most DB Queries
             </h2>
             {% if most_queries %}
             <table class="silk-table">
@@ -186,7 +185,7 @@
 
         <div class="silk-top-table">
             <h2 class="silk-top-table__heading">
-                <i data-lucide="target" class="silk-icon"></i> Hot Paths
+                <svg data-icon="target" class="silk-icon" aria-hidden="true"><use href="#i-target"></use></svg> Hot Paths
                 <span class="silk-top-table__hint">count × avg time — fix these first</span>
             </h2>
             {% if hot_paths %}
@@ -219,7 +218,7 @@
 
         <div class="silk-top-table">
             <h2 class="silk-top-table__heading">
-                <i data-lucide="alert-triangle" class="silk-icon"></i> N+1 Suspects
+                <svg data-icon="alert-triangle" class="silk-icon" aria-hidden="true"><use href="#i-alert-triangle"></use></svg> N+1 Suspects
                 <span class="silk-top-table__hint">views with high avg query count</span>
             </h2>
             {% if n1_suspects %}
@@ -258,14 +257,14 @@
         {# Row 1: Activity timeline — full width #}
         <div class="silk-analytics__header">
             <h2 class="silk-analytics__title">
-                <i data-lucide="activity" class="silk-icon silk-icon--large-sm"></i>
+                <svg data-icon="activity" class="silk-icon silk-icon--large-sm" aria-hidden="true"><use href="#i-activity"></use></svg>
                 Analytics
             </h2>
         </div>
 
         <div class="silk-chart-card silk-chart-card--activity">
             <div class="silk-chart-card__head">
-                <i data-lucide="trending-up" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="trending-up" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-trending-up"></use></svg>
                 Request Activity
             </div>
             <svg id="silk-chart-activity" class="silk-chart-svg"></svg>
@@ -275,21 +274,21 @@
         <div class="silk-analytics-grid silk-analytics-grid--3">
             <div class="silk-chart-card">
                 <div class="silk-chart-card__head">
-                    <i data-lucide="pie-chart" class="silk-icon silk-icon--sm"></i>
+                    <svg data-icon="pie-chart" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-pie-chart"></use></svg>
                     Status Codes
                 </div>
                 <svg id="silk-chart-status" class="silk-chart-svg"></svg>
             </div>
             <div class="silk-chart-card">
                 <div class="silk-chart-card__head">
-                    <i data-lucide="git-branch" class="silk-icon silk-icon--sm"></i>
+                    <svg data-icon="git-branch" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-git-branch"></use></svg>
                     HTTP Methods
                 </div>
                 <svg id="silk-chart-methods" class="silk-chart-svg"></svg>
             </div>
             <div class="silk-chart-card">
                 <div class="silk-chart-card__head">
-                    <i data-lucide="bar-chart-2" class="silk-icon silk-icon--sm"></i>
+                    <svg data-icon="bar-chart-2" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-bar-chart-2"></use></svg>
                     Response Time Distribution
                 </div>
                 <svg id="silk-chart-rt-hist" class="silk-chart-svg"></svg>
@@ -300,7 +299,7 @@
         <div class="silk-analytics-grid silk-analytics-grid--3">
             <div class="silk-chart-card">
                 <div class="silk-chart-card__head">
-                    <i data-lucide="clock" class="silk-icon silk-icon--sm"></i>
+                    <svg data-icon="clock" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
                     Request Latency Percentiles
                 </div>
                 <svg id="silk-chart-request" class="silk-chart-svg"></svg>
@@ -312,7 +311,7 @@
             </div>
             <div class="silk-chart-card">
                 <div class="silk-chart-card__head">
-                    <i data-lucide="database" class="silk-icon silk-icon--sm"></i>
+                    <svg data-icon="database" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-database"></use></svg>
                     SQL Query Latency Percentiles
                 </div>
                 <svg id="silk-chart-query" class="silk-chart-svg"></svg>
@@ -324,7 +323,7 @@
             </div>
             <div class="silk-chart-card">
                 <div class="silk-chart-card__head">
-                    <i data-lucide="hash" class="silk-icon silk-icon--sm"></i>
+                    <svg data-icon="hash" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-hash"></use></svg>
                     Queries per Request
                 </div>
                 <svg id="silk-chart-query-hist" class="silk-chart-svg"></svg>
@@ -338,7 +337,7 @@
 
     {% else %}
     <div class="silk-empty">
-        <div class="silk-empty__icon"><i data-lucide="activity" class="silk-icon silk-icon--large"></i></div>
+        <div class="silk-empty__icon"><svg data-icon="activity" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-activity"></use></svg></div>
         <h2 class="silk-empty__title">No data yet</h2>
         <p class="silk-empty__desc">Make some requests to your Django app to start seeing performance data here.</p>
     </div>

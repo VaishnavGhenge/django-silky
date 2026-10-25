@@ -542,7 +542,6 @@
      Boot
      ════════════════════════════════════════════════════════════ */
   document.addEventListener('DOMContentLoaded', function () {
-    if (window.lucide) lucide.createIcons();
 
     var dataEl = document.getElementById('silk-chart-data');
     if (!dataEl || !window.d3) return;

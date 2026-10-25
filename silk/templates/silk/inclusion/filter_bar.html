@@ -145,7 +145,7 @@ Must be placed inside a <form> element that POSTs to the current URL.
                     id="silk-n1-btn"
                     class="silk-preset-btn {% if filters.nplusone.value %}silk-preset-btn--active{% endif %}"
                     onclick="silkToggleN1(this)">
-                <i data-lucide="triangle-alert" class="silk-icon" style="width:13px;height:13px;vertical-align:-2px"></i>
+                <svg data-icon="triangle-alert" class="silk-icon" style="width:13px;height:13px;vertical-align:-2px" aria-hidden="true"><use href="#i-triangle-alert"></use></svg>
                 N+1 only
             </button>
             <input type="hidden" name="filter-nplusone-typ" value="NPlusOneFilter">

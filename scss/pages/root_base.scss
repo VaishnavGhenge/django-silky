@@ -227,7 +227,7 @@ select::-moz-focus-inner {
 
 .resizing-input input, .resizing-input span {
   font-size: var(--silk-font-size-sm);
-  font-family: FiraSans;
+  font-family: var(--sans);
   white-space: pre;
   font-weight: 300;
   background-color: transparent;

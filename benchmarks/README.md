@@ -73,10 +73,41 @@ each interaction on that page.
 
 | Metric | Old UI | Target |
 |---|---|---|
-| JS per page (except profile graph) | 728 KB to 1,026 KB | under 60 KB |
+| JS per page (except profile graph) | 728 KB to 1,026 KB | under 100 KB uncompressed |
 | HTTP requests per page | 20 to 30 | under 8 |
 | Requests HTML at 5k requests | 697 KB | under 120 KB, independent of dataset size |
 | Summary render at 5k requests | 465 ms | under 150 ms |
 | DB queries on summary / requests | 55 / 59 | under 15 each |
 | Filter, sort or page change | full reload (180 ms at CPU 4×) | partial update, under 100 ms at CPU 4× |
 | CLS | up to 0.044 | under 0.05 (keep) |
+
+## Phase 1: foundation, recorded 2026-10-25
+
+New shell (sidebar, themes, accents), inline icon sprite instead of the Lucide
+script, jQuery UI and other unused libraries removed, one stylesheet for the
+shell. Page content is unchanged, so server render times and query counts are
+the same as the baseline. Browser figures at CPU 4×, 5,000 requests:
+
+| Page | JS | Total transfer | Requests | Load | CLS |
+|---|---:|---:|---:|---:|---:|
+| summary | 1,026 → **391 KB** | 1,357 → 575 KB | 22 → 13 | 613 → 617 ms | 0.016 → 0.008 |
+| requests | 822 → **189 KB** | 1,852 → 1,071 KB | 29 → 21 | 180 → 157 ms | 0.038 → 0.002 |
+| request detail | 762 → **127 KB** | 1,219 → 307 KB | 25 → 15 | 143 → 121 ms | 0.005 → 0.000 |
+| request SQL | 779 → **145 KB** | 1,331 → 420 KB | 29 → 19 | 210 → 190 ms | 0.013 → 0.000 |
+| profiling | 809 → **175 KB** | 1,187 → 405 KB | 30 → 22 | 146 → 118 ms | 0.028 → 0.001 |
+| profile detail | 2,446 → **1,812 KB** | 2,852 → 1,975 KB | 29 → 19 | 131 → 107 ms | 0.044 → 0.000 |
+| settings | 728 → **94 KB** | 1,052 → 260 KB | 20 → 11 | 109 → 81 ms | 0.010 → 0.000 |
+
+- JavaScript drops 62 to 87% on every page except the profile pages, which
+  drop 26%: they still carry the 1.8 MB graph library. Loading it only when a
+  graph is opened is part of the Profiling phase.
+- htmx is vendored but not loaded yet; it arrives with the Requests phase, so
+  these JS figures do not include its 52 KB.
+- HTML grows by about 14 KB per page (roughly 4 KB gzipped): the inline icon
+  sprite that replaces 384 KB of icon JavaScript.
+- Request counts fall by 8 to 10 per page; the rest are per-page CSS and JS
+  files that go away as each page is rebuilt.
+- The JS target is revised to under 100 KB uncompressed: htmx alone is 52 KB
+  uncompressed (16 KB gzipped), and the earlier 60 KB figure assumed gzip.
+- Summary is still 617 ms because its time is server-side aggregation, fixed
+  in the Summary phase.

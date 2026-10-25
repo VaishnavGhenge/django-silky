@@ -35,7 +35,7 @@
         <form id="silk-prof-sort-form" action="." method="get">
             <div class="silk-toolbar__left">
                 <span class="silk-toolbar-label">
-                    <i data-lucide="cpu" class="silk-icon"></i>
+                    <svg data-icon="cpu" class="silk-icon" aria-hidden="true"><use href="#i-cpu"></use></svg>
                     Profiling
                 </span>
             </div>
@@ -56,7 +56,7 @@
                 </label>
                 <button type="button" id="silk-filter-toggle" class="silk-btn silk-btn--outline"
                         onclick="silkFilterToggle()" aria-expanded="false" aria-controls="silk-filter-bar">
-                    <i data-lucide="filter" class="silk-icon"></i>
+                    <svg data-icon="filter" class="silk-icon" aria-hidden="true"><use href="#i-filter"></use></svg>
                     Filters{% if filters %} ({{ filters|length }}){% endif %}
                 </button>
             </div>
@@ -118,7 +118,7 @@
 
     {% else %}
     <div class="silk-empty">
-        <div class="silk-empty__icon"><i data-lucide="cpu" class="silk-icon silk-icon--large"></i></div>
+        <div class="silk-empty__icon"><svg data-icon="cpu" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-cpu"></use></svg></div>
         <h2 class="silk-empty__title">No profiling data</h2>
         <p class="silk-empty__desc">
             No Silk profiling was performed. Please check that:

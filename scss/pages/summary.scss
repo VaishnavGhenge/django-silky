@@ -47,7 +47,7 @@
   color: var(--silk-text-secondary);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
-  font-family: FiraSans, sans-serif;
+  font-family: var(--sans);
 
   &:hover {
     background: var(--silk-interactive-hover-bg);
@@ -195,7 +195,7 @@
   vertical-align: middle;
 
   &--numeric { text-align: right; font-variant-numeric: tabular-nums; }
-  &--path { font-family: Fantasque, monospace; font-size: var(--silk-font-size-sm); word-break: break-all; }
+  &--path { font-family: var(--mono); font-size: var(--silk-font-size-sm); word-break: break-all; }
 }
 
 .silk-table__row {

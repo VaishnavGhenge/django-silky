@@ -34,15 +34,15 @@
         </div>
         <div class="silk-hero__metrics">
             <span class="silk-hero__metric">
-                <i data-lucide="clock" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="clock" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
                 {{ profile.time_taken|floatformat:"0" }}<span class="silk-unit">ms</span>
             </span>
             <span class="silk-hero__metric">
-                <i data-lucide="database" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="database" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-database"></use></svg>
                 {{ profile.time_spent_on_sql_queries|floatformat:"0" }}<span class="silk-unit">ms</span> DB
             </span>
             <span class="silk-hero__metric">
-                <i data-lucide="layers" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="layers" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-layers"></use></svg>
                 {{ profile.queries.count }} queries
             </span>
         </div>
@@ -52,7 +52,7 @@
     {# ── Source location ── #}
     <section class="silk-section">
         <h3 class="silk-section__heading">
-            <i data-lucide="map-pin" class="silk-icon silk-icon--sm"></i>
+            <svg data-icon="map-pin" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-map-pin"></use></svg>
             {% if profile.file_path and profile.line_num %}
                 {{ profile.file_path }}:{{ profile.line_num }}{% if profile.end_line_num %}–{{ profile.end_line_num }}{% endif %}
             {% else %}
@@ -71,7 +71,7 @@
     {% if silk_request.prof_file %}
     <section class="silk-section">
         <h3 class="silk-section__heading">
-            <i data-lucide="share-2" class="silk-icon silk-icon--sm"></i> Profile Graph
+            <svg data-icon="share-2" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-share-2"></use></svg> Profile Graph
         </h3>
         <p class="silk-detail-note">
             Call graph coloured by time (red = slower).
@@ -93,7 +93,7 @@
     {% if silk_request.pyprofile %}
     <section class="silk-section">
         <h3 class="silk-section__heading">
-            <i data-lucide="bar-chart-2" class="silk-icon silk-icon--sm"></i> Python Profiler
+            <svg data-icon="bar-chart-2" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-bar-chart-2"></use></svg> Python Profiler
         </h3>
         <p class="silk-detail-note">
             Raw dump from the cPython profiler.

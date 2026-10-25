@@ -269,7 +269,7 @@
 }
 
 .silk-settings__danger-btn {
-  font-family: FiraSans, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--sans);
   font-size: var(--silk-font-size-sm);
   font-weight: 500;
   padding: 9px 20px;

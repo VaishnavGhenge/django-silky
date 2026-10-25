@@ -13,7 +13,7 @@ pre {
 }
 
 code {
-  font-family: Fantasque;
+  font-family: var(--mono);
   background-color: white !important;
   width: 100% !important;
   height: auto;

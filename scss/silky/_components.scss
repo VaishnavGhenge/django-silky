@@ -1,0 +1,64 @@
+// Components shared across pages.
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 7px; cursor: pointer; white-space: nowrap;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-2) !important; font-size: 12.5px; font-weight: 600;
+  transition: border-color .12s, background .12s, color .12s;
+}
+.btn:hover { border-color: var(--border-strong); color: var(--text) !important; background: var(--row-hover); text-decoration: none; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn--primary { background: var(--nav); border-color: var(--nav); color: var(--nav-text) !important; }
+.btn--primary:hover { background: var(--nav-2); border-color: var(--nav-2); color: var(--nav-text) !important; }
+.btn--danger { color: var(--bad) !important; border-color: color-mix(in srgb, var(--bad) 40%, var(--border)); }
+.btn--danger:hover:not(:disabled) { background: #dc2626; border-color: #dc2626; color: #fff !important; }
+
+// Alerts: one simple style everywhere. Tinted line, bold label, optional text link. No stripes.
+.alert {
+  display: flex; align-items: baseline; gap: 12px; padding: 9px 12px; margin-bottom: 14px;
+  border-radius: 8px; font-size: 13px; line-height: 1.45; color: var(--text-2); background: var(--a-bg);
+}
+.alert b { color: var(--a-fg); font-weight: 600; }
+.alert code { font: 500 12px var(--mono); color: var(--a-fg); }
+.alert__link {
+  margin-left: auto; flex: none; padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--a-fg) !important; font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 2px;
+}
+.alert--warn { --a-bg: color-mix(in srgb, var(--warn-bg) 70%, transparent); --a-fg: var(--warn); }
+.alert--bad { --a-bg: color-mix(in srgb, var(--bad-bg) 70%, transparent); --a-fg: var(--bad); }
+.alert--ok { --a-bg: color-mix(in srgb, var(--ok-bg) 70%, transparent); --a-fg: var(--ok); }
+.alert--neutral { --a-bg: var(--surface-2); --a-fg: var(--text); }
+
+// Segmented control
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 6px 12px; font-size: 12.5px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button[aria-pressed="true"] { background: var(--nav); color: var(--nav-text); }
+
+// Accent swatches (Settings)
+.accents { display: flex; flex-wrap: wrap; gap: 8px; }
+.accent {
+  display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px 0 8px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface); font-size: 13px; font-weight: 600; color: var(--text-2);
+}
+.accent i { width: 18px; height: 18px; border-radius: 50%; background: var(--sw); }
+.accent:hover { border-color: var(--border-strong); }
+.accent[aria-pressed="true"] { border-color: var(--brand); color: var(--text); box-shadow: inset 0 0 0 1px var(--brand); }
+
+.toast {
+  position: fixed; left: 50%; bottom: 20px; z-index: 60; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  background: var(--text); color: var(--surface); padding: 8px 14px; border-radius: 8px; font-size: 13px; transition: opacity .2s, transform .2s;
+}
+.toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+// Speed colours used by older templates (formerly components/colors.css)
+.very-good-font-color, .good-font-color { color: var(--ok); }
+.ok-font-color { color: var(--warn); }
+.bad-font-color, .very-bad-font-color { color: var(--bad); }
+
+// Settings rows
+.silky-rows { border: 1px solid var(--border); border-radius: var(--radius); }
+.silky-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.silky-row:last-child { border-bottom: 0; }
+.silky-row b { display: block; font-size: 13.5px; font-weight: 600; }
+.silky-row small { color: var(--muted); font-size: 12px; }
+@media (max-width: 760px) { .silky-row { flex-wrap: wrap; } }

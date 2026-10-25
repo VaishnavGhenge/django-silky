@@ -27,7 +27,7 @@
     {% if silk_request.pyprofile %}
     <section class="silk-section">
         <h3 class="silk-section__heading">
-            <i data-lucide="bar-chart-2" class="silk-icon silk-icon--sm"></i> CProfile Output
+            <svg data-icon="bar-chart-2" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-bar-chart-2"></use></svg> CProfile Output
         </h3>
         <p class="silk-detail-note">
             Raw dump from the cPython profiler.
@@ -39,7 +39,7 @@
     </section>
     {% else %}
     <div class="silk-empty">
-        <div class="silk-empty__icon"><i data-lucide="bar-chart-2" class="silk-icon silk-icon--large"></i></div>
+        <div class="silk-empty__icon"><svg data-icon="bar-chart-2" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-bar-chart-2"></use></svg></div>
         <p class="silk-empty__title">No CProfile data</p>
         <p class="silk-empty__desc">Enable <code>SILKY_PYTHON_PROFILER = True</code> to capture profiling data.</p>
     </div>

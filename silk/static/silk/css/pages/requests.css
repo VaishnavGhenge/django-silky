@@ -66,7 +66,7 @@
 
 .silk-btn {
   font-size: var(--silk-font-size-sm);
-  font-family: FiraSans, sans-serif;
+  font-family: var(--sans);
   padding: 5px 12px;
   border-radius: 6px;
   cursor: pointer;
@@ -443,7 +443,7 @@
 }
 .silk-ms__option-label {
   font-size: var(--silk-font-size-sm);
-  font-family: Fantasque, monospace;
+  font-family: var(--mono);
   color: var(--silk-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -560,7 +560,7 @@
   white-space: nowrap;
 }
 .silk-td--path {
-  font-family: Fantasque, monospace;
+  font-family: var(--mono);
   font-size: var(--silk-font-size-sm);
   word-break: break-all;
 }
@@ -699,7 +699,7 @@
   color: var(--silk-text-muted);
 }
 .silk-card__path {
-  font-family: Fantasque, monospace;
+  font-family: var(--mono);
   font-size: var(--silk-font-size-base);
   margin-bottom: 8px;
   word-break: break-all;

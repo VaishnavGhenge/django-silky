@@ -48,7 +48,7 @@
                     </select>
                 </label>
                 <button type="button" id="silk-filter-toggle" class="silk-btn silk-btn--outline" onclick="silkFilterToggle()" aria-expanded="false" aria-controls="silk-filter-bar">
-                    <i data-lucide="filter" class="silk-icon"></i>
+                    <svg data-icon="filter" class="silk-icon" aria-hidden="true"><use href="#i-filter"></use></svg>
                     Filters{% if filters %} ({{ filters|length }}){% endif %}
                 </button>
             </div>
@@ -105,7 +105,7 @@
     {% else %}
         <div class="silk-empty">
             <div class="silk-empty__icon">
-                <i data-lucide="layers" class="silk-icon silk-icon--large"></i>
+                <svg data-icon="layers" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-layers"></use></svg>
             </div>
             <h2 class="silk-empty__title">No requests found</h2>
             <p class="silk-empty__desc">No requests match the current filters. Try adjusting your filters or clearing them.</p>

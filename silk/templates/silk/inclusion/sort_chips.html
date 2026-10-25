@@ -8,9 +8,9 @@
         <button type="button" class="silk-sort-chip__dir" aria-label="Toggle sort direction"
                 onclick="silkSortToggleDir(this)">
             {% if item.dir == "DESC" %}
-                <i data-lucide="arrow-down" class="silk-icon"></i>
+                <svg data-icon="arrow-down" class="silk-icon" aria-hidden="true"><use href="#i-arrow-down"></use></svg>
             {% else %}
-                <i data-lucide="arrow-up" class="silk-icon"></i>
+                <svg data-icon="arrow-up" class="silk-icon" aria-hidden="true"><use href="#i-arrow-up"></use></svg>
             {% endif %}
         </button>
         <span class="silk-sort-chip__label">
@@ -18,7 +18,7 @@
         </span>
         <button type="button" class="silk-sort-chip__remove" aria-label="Remove sort"
                 onclick="silkSortRemove(this)">
-            <i data-lucide="x" class="silk-icon"></i>
+            <svg data-icon="x" class="silk-icon" aria-hidden="true"><use href="#i-x"></use></svg>
         </button>
     </span>
     {% endfor %}
@@ -28,7 +28,7 @@
     <div class="silk-sort-add" id="silk-sort-add-wrapper">
         <button type="button" class="silk-sort-chip silk-sort-chip--add" id="silk-sort-add-btn"
                 onclick="silkSortToggleMenu(event)" aria-haspopup="true" aria-expanded="false">
-            <i data-lucide="plus" class="silk-icon"></i> Add sort
+            <svg data-icon="plus" class="silk-icon" aria-hidden="true"><use href="#i-plus"></use></svg> Add sort
         </button>
         <div class="silk-sort-menu" id="silk-sort-menu" hidden>
             {% for opt in sort_options %}

@@ -1,89 +1,101 @@
-{% load static %}
-<!DOCTYPE html>
-<html id="silk-root" data-theme="light">
+{% load static silk_nav %}<!DOCTYPE html>
+<html lang="en" id="silk-root">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block pagetitle %}Silky{% endblock %}</title>
-    {# Anti-flash: apply saved scheme before paint #}
+    {# Apply saved theme, accent and layout before first paint. Migrates the old silk-theme key once. #}
     <script>
-      (function(){
+      (function () {
         try {
-            var t=localStorage.getItem('silk-theme');
-            var resolved = t === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : t;
-            if(resolved)document.getElementById('silk-root').setAttribute('data-theme',resolved);
-            var h = localStorage.getItem('silk-header');
-            if (h) document.getElementById('silk-root').setAttribute('data-header', h);
-        }catch(e){}}());
+          var ls = localStorage, root = document.documentElement;
+          var old = ls.getItem('silk-theme');
+          if (old && !ls.getItem('silky-theme')) {
+            ls.setItem('silky-theme', { light: 'light', dark: 'dark', midnight: 'dark', 'high-contrast': 'dark' }[old] || 'system');
+          }
+          var theme = ls.getItem('silky-theme'), accent = ls.getItem('silky-accent'), layout = ls.getItem('silky-layout');
+          if (theme && theme !== 'system') root.dataset.theme = theme;
+          if (accent && accent !== 'green') root.dataset.accent = accent;
+          if (layout && layout !== 'sidebar') root.dataset.layout = layout;
+          if (ls.getItem('silky-rail') === '1') root.dataset.rail = '1';
+        } catch (e) { /* storage blocked: defaults apply */ }
+      })();
     </script>
-    <link rel="stylesheet" href="{% static "silk/css/components/theme.css" %}"/>
-    <link rel="stylesheet" href="{% static "silk/css/components/header.css" %}"/>
-    <link rel="stylesheet" href="{% static "silk/css/components/theme_toggle.css" %}"/>
-    <link rel="stylesheet" href="{% static "silk/css/components/fonts.css" %}"/>
-    <link rel="stylesheet" href="{% static "silk/css/components/colors.css" %}"/>
-    <link rel="stylesheet" href="{% static "silk/lib/jquery-ui-1.13.2.min.css" %}"/>
+    <link rel="stylesheet" href="{% static 'silk/css/silky.css' %}">
     <link rel="icon" type="image/png" href="{% static 'silk/favicon-32x32.png' %}" sizes="32x32">
     <link rel="icon" type="image/png" href="{% static 'silk/favicon-16x16.png' %}" sizes="16x16">
-    <link rel="stylesheet" href="{% static "silk/css/pages/base.css" %}"/>
-    {% block style %}
-    {% endblock %}
+    {% block style %}{% endblock %}
     <script src="{% static 'silk/lib/jquery-3.6.0.min.js' %}"></script>
-    <script src="{% static 'silk/lib/jquery-ui-1.13.2.min.js' %}"></script>
-    <script src="{% static 'silk/js/components/cell.js' %}"></script>
-    <script src="{% static 'silk/js/pages/base.js' %}"></script>
-    <script src="{% static 'silk/lib/lucide.min.js' %}"></script>
-    <script src="{% static 'silk/js/components/theme.js' %}"></script>
-    <script src="{% static 'silk/js/components/header.js' %}"></script>
-    <script src="{% static 'silk/js/components/timeago.js' %}"></script>
-    {% block js %}
-    {% endblock %}
-
+    <script src="{% static 'silk/js/silky.js' %}" defer></script>
+    <script src="{% static 'silk/js/components/timeago.js' %}" defer></script>
+    {% block js %}{% endblock %}
 </head>
 
 <body onload="{% block onload %}{% endblock %}" class="{% block body_class %}{% endblock %}">
-{% block top %}
+{% include "silk/inclusion/icon_sprite.html" %}
+{% block top %}{% endblock %}
+<div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+        <div class="side-head">
+            <a class="brand" href="{% url 'silk:requests' %}" aria-label="Silky home">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17c3-1 5-3 6-6s3-6 10-7c-1 7-4 9-7 10s-5 3-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                <span class="side-label">silky</span>
+            </a>
+            <button class="side-collapse" type="button" data-action="toggle-rail" aria-label="Collapse sidebar" title="Collapse sidebar">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>
+            </button>
+        </div>
+        <nav class="side-group" aria-label="Sections">
+            <a class="side-item {% navactive request 'silk:requests' class='is-active' %}" href="{% url 'silk:requests' %}">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-list"></use></svg><span class="side-label">Requests</span>
+            </a>
+            <a class="side-item {% navactive request 'silk:summary' class='is-active' %}" href="{% url 'silk:summary' %}">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-layout-dashboard"></use></svg><span class="side-label">Summary</span>
+            </a>
+            <a class="side-item {% navactive request 'silk:profiling' class='is-active' %}" href="{% url 'silk:profiling' %}">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-cpu"></use></svg><span class="side-label">Profiling</span>
+            </a>
+        </nav>
+        <div class="side-foot">
+            <a class="side-item {% navactive request 'silk:cleardb' class='is-active' %}" href="{% url 'silk:cleardb' %}">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-settings"></use></svg><span class="side-label">Settings</span>
+            </a>
+            <button class="side-item" type="button" data-action="cycle-theme">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-moon"></use></svg><span class="side-label" data-theme-label>Theme: system</span>
+            </button>
+        </div>
+    </aside>
+    <div class="scrim" id="scrim" data-action="close-nav" hidden></div>
 
-{% endblock %}
-<div id="content">
-    <div id="header">
-        <div class="menu">
-            {% block menu %}
-            {% endblock %}
-        </div>
-        <div id="filter" class="menu">
-            {% block filter %}
-            {% endblock %}
-            <div class="menu-item" style="display:inline-flex;align-items:center;position:relative;">
-                <div class="silk-scheme-picker" id="silk-scheme-picker">
-                    <button class="silk-scheme-btn" id="silk-scheme-btn" aria-haspopup="true" aria-expanded="false" aria-label="Select colour scheme">
-                        <i data-lucide="sun" class="silk-icon" id="silk-scheme-icon"></i>
-                        <span id="silk-scheme-label">Light</span>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                    </button>
-                    <div class="silk-scheme-menu" id="silk-scheme-menu" hidden>
-                        <button class="silk-scheme-option" data-scheme="system">
-                            <i data-lucide="monitor" class="silk-icon silk-icon--sm"></i> System
-                        </button>
-                        <button class="silk-scheme-option" data-scheme="light">
-                            <i data-lucide="sun" class="silk-icon silk-icon--sm"></i> Light
-                        </button>
-                        <button class="silk-scheme-option" data-scheme="dark">
-                            <i data-lucide="moon" class="silk-icon silk-icon--sm"></i> Dark
-                        </button>
-                        <button class="silk-scheme-option" data-scheme="midnight">
-                            <i data-lucide="moon-star" class="silk-icon silk-icon--sm"></i> Midnight
-                        </button>
-                        <button class="silk-scheme-option" data-scheme="high-contrast">
-                            <i data-lucide="contrast" class="silk-icon silk-icon--sm"></i> High Contrast
-                        </button>
-                    </div>
-                </div>
+    <div class="content" id="content">
+        <header class="topbar">
+            <button class="iconbtn menu-btn" type="button" data-action="open-nav" aria-label="Open navigation">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-list"></use></svg>
+            </button>
+            <a class="brand" href="{% url 'silk:requests' %}">silky</a>
+            <nav class="tabs" aria-label="Sections">
+                <a class="tab {% navactive request 'silk:requests' class='is-active' %}" href="{% url 'silk:requests' %}">Requests</a>
+                <a class="tab {% navactive request 'silk:summary' class='is-active' %}" href="{% url 'silk:summary' %}">Summary</a>
+                <a class="tab {% navactive request 'silk:profiling' class='is-active' %}" href="{% url 'silk:profiling' %}">Profiling</a>
+            </nav>
+            <div class="topbar__right">
+                <a class="iconbtn {% navactive request 'silk:cleardb' class='is-active' %}" href="{% url 'silk:cleardb' %}" aria-label="Settings" title="Settings">
+                    <svg class="silk-icon" aria-hidden="true"><use href="#i-settings"></use></svg>
+                </a>
+                <button class="iconbtn" type="button" data-action="cycle-theme" aria-label="Toggle theme" title="Toggle theme">
+                    <svg class="silk-icon" aria-hidden="true"><use href="#i-moon"></use></svg>
+                </button>
             </div>
+        </header>
+        <div class="subbar">
+            <nav class="subnav" aria-label="Page">{% block menu %}{% endblock %}</nav>
+            <div class="subbar__right" id="filter">{% block filter %}{% endblock %}</div>
         </div>
-    </div>
-    <div id="data">
-        {% block data %}
-        {% endblock %}
+        <main id="data" class="page">
+            {% block data %}{% endblock %}
+        </main>
     </div>
 </div>
-
+<div class="toast" id="silky-toast" role="status" aria-live="polite"></div>
 </body>
 </html>

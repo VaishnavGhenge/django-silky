@@ -113,7 +113,7 @@
 
 .silk-n1-preview {
   flex: 1;
-  font-family: Fantasque, "Fira Mono", monospace;
+  font-family: var(--mono);
   font-size: var(--silk-font-size-xs);
   color: var(--silk-text-secondary);
   overflow: hidden;

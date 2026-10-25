@@ -38,11 +38,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       // Flip chevron
-      var chevron = this.querySelector('[data-lucide]');
-      if (chevron) {
-        chevron.setAttribute('data-lucide', expanded ? 'chevron-down' : 'chevron-up');
-        if (window.lucide) lucide.createIcons();
-      }
+      var chevron = this.querySelector('[data-icon]');
+      if (chevron) setIcon(chevron, expanded ? 'chevron-down' : 'chevron-up');
     });
   });
 });

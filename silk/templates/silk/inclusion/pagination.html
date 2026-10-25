@@ -4,12 +4,12 @@
         {% if page_obj.has_previous %}
         <li class="silk-pagination__item">
             <a class="silk-pagination__link" href="?{% if request.GET %}{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous page">
-                <i data-lucide="chevron-left" class="silk-icon"></i> Prev
+                <svg data-icon="chevron-left" class="silk-icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg> Prev
             </a>
         </li>
         {% else %}
         <li class="silk-pagination__item silk-pagination__item--disabled" aria-disabled="true">
-            <span class="silk-pagination__link"><i data-lucide="chevron-left" class="silk-icon"></i> Prev</span>
+            <span class="silk-pagination__link"><svg data-icon="chevron-left" class="silk-icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg> Prev</span>
         </li>
         {% endif %}
 
@@ -30,12 +30,12 @@
         {% if page_obj.has_next %}
         <li class="silk-pagination__item">
             <a class="silk-pagination__link" href="?{% if request.GET %}{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next page">
-                Next <i data-lucide="chevron-right" class="silk-icon"></i>
+                Next <svg data-icon="chevron-right" class="silk-icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
             </a>
         </li>
         {% else %}
         <li class="silk-pagination__item silk-pagination__item--disabled" aria-disabled="true">
-            <span class="silk-pagination__link">Next <i data-lucide="chevron-right" class="silk-icon"></i></span>
+            <span class="silk-pagination__link">Next <svg data-icon="chevron-right" class="silk-icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg></span>
         </li>
         {% endif %}
     </ul>

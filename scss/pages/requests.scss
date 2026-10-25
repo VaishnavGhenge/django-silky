@@ -67,7 +67,7 @@
 
 .silk-btn {
   font-size: var(--silk-font-size-sm);
-  font-family: FiraSans, sans-serif;
+  font-family: var(--sans);
   padding: 5px 12px;
   border-radius: 6px;
   cursor: pointer;
@@ -445,7 +445,7 @@
 
     &-label {
       font-size: var(--silk-font-size-sm);
-      font-family: Fantasque, monospace;
+      font-family: var(--mono);
       color: var(--silk-text-primary);
       overflow: hidden;
       text-overflow: ellipsis;
@@ -551,7 +551,7 @@
   &--numeric { text-align: right; font-variant-numeric: tabular-nums; }
   &--timestamp { font-size: var(--silk-font-size-sm); color: var(--silk-text-secondary); white-space: nowrap; }
   &--method { white-space: nowrap; }
-  &--path { font-family: Fantasque, monospace; font-size: var(--silk-font-size-sm); word-break: break-all; }
+  &--path { font-family: var(--mono); font-size: var(--silk-font-size-sm); word-break: break-all; }
 }
 
 .silk-table__row {
@@ -660,7 +660,7 @@
   }
 
   &__path {
-    font-family: Fantasque, monospace;
+    font-family: var(--mono);
     font-size: var(--silk-font-size-base);
     margin-bottom: 8px;
     word-break: break-all;

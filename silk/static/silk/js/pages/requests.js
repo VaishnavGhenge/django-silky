@@ -388,9 +388,6 @@
   /* ─── Init ──────────────────────────────────────────────────── */
 
   document.addEventListener('DOMContentLoaded', function () {
-    if (window.lucide) {
-      lucide.createIcons();
-    }
 
     // Restore filter bar open/closed state
     try {

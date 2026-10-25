@@ -68,15 +68,15 @@
         <div class="silk-hero__path">{{ silk_request.path }}</div>
         <div class="silk-hero__metrics">
             <span class="silk-hero__metric">
-                <i data-lucide="clock" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="clock" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
                 {{ silk_request.time_taken|floatformat:"0" }}<span class="silk-unit">ms</span>
             </span>
             <span class="silk-hero__metric">
-                <i data-lucide="database" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="database" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-database"></use></svg>
                 {{ silk_request.time_spent_on_sql_queries|floatformat:"0" }}<span class="silk-unit">ms</span> DB
             </span>
             <span class="silk-hero__metric">
-                <i data-lucide="layers" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="layers" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-layers"></use></svg>
                 {{ silk_request.num_sql_queries }} queries
             </span>
         </div>
@@ -89,15 +89,15 @@
         <div class="silk-hero__path">{% if profile.name %}{{ profile.name }}{% elif profile.func_name %}{{ profile.func_name }}{% endif %}</div>
         <div class="silk-hero__metrics">
             <span class="silk-hero__metric">
-                <i data-lucide="clock" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="clock" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
                 {{ profile.time_taken|floatformat:"0" }}<span class="silk-unit">ms</span>
             </span>
             <span class="silk-hero__metric">
-                <i data-lucide="database" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="database" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-database"></use></svg>
                 {{ profile.time_spent_on_sql_queries|floatformat:"0" }}<span class="silk-unit">ms</span> DB
             </span>
             <span class="silk-hero__metric">
-                <i data-lucide="layers" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="layers" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-layers"></use></svg>
                 {{ profile.queries.count }} queries
             </span>
         </div>
@@ -110,7 +110,7 @@
 
         <div class="silk-n1-banner__header">
             <div class="silk-n1-banner__title">
-                <i data-lucide="alert-triangle" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="alert-triangle" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
                 <strong>N+1 Queries Detected</strong>
             </div>
             <div class="silk-n1-banner__pills">
@@ -118,7 +118,7 @@
                 <span class="silk-n1-pill">{{ n_plus_one.flagged_query_ids|length }} queries</span>
             </div>
             <p class="silk-n1-hint">
-                <i data-lucide="lightbulb" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="lightbulb" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-lightbulb"></use></svg>
                 Eliminate by batching with <code>select_related()</code> or <code>prefetch_related()</code>
             </p>
         </div>
@@ -130,10 +130,10 @@
                     <span class="silk-n1-count">{{ group.count }}×</span>
                     <span class="silk-n1-preview">{{ group.representative.query|truncatechars:120 }}</span>
                     <span class="silk-n1-time">~{{ group.total_time_taken|floatformat:0 }}<span class="silk-unit">ms</span></span>
-                    <i data-lucide="chevron-down" class="silk-icon silk-icon--sm silk-n1-chevron"></i>
+                    <svg data-icon="chevron-down" class="silk-icon silk-icon--sm silk-n1-chevron" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
                 </button>
                 <div class="silk-n1-body" hidden>
-                    <pre class="silk-pre silk-pre--n1"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code class="language-sql">{{ group.representative.formatted_query }}</code></pre>
+                    <pre class="silk-pre silk-pre--n1"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code class="language-sql">{{ group.representative.formatted_query }}</code></pre>
                 </div>
             </div>
             {% endfor %}
@@ -175,7 +175,7 @@
     </div>
     {% else %}
     <div class="silk-empty">
-        <div class="silk-empty__icon"><i data-lucide="database" class="silk-icon silk-icon--large"></i></div>
+        <div class="silk-empty__icon"><svg data-icon="database" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-database"></use></svg></div>
         <p class="silk-empty__title">No SQL queries</p>
         <p class="silk-empty__desc">This request did not execute any SQL queries.</p>
     </div>
@@ -187,7 +187,7 @@
         <ul class="silk-pagination__list">
             <li class="silk-pagination__item {% if not items.has_previous %}silk-pagination__item--disabled{% endif %}">
                 <a class="silk-pagination__link" {% if items.has_previous %}href="?page={{ items.previous_page_number }}&per_page={{ per_page }}"{% endif %}>
-                    <i data-lucide="chevron-left" class="silk-icon silk-icon--sm"></i> Prev
+                    <svg data-icon="chevron-left" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-left"></use></svg> Prev
                 </a>
             </li>
             {% for page_num in items.paginator.page_range %}
@@ -197,7 +197,7 @@
             {% endfor %}
             <li class="silk-pagination__item {% if not items.has_next %}silk-pagination__item--disabled{% endif %}">
                 <a class="silk-pagination__link" {% if items.has_next %}href="?page={{ items.next_page_number }}&per_page={{ per_page }}"{% endif %}>
-                    Next <i data-lucide="chevron-right" class="silk-icon silk-icon--sm"></i>
+                    Next <svg data-icon="chevron-right" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
                 </a>
             </li>
         </ul>

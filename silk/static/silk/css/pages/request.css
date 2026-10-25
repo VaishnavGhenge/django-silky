@@ -32,7 +32,7 @@ pre {
 }
 
 .silk-hero__path {
-  font-family: Fantasque, monospace;
+  font-family: var(--mono);
   font-size: 1.1rem;
   color: var(--silk-text-primary);
   word-break: break-all;
@@ -92,7 +92,7 @@ pre {
   margin: 0;
   padding: 1rem;
   background: var(--silk-code-bg);
-  font-family: Fantasque, "Fira Mono", monospace;
+  font-family: var(--mono);
   font-size: var(--silk-font-size-base);
   color: var(--silk-code-text);
   overflow-x: auto;
@@ -143,7 +143,7 @@ pre {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--silk-font-size-sm);
-  font-family: Fantasque, monospace;
+  font-family: var(--mono);
 }
 
 .silk-headers__row {

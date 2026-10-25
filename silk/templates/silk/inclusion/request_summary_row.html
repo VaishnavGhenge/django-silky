@@ -24,7 +24,7 @@
 <td class="silk-td silk-td--path">{{ silk_request.path }}</td>
 <td class="silk-td silk-td--numeric">
     <span class="silk-num {% if silk_request.time_taken >= 2000 %}silk-num--very-bad{% elif silk_request.time_taken >= 1000 %}silk-num--bad{% elif silk_request.time_taken >= 400 %}silk-num--ok{% elif silk_request.time_taken >= 100 %}silk-num--good{% else %}silk-num--very-good{% endif %}">
-        {% if silk_request.time_taken >= 2000 %}<i data-lucide="alert-triangle" class="silk-icon silk-icon--sm"></i>{% endif %}
+        {% if silk_request.time_taken >= 2000 %}<svg data-icon="alert-triangle" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>{% endif %}
         {{ silk_request.time_taken|floatformat:"0" }}<span class="silk-unit">ms</span>
     </span>
 </td>
@@ -37,7 +37,7 @@
     </span>
     {% if silk_request.has_n1 %}
     <span class="silk-n1-row-badge" title="N+1 query detected">
-        <i data-lucide="alert-triangle" class="silk-icon silk-icon--sm"></i>
+        <svg data-icon="alert-triangle" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
     </span>
     {% endif %}
 </td>

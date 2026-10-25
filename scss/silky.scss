@@ -1,0 +1,6 @@
+// Silky UI: one stylesheet for the shell and shared components.
+// Page-specific styles still live in scss/pages/ until each page is redesigned.
+@use "silky/tokens";
+@use "silky/base";
+@use "silky/shell";
+@use "silky/components";

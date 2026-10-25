@@ -21,7 +21,7 @@
     <div class="menu-item menu-item--back selectable-menu-item" title="Back to SQL">
         <div class="menu-item-outer">
             <div class="menu-item-inner">
-                <i data-lucide="chevron-left" class="silk-icon"></i>
+                <svg data-icon="chevron-left" class="silk-icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>
             </div>
         </div>
     </div>
@@ -29,7 +29,7 @@
 <div class="menu-item menu-item-selected">
     <div class="menu-item-outer">
         <div class="menu-item-inner">
-            <i data-lucide="database" class="silk-icon"></i> SQL Query
+            <svg data-icon="database" class="silk-icon" aria-hidden="true"><use href="#i-database"></use></svg> SQL Query
         </div>
     </div>
 </div>
@@ -42,16 +42,16 @@
     {# ── Query ── #}
     <section class="silk-section">
         <h3 class="silk-section__heading">
-            <i data-lucide="database" class="silk-icon silk-icon--sm"></i> Query
+            <svg data-icon="database" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-database"></use></svg> Query
         </h3>
-        <pre class="silk-pre"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code class="language-sql">{{ sql_query.formatted_query }}</code></pre>
+        <pre class="silk-pre"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code class="language-sql">{{ sql_query.formatted_query }}</code></pre>
         <div class="silk-sql-meta">
             <span class="silk-hero__metric">
-                <i data-lucide="clock" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="clock" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
                 <span class="silk-num {% if sql_query.time_taken >= 1000 %}silk-num--very-bad{% elif sql_query.time_taken >= 500 %}silk-num--bad{% elif sql_query.time_taken >= 100 %}silk-num--ok{% else %}silk-num--very-good{% endif %}">{{ sql_query.time_taken }}</span><span class="silk-unit">ms</span>
             </span>
             <span class="silk-hero__metric">
-                <i data-lucide="git-merge" class="silk-icon silk-icon--sm"></i>
+                <svg data-icon="git-merge" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-git-merge"></use></svg>
                 {{ sql_query.num_joins }} joins
             </span>
         </div>
@@ -61,16 +61,16 @@
     {% if analysis %}
     <section class="silk-section">
         <h3 class="silk-section__heading">
-            <i data-lucide="list-tree" class="silk-icon silk-icon--sm"></i> Query Plan
+            <svg data-icon="list-tree" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-list-tree"></use></svg> Query Plan
         </h3>
-        <pre class="silk-pre"><div class="silk-pre__copy"><i data-lucide="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default"></i><i data-lucide="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success"></i></div><code>{{ analysis }}</code></pre>
+        <pre class="silk-pre"><div class="silk-pre__copy"><svg data-icon="clipboard" class="silk-icon silk-icon--large silk-pre__copy-icon--default" aria-hidden="true"><use href="#i-clipboard"></use></svg><svg data-icon="check" class="silk-icon silk-icon--large silk-pre__copy-icon--success" aria-hidden="true"><use href="#i-check"></use></svg></div><code>{{ analysis }}</code></pre>
     </section>
     {% endif %}
 
     {# ── Traceback ── #}
     <section class="silk-section">
         <h3 class="silk-section__heading">
-            <i data-lucide="layers" class="silk-icon silk-icon--sm"></i> Traceback
+            <svg data-icon="layers" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-layers"></use></svg> Traceback
         </h3>
         <p class="silk-detail-note">Python stack trace leading to this SQL query. Your code is highlighted; library frames are muted.</p>
         <div class="silk-traceback">
