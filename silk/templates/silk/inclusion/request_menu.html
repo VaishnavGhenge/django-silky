@@ -1,46 +1,9 @@
-{% load silk_nav %}
-<a href="{% url "silk:requests" %}">
-    <div class="menu-item menu-item--back selectable-menu-item" title="Back to Requests">
-        <div class="menu-item-outer">
-            <div class="menu-item-inner">
-                <svg data-icon="chevron-left" class="silk-icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>
-            </div>
-        </div>
-    </div>
-</a>
-<a href="{% url "silk:request_detail" silk_request.id %}">
-    <div class="menu-item {% navactive request 'silk:request_detail' silk_request.id %} selectable-menu-item">
-        <div class="menu-item-outer">
-            <div class="menu-item-inner">
-                <svg data-icon="file-text" class="silk-icon" aria-hidden="true"><use href="#i-file-text"></use></svg> Details
-            </div>
-        </div>
-    </div>
-</a>
-<a href="{% url "silk:request_sql" silk_request.id %}">
-    <div class="menu-item {% navactive request 'silk:request_sql' silk_request.id %} selectable-menu-item">
-        <div class="menu-item-outer">
-            <div class="menu-item-inner">
-                <svg data-icon="database" class="silk-icon" aria-hidden="true"><use href="#i-database"></use></svg> SQL
-            </div>
-        </div>
-    </div>
-</a>
-<a href="{% url "silk:request_profiling" silk_request.id %}">
-    <div class="menu-item {% navactive request 'silk:request_profiling' silk_request.id %} selectable-menu-item">
-        <div class="menu-item-outer">
-            <div class="menu-item-inner">
-                <svg data-icon="cpu" class="silk-icon" aria-hidden="true"><use href="#i-cpu"></use></svg> Profiling
-            </div>
-        </div>
-    </div>
-</a>
-<a href="{% url "silk:cprofile" silk_request.id %}">
-    <div class="menu-item {% navactive request 'silk:cprofile' silk_request.id %} selectable-menu-item">
-        <div class="menu-item-outer">
-            <div class="menu-item-inner">
-                <svg data-icon="bar-chart-2" class="silk-icon" aria-hidden="true"><use href="#i-bar-chart-2"></use></svg> CProfile
-            </div>
-        </div>
-    </div>
-</a>
+{% with url_name=request.resolver_match.url_name %}
+<nav class="subtabs" aria-label="Request">
+    <a class="subtab subtab--back" href="{% url 'silk:requests' %}" title="Back to requests" aria-label="Back to requests"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-left"></use></svg></a>
+    <a class="subtab" href="{% url 'silk:request_detail' silk_request.id %}"{% if url_name == 'request_detail' %} aria-current="page"{% endif %}>Overview</a>
+    <a class="subtab" href="{% url 'silk:request_sql' silk_request.id %}"{% if url_name == 'request_sql' or url_name == 'request_sql_detail' %} aria-current="page"{% endif %}>SQL <span class="count">{{ silk_request.num_sql_queries }}</span></a>
+    <a class="subtab" href="{% url 'silk:request_profiling' silk_request.id %}"{% if url_name == 'request_profiling' or url_name == 'request_profile_detail' or url_name == 'request_and_profile_sql' or url_name == 'request_and_profile_sql_detail' %} aria-current="page"{% endif %}>Profiling</a>
+    <a class="subtab" href="{% url 'silk:cprofile' silk_request.id %}"{% if url_name == 'cprofile' %} aria-current="page"{% endif %}>cProfile</a>
+</nav>
+{% endwith %}

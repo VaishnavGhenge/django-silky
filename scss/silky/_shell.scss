@@ -71,11 +71,21 @@
   border-bottom: 1px solid var(--border);
 }
 :root[data-layout="top"] .subbar { top: 52px; }
-.subbar:not(:has(.menu-item, #filter-button)) { display: none; }
+.subbar:not(:has(.subtab, .menu-item, #filter-button)) { display: none; }
 .subnav { display: flex; align-items: stretch; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .subbar__right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
-// Old menu markup (request_menu, profile_menu, sql_detail) rendered as tabs.
+.subtabs { display: flex; align-items: stretch; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.subtab {
+  align-items: center; gap: 6px; padding: 0 12px; white-space: nowrap; font-size: 13px; font-weight: 500;
+  color: var(--text-2) !important; border-bottom: 2px solid transparent; transition: color .12s, border-color .12s;
+}
+.subtab:hover { color: var(--text) !important; }
+.subtab[aria-current="page"] { color: var(--text) !important; font-weight: 600; border-bottom-color: var(--brand); }
+.subtab .count { font: 500 11px var(--mono); color: var(--muted); }
+.subtab--back { padding: 0 10px 0 0; margin-right: 4px; border-right: 1px solid var(--border); border-bottom-color: transparent !important; }
+
+// Old menu markup (sql_detail) rendered as tabs.
 .subbar a { display: flex; color: inherit; }
 .subbar a:hover { text-decoration: none; }
 .subbar .menu-item {

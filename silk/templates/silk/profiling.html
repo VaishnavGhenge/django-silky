@@ -1,141 +1,34 @@
-{% extends 'silk/base/root_base.html' %}
+{% extends 'silk/base/base.html' %}
 {% load silk_assets %}
-{% load static %}
 {% load silk_inclusion %}
 
 {% block pagetitle %}Silky - Profiling{% endblock %}
 
-{% block menu %}
-    {% if silk_request %}
-        {% request_menu request silk_request %}
-    {% else %}
-        {% root_menu request %}
-    {% endif %}
-{% endblock %}
-
-{% block style %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/requests.css' %}"/>
-    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/profiling.css' %}"/>
-{% endblock %}
-
-{% block filter %}
-    {# theme toggle injected by base.html #}
-{% endblock %}
-
 {% block js %}
-    {{ block.super }}
-    <script src="{% silk_asset 'silk/js/pages/profiling.js' %}"></script>
+    <script src="{% silk_asset 'silk/lib/htmx.min.js' %}" defer></script>
+{% endblock %}
+
+{% block menu %}
+    {% if silk_request %}{% request_menu request silk_request %}{% endif %}
 {% endblock %}
 
 {% block data %}
-<div class="silk-page">
-
-    {# ── Toolbar ── #}
-    <div class="silk-toolbar">
-        <form id="silk-prof-sort-form" action="." method="get">
-            <div class="silk-toolbar__left">
-                <span class="silk-toolbar-label">
-                    <svg data-icon="cpu" class="silk-icon" aria-hidden="true"><use href="#i-cpu"></use></svg>
-                    Profiling
-                </span>
-            </div>
-            <div class="silk-toolbar__right">
-                <label class="silk-toolbar-label">Order:
-                    <select name="order_by" class="silk-select" onchange="this.form.submit()">
-                        {% for option in options_order_by %}
-                        <option value="{{ option }}" {% if option == order_by %}selected{% endif %}>{{ option }}</option>
-                        {% endfor %}
-                    </select>
-                </label>
-                <label class="silk-toolbar-label">Per page:
-                    <select name="show" class="silk-select" onchange="this.form.submit()">
-                        {% for n in options_show %}
-                        <option value="{{ n }}" {% if n == show %}selected{% endif %}>{{ n }}</option>
-                        {% endfor %}
-                    </select>
-                </label>
-                <button type="button" id="silk-filter-toggle" class="silk-btn silk-btn--outline"
-                        onclick="silkFilterToggle()" aria-expanded="false" aria-controls="silk-filter-bar">
-                    <svg data-icon="filter" class="silk-icon" aria-hidden="true"><use href="#i-filter"></use></svg>
-                    Filters{% if filters %} ({{ filters|length }}){% endif %}
-                </button>
-            </div>
-        </form>
+<form id="prof-form" method="get" action="{{ request.path }}"
+      hx-get="{{ request.path }}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true"
+      hx-trigger="submit, input changed delay:300ms from:#prof-q">
+    <div class="req-head">
+        <div>
+            <h1>Profiling</h1>
+            <p class="sub">{% if silk_request %}Code blocks profiled during <code>{{ silk_request.method }} {{ silk_request.path }}</code>.{% else %}{{ profile_count }} profiled run{{ profile_count|pluralize }} in {{ blocks|length }} code block{{ blocks|length|pluralize }}, and {{ cprofile_count }} request{{ cprofile_count|pluralize }} with cProfile output.{% endif %}</p>
+        </div>
+        <label class="search">
+            <svg class="silk-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+            <input id="prof-q" type="search" name="q" value="{{ q }}" placeholder="Filter by block or function" autocomplete="off" spellcheck="false" aria-label="Filter by block or function">
+        </label>
     </div>
-
-    {# ── Filter bar ── #}
-    <form id="silk-filter-form" action="." method="post">
-        {% csrf_token %}
-        {% include 'silk/inclusion/filter_bar_profiling.html' %}
-    </form>
-
-    {# ── Results ── #}
-    {% if results %}
-    <div class="silk-table-wrapper">
-        <table class="silk-table">
-            <thead class="silk-table__head">
-                <tr>
-                    <th class="silk-th silk-th--timestamp">Time</th>
-                    <th class="silk-th">Name</th>
-                    <th class="silk-th">Function</th>
-                    <th class="silk-th silk-th--numeric">Duration</th>
-                    <th class="silk-th silk-th--numeric">Queries</th>
-                    <th class="silk-th silk-th--numeric">DB Time</th>
-                </tr>
-            </thead>
-            <tbody class="silk-table__body">
-                {% for profile in results %}
-                <tr class="silk-table__row" tabindex="0"
-                    onclick="window.location='{% if silk_request %}{% url 'silk:request_profile_detail' request_id=silk_request.pk profile_id=profile.pk %}{% else %}{% url 'silk:profile_detail' profile_id=profile.pk %}{% endif %}'"
-                    onkeydown="if(event.key==='Enter')window.location='{% if silk_request %}{% url 'silk:request_profile_detail' request_id=silk_request.pk profile_id=profile.pk %}{% else %}{% url 'silk:profile_detail' profile_id=profile.pk %}{% endif %}'">
-                    <td class="silk-td silk-td--timestamp">
-                        {% load silk_filters %}
-                        <span data-time="{{ profile.start_time|date:'c' }}">{{ profile.start_time | silk_date_time }}</span>
-                    </td>
-                    <td class="silk-td">{{ profile.name }}</td>
-                    <td class="silk-td silk-td--path">{{ profile.func_name }}</td>
-                    <td class="silk-td silk-td--numeric">
-                        <span class="silk-num {% if profile.time_taken >= 2000 %}silk-num--very-bad{% elif profile.time_taken >= 1000 %}silk-num--bad{% elif profile.time_taken >= 400 %}silk-num--ok{% elif profile.time_taken >= 100 %}silk-num--good{% else %}silk-num--very-good{% endif %}">
-                            {{ profile.time_taken|floatformat:"0" }}<span class="silk-unit">ms</span>
-                        </span>
-                    </td>
-                    <td class="silk-td silk-td--numeric">
-                        <span class="silk-num {% if profile.num_sql_queries >= 50 %}silk-num--very-bad{% elif profile.num_sql_queries >= 20 %}silk-num--bad{% elif profile.num_sql_queries >= 10 %}silk-num--ok{% endif %}">
-                            {{ profile.num_sql_queries }}
-                        </span>
-                    </td>
-                    <td class="silk-td silk-td--numeric">
-                        <span class="silk-num">{{ profile.time_spent_on_sql_queries|floatformat:"0" }}<span class="silk-unit">ms</span></span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    {# ── Pagination ── #}
-    {% include 'silk/inclusion/pagination.html' %}
-
-    {% else %}
-    <div class="silk-empty">
-        <div class="silk-empty__icon"><svg data-icon="cpu" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-cpu"></use></svg></div>
-        <h2 class="silk-empty__title">No profiling data</h2>
-        <p class="silk-empty__desc">
-            No Silk profiling was performed. Please check that:
-        </p>
-        <ul class="silk-empty__list">
-            <li>you use the <code>@silk_profile</code> decorator or <code>with silk_profile():</code> context manager</li>
-            <li>you have <code>"silk"</code> in <code>INSTALLED_APPS</code></li>
-            <li>you have <code>"silk.middleware.SilkyMiddleware"</code> in <code>MIDDLEWARE</code></li>
-        </ul>
-        {% if filters %}
-        <form action="." method="post">
-            {% csrf_token %}
-            <button type="submit" name="clear_filters" value="1" class="silk-btn silk-btn--primary">Clear filters</button>
-        </form>
-        {% endif %}
-    </div>
-    {% endif %}
-</div>
+    {% include 'silk/inclusion/profiling_split.html' %}
+</form>
+{% if filters and not silk_request %}
+<form id="prof-clear" method="post" action="{% url 'silk:profiling' %}" hidden>{% csrf_token %}<input type="hidden" name="clear_filters" value="1"></form>
+{% endif %}
 {% endblock %}

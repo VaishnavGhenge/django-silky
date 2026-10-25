@@ -1,51 +1,8 @@
-{% load silk_nav %}
-<a href="
-    {% if silk_request %}
-        {% url "silk:request_profiling" silk_request.id %}
-    {% else %}
-        {% url "silk:profiling" %}
-    {% endif %}
-">
-    <div class="menu-item selectable-menu-item">
-        <div class="menu-item-outer">
-            <div class="menu-item-inner">&larr;</div>
-        </div>
-    </div>
-</a>
-<div class="menu-item selectable-menu-item
-            {% if silk_request %}
-                {% navactive request 'silk:request_profile_detail' silk_request.id profile.id %}
-            {% else %}
-                {% navactive request 'silk:profile_detail' profile.id %}
-            {% endif %}">
-    <a href="
-        {% if silk_request %}
-            {% url "silk:request_profile_detail" silk_request.id profile.id %}
-        {% else %}
-            {% url "silk:profile_detail" profile.id %}
-        {% endif %}
-    ">
-        <div class="menu-item-outer ">
-            <div class="menu-item-inner">Detail</div>
-        </div>
-    </a>
-</div>
-<div class="menu-item selectable-menu-item
-            {% if silk_request %}
-                 {% navactive request 'silk:request_and_profile_sql' silk_request.id profile.id %}
-            {% else %}
-                {% navactive request 'silk:profile_sql' profile.id %}
-            {% endif %}">
-    <a href="
-        {% if silk_request %}
-            {% url "silk:request_and_profile_sql" silk_request.id profile.id %}
-        {% else %}
-            {% url "silk:profile_sql" profile.id %}
-        {% endif %}
-    ">
-        <div class="menu-item-outer
-        ">
-            <div class="menu-item-inner">Queries</div>
-        </div>
-    </a>
-</div>
+{# Tabs for one profile. The current tab comes from the resolved URL name, so it is right whether the profile is opened on its own or under its request. #}
+{% with url_name=request.resolver_match.url_name %}
+<nav class="subtabs" aria-label="Profile">
+    <a class="subtab subtab--back" href="{% if silk_request %}{% url 'silk:request_profiling' silk_request.id %}{% else %}{% url 'silk:profiling' %}{% endif %}" title="Back to profiling" aria-label="Back to profiling"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-left"></use></svg></a>
+    <a class="subtab" href="{% if silk_request %}{% url 'silk:request_profile_detail' silk_request.id profile.id %}{% else %}{% url 'silk:profile_detail' profile.id %}{% endif %}"{% if url_name == 'profile_detail' or url_name == 'request_profile_detail' %} aria-current="page"{% endif %}>Detail</a>
+    <a class="subtab" href="{% if silk_request %}{% url 'silk:request_and_profile_sql' silk_request.id profile.id %}{% else %}{% url 'silk:profile_sql' profile.id %}{% endif %}"{% if url_name == 'profile_sql' or url_name == 'request_and_profile_sql' or url_name == 'profile_sql_detail' or url_name == 'request_and_profile_sql_detail' %} aria-current="page"{% endif %}>Queries</a>
+</nav>
+{% endwith %}

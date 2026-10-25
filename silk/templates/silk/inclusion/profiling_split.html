@@ -1,0 +1,163 @@
+{% load silk_filters %}
+<div id="split" class="splitview{% if detail or cprofile %} has-detail{% endif %}">
+    <section class="splitview__main">
+        <input type="hidden" name="tab" value="{% if tab == 'cprofile' %}cprofile{% endif %}">
+        <input type="hidden" name="sort" value="{% if sort != 'total' %}{{ sort }}{% endif %}">
+
+        <div class="filters">
+            {% if not silk_request %}
+            <div class="seg" role="group" aria-label="View">
+                <button type="button" data-set-field="tab" data-value="" aria-pressed="{% if tab == 'blocks' %}true{% else %}false{% endif %}">Code blocks <span class="count">{{ blocks|length }}</span></button>
+                <button type="button" data-set-field="tab" data-value="cprofile" aria-pressed="{% if tab == 'cprofile' %}true{% else %}false{% endif %}">cProfile <span class="count">{{ cprofile_count }}</span></button>
+            </div>
+            {% endif %}
+            {% if filters and not silk_request %}
+            <span class="chip" aria-pressed="true">{{ filters|length }} saved filter{{ filters|length|pluralize }}: {% for _, f in filters.items %}{{ f.str }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+            <button type="submit" form="prof-clear" class="btn btn--sm btn--ghost">Clear</button>
+            {% endif %}
+        </div>
+
+        {% if tab == 'blocks' %}
+        {% if blocks %}
+        <p class="note">Blocks wrapped in <code>@silk_profile</code> or <code>with silk_profile()</code>, grouped by where they are defined.</p>
+        <div class="tablewrap">
+            <table class="reqs">
+                <thead><tr>
+                    <th>Block</th>
+                    <th class="num c-80"><button type="button" class="th-sort" data-set-field="sort" data-value="count" aria-sort="{% if sort == 'count' %}descending{% else %}none{% endif %}">Runs</button></th>
+                    <th class="num c-140"><button type="button" class="th-sort" data-set-field="sort" data-value="" aria-sort="{% if sort == 'total' %}descending{% else %}none{% endif %}">Total</button></th>
+                    <th class="num c-90"><button type="button" class="th-sort" data-set-field="sort" data-value="avg" aria-sort="{% if sort == 'avg' %}descending{% else %}none{% endif %}">Avg</button></th>
+                    <th class="num c-90 col-opt"><button type="button" class="th-sort" data-set-field="sort" data-value="max" aria-sort="{% if sort == 'max' %}descending{% else %}none{% endif %}">Max</button></th>
+                    <th class="num c-120 col-opt">SQL share</th>
+                </tr></thead>
+                <tbody>
+                {% for b in blocks|slice:":200" %}
+                <tr{% if detail and detail.stats.id == b.id %} class="is-open"{% endif %}>
+                    <td class="c-path-cell">
+                        <a class="row-link path" href="{{ request.path }}?b={{ b.id }}{% if sort != 'total' %}&amp;sort={{ sort }}{% endif %}{% if q %}&amp;q={{ q|urlencode }}{% endif %}"
+                           hx-get="{{ request.path }}?b={{ b.id }}{% if sort != 'total' %}&amp;sort={{ sort }}{% endif %}{% if q %}&amp;q={{ q|urlencode }}{% endif %}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true">{{ b.name|default:b.func_name|default:"anonymous block" }}</a>
+                        {% if b.raised %}<span class="flag flag--bad">{{ b.raised }} raised</span>{% endif %}
+                        <div class="view">{% if b.func_name %}{{ b.func_name }}() · {% endif %}{{ b.file_path|app_path }}{% if b.line_num %}:{{ b.line_num }}{% endif %}</div>
+                    </td>
+                    <td class="num mono">{{ b.runs }}</td>
+                    <td class="num"><div class="timecell {% if b.avg >= 1000 %}t-bad{% elif b.avg >= 300 %}t-warn{% else %}t-good{% endif %}"><b>{{ b.total|floatformat:"0" }} ms</b><span class="timebar"><i style="width:{{ b.bar|floatformat:'1' }}%"></i></span></div></td>
+                    <td class="num mono">{{ b.avg|floatformat:"0" }} ms</td>
+                    <td class="num mono col-opt">{{ b.max|floatformat:"0" }} ms</td>
+                    <td class="num col-opt"><div class="share"><span class="share__bar"><i style="width:{{ b.sql_share|floatformat:'1' }}%"></i></span><span class="mono">{{ b.sql_share|floatformat:"0" }}%</span></div></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if blocks|length > 200 %}<p class="muted small">Showing the top 200 of {{ blocks|length }} blocks. Search or change the sort to see others.</p>{% endif %}
+        {% else %}
+        <div class="empty">
+            <p><strong>{% if q %}No blocks match “{{ q }}”.{% else %}No profiled code yet.{% endif %}</strong></p>
+            {% if not q %}<p class="muted">Wrap code in <code>@silk_profile()</code> or <code>with silk_profile(name='…'):</code> and it shows up here, with <code>silk</code> in <code>INSTALLED_APPS</code> and <code>SilkyMiddleware</code> in <code>MIDDLEWARE</code>.</p>{% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        {% if cprofile_requests %}
+        <p class="note">Requests recorded with <code>SILKY_PYTHON_PROFILER = True</code>, slowest first. Pick one to see where Python spent its time.</p>
+        <div class="tablewrap">
+            <table class="reqs">
+                <thead><tr><th class="c-method">Method</th><th>Path</th><th class="num c-80">Queries</th><th class="num c-120">Time</th></tr></thead>
+                <tbody>
+                {% for r in cprofile_requests %}
+                <tr{% if cprofile and cprofile.request.pk == r.pk %} class="is-open"{% endif %}>
+                    <td><span class="badge m-{{ r.method }}">{{ r.method }}</span></td>
+                    <td class="c-path-cell">
+                        <a class="row-link path" href="{{ request.path }}?tab=cprofile&amp;c={{ r.pk }}" hx-get="{{ request.path }}?tab=cprofile&amp;c={{ r.pk }}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true">{{ r.path }}</a>
+                        {% if r.view_name %}<div class="view">{{ r.view_name }}</div>{% endif %}
+                    </td>
+                    <td class="num mono">{{ r.num_sql_queries }}</td>
+                    <td class="num"><div class="timecell {% if r.time_taken >= 1000 %}t-bad{% elif r.time_taken >= 300 %}t-warn{% else %}t-good{% endif %}"><b>{{ r.time_taken|floatformat:"0" }} ms</b></div></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty"><p><strong>No cProfile output recorded.</strong></p><p class="muted">Set <code>SILKY_PYTHON_PROFILER = True</code> to profile every request with cProfile.</p></div>
+        {% endif %}
+        {% endif %}
+    </section>
+
+    {% if detail %}{% with d=detail s=detail.stats %}
+    <aside class="detail" aria-label="Code block">
+        <div class="d-head">
+            <div class="d-top">
+                <strong class="d-title">{{ d.name|default:d.func_name|default:"anonymous block" }}</strong>
+                <a class="d-close" href="{{ request.path }}" hx-get="{{ request.path }}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true" aria-label="Close" title="Close">
+                    <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></a>
+            </div>
+            <div class="d-meta"><span>{% if d.func_name %}{{ d.func_name }}(){% else %}context block{% endif %}</span></div>
+            {% if d.file_path %}
+            <div class="d-actions">
+                <a class="btn" data-editor-file="{{ d.file_path }}" data-editor-line="{{ d.line_num|default:1 }}" href="vscode://file{{ d.file_path }}:{{ d.line_num|default:1 }}"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-code"></use></svg>Open {{ d.file_path|path_name }}{% if d.line_num %}:{{ d.line_num }}{% endif %}</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="d-body">
+            <div class="kpis">
+                <div class="kpi"><span>Runs</span><b>{{ s.runs }}</b></div>
+                <div class="kpi"><span>Avg</span><b>{{ s.avg|floatformat:"0" }} ms</b></div>
+                <div class="kpi"><span>Max</span><b>{{ s.max|floatformat:"0" }} ms</b></div>
+                <div class="kpi"><span>Avg queries</span><b>{{ s.avg_q|floatformat:"1" }}</b></div>
+            </div>
+            <div class="split">
+                <div class="split__bar"><i style="width:{{ s.sql_share|floatformat:'0' }}%;background:var(--bar-sql)"></i><i style="flex:1;background:var(--bar-py)"></i></div>
+                <div class="split__legend"><span style="--c:var(--bar-sql)">SQL {{ s.sql_share|floatformat:"0" }}%</span><span style="--c:var(--bar-py)">Python and other</span></div>
+            </div>
+            {% if d.hist.bars %}
+            <h2 class="h3">Duration spread</h2>
+            <div class="hist" aria-hidden="true">{% for b in d.hist.bars %}<i style="height:{{ b }}%"></i>{% endfor %}</div>
+            <div class="hist__axis"><span>0</span><span>{{ d.hist.max|floatformat:"0" }} ms</span></div>
+            {% endif %}
+            <h2 class="h3">Slowest runs ({{ d.runs|length }}{% if s.runs > d.runs|length %} of {{ s.runs }}{% endif %})</h2>
+            <div class="occ">
+                {% for p in d.runs %}
+                <a class="occ__row" href="{% if p.request_id %}{% url 'silk:request_profile_detail' request_id=p.request_id profile_id=p.pk %}{% else %}{% url 'silk:profile_detail' profile_id=p.pk %}{% endif %}">
+                    {% if p.request %}<span class="badge m-{{ p.request.method }}">{{ p.request.method }}</span><span class="occ__path">{{ p.request.path }}</span>{% else %}<span class="occ__path muted">outside a request</span>{% endif %}
+                    <span class="occ__n">{{ p.nq }} q</span>
+                    <span class="occ__ms">{{ p.time_taken|floatformat:"0" }} ms</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+    {% endwith %}{% endif %}
+
+    {% if cprofile %}{% with c=cprofile r=cprofile.request %}
+    <aside class="detail" aria-label="cProfile output">
+        <div class="d-head">
+            <div class="d-top">
+                <span class="badge m-{{ r.method }}">{{ r.method }}</span>
+                <strong class="d-title mono">{{ r.path }}</strong>
+                <a class="d-close" href="{{ request.path }}?tab=cprofile" hx-get="{{ request.path }}?tab=cprofile" hx-target="#split" hx-swap="outerHTML" hx-push-url="true" aria-label="Close" title="Close">
+                    <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></a>
+            </div>
+            <div class="d-meta"><span>{{ c.calls|default:"?" }} function calls in {{ c.ms|floatformat:"0" }} ms</span></div>
+            <div class="d-actions">
+                <a class="btn" href="{% url 'silk:request_detail' request_id=r.pk %}">Open request</a>
+                <a class="btn" href="{% url 'silk:cprofile' request_id=r.pk %}">Call graph and raw output</a>
+            </div>
+        </div>
+        <div class="d-body">
+            <div class="seg" role="group" aria-label="Sort functions">
+                <a role="button" href="{{ request.path }}?tab=cprofile&amp;c={{ r.pk }}" hx-get="{{ request.path }}?tab=cprofile&amp;c={{ r.pk }}" hx-target="#split" hx-swap="outerHTML" aria-pressed="{% if c.sort == 'cumtime' %}true{% else %}false{% endif %}">Cumulative</a>
+                <a role="button" href="{{ request.path }}?tab=cprofile&amp;c={{ r.pk }}&amp;cs=tottime" hx-get="{{ request.path }}?tab=cprofile&amp;c={{ r.pk }}&amp;cs=tottime" hx-target="#split" hx-swap="outerHTML" aria-pressed="{% if c.sort == 'tottime' %}true{% else %}false{% endif %}">Own time</a>
+            </div>
+            <div class="fnlist">
+                {% for f in c.rows|slice:":150" %}
+                <div class="fn"><div class="fn__bar" style="width:{{ f.bar|floatformat:'1' }}%"></div>
+                    <div class="fn__row"><span class="fn__name">{{ f.name }}</span><span class="fn__file">{% if f.file %}{{ f.file|app_path }}:{{ f.line }}{% endif %}</span><span class="fn__calls">{{ f.ncalls }}×</span><span class="fn__ms">{{ f.value|floatformat:"1" }} ms</span></div>
+                </div>
+                {% empty %}<p class="muted">The output could not be parsed. <a href="{% url 'silk:cprofile' request_id=r.pk %}">See the raw output.</a></p>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+    {% endwith %}{% endif %}
+</div>

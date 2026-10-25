@@ -1,4 +1,6 @@
-from django.db.models import Count, Sum
+import uuid
+
+from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, render
 from django.template.context_processors import csrf
 from django.utils.decorators import method_decorator
@@ -7,7 +9,16 @@ from django.views.generic import View
 from silk.auth import login_possibly_required, permissions_possibly_required
 from silk.models import Profile, Request
 from silk.request_filters import BaseFilter, FiltersManager, TIME_RANGE_PRESETS, filters_from_request
+from silk.utils import profiling_data
 from silk.utils.pagination import get_page
+
+
+def _is_uuid(value):
+    try:
+        uuid.UUID(value)
+    except (TypeError, ValueError):
+        return False
+    return True
 
 
 class ProfilingView(View):
@@ -137,12 +148,56 @@ class ProfilingView(View):
         context['time_presets'] = [
             {'key': k, 'seconds': v, 'label': k} for k, v in TIME_RANGE_PRESETS.items()
         ]
+        # Blocks sort themselves; 'Recent' keeps order_by annotations out of their GROUP BY.
+        base = Profile.objects.filter(request=silk_request) if silk_request else Profile.objects.all()
+        if func_name:
+            base = base.filter(func_name=func_name)
+        if name:
+            base = base.filter(name=name)
+        for f in [BaseFilter.from_dict(x) for _, x in filters.items()]:
+            base = f.contribute_to_query_set(base).filter(f)
+        context.update(self._blocks_context(request, base, silk_request))
         return context
+
+    def _blocks_context(self, request, qs, silk_request):
+        """Code blocks and cProfile tabs. `qs` already carries the name, function and saved filters."""
+        q = request.GET.get('q', '').strip()
+        if q:
+            qs = qs.filter(Q(name__icontains=q) | Q(func_name__icontains=q))
+        tab = 'cprofile' if request.GET.get('tab') == 'cprofile' and not silk_request else 'blocks'
+        sort = request.GET.get('sort', 'total')
+        if sort not in profiling_data.BLOCK_SORTS:
+            sort = 'total'
+        requests_qs = Request.objects.all()
+        ctx = {
+            'q': q, 'tab': tab, 'sort': sort,
+            'blocks': profiling_data.blocks(qs, sort),
+            'cprofile_count': 0 if silk_request else requests_qs.exclude(pyprofile='').count(),
+            'profile_count': qs.count(),
+            'detail': None, 'cprofile': None,
+        }
+        block_id = request.GET.get('b', '')
+        if tab == 'blocks' and block_id.isdigit():
+            ctx['detail'] = profiling_data.block_detail(qs, int(block_id))
+        if tab == 'cprofile':
+            ctx['cprofile_requests'] = profiling_data.cprofile_requests(requests_qs)
+            open_id = request.GET.get('c', '')
+            opened = requests_qs.filter(pk=open_id).first() if _is_uuid(open_id) else None
+            if opened:
+                ctx['cprofile'] = {'request': opened,
+                                   **profiling_data.parse_cprofile(opened.pyprofile, request.GET.get('cs', 'cumtime'))}
+        return ctx
+
+    def _render(self, request, context):
+        template = 'silk/profiling.html'
+        if request.headers.get('HX-Request'):
+            template = 'silk/inclusion/profiling_split.html'
+        return render(request, template, context)
 
     @method_decorator(login_possibly_required)
     @method_decorator(permissions_possibly_required)
     def get(self, request, *args, **kwargs):
-        return render(request, 'silk/profiling.html', self._create_context(request, *args, **kwargs))
+        return self._render(request, self._create_context(request, *args, **kwargs))
 
     @method_decorator(login_possibly_required)
     @method_decorator(permissions_possibly_required)
@@ -153,4 +208,4 @@ class ProfilingView(View):
             filters = filters_from_request(request)
             filters_as_dict = {ident: f.as_dict() for ident, f in filters.items()}
         self.filters_manager.save(request, filters_as_dict)
-        return render(request, 'silk/profiling.html', self._create_context(request))
+        return self._render(request, self._create_context(request))

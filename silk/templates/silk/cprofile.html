@@ -1,50 +1,53 @@
-{% extends "silk/base/detail_base.html" %}
-{% load silk_assets %}
+{% extends "silk/base/base.html" %}
 {% load silk_filters %}
-{% load silk_nav %}
 {% load silk_inclusion %}
-{% load static %}
 
-{% block pagetitle %}Silky - CProfile - {{ silk_request.path }}{% endblock %}
-
-{% block js %}
-    <script type="text/javascript" src="{% silk_asset 'silk/lib/viz-lite.js' %}"></script>
-    <script type="text/javascript" src="{% silk_asset 'silk/lib/svg-pan-zoom.min.js' %}"></script>
-    {{ block.super }}
-{% endblock %}
-
-{% block style %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/cprofile.css' %}">
-{% endblock %}
+{% block pagetitle %}Silky - cProfile - {{ silk_request.path }}{% endblock %}
 
 {% block menu %}
     {% request_menu request silk_request %}
 {% endblock %}
 
 {% block data %}
-<div class="silk-detail-page">
+<div class="rd-overview">
+    <div class="req-head">
+        <div>
+            <h1>cProfile</h1>
+            <p class="sub"><span class="badge m-{{ silk_request.method }}">{{ silk_request.method }}</span> <code>{{ silk_request.path }}</code>{% if cprofile.calls %} · {{ cprofile.calls }} function calls in {{ cprofile.ms|floatformat:"0" }} ms{% endif %}</p>
+        </div>
+        {% if silk_request.prof_file %}
+        <a class="btn" href="{% url 'silk:request_profile_download' request_id=silk_request.pk %}"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-download"></use></svg>Download .prof</a>
+        {% endif %}
+    </div>
 
     {% if silk_request.pyprofile %}
-    <section class="silk-section">
-        <h3 class="silk-section__heading">
-            <svg data-icon="bar-chart-2" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-bar-chart-2"></use></svg> CProfile Output
-        </h3>
-        <p class="silk-detail-note">
-            Raw dump from the cPython profiler.
-            {% if silk_request.prof_file %}
-            <a href="{% url 'silk:request_profile_download' request_id=silk_request.pk %}">Download .prof file</a>
-            {% endif %}
-        </p>
-        <pre class="silk-pre silk-pre--wide">{{ silk_request.pyprofile }}</pre>
+    {% if cprofile.rows %}
+    <section class="card">
+        <div class="card__title">Where Python spent its time</div>
+        <div class="seg" role="group" aria-label="Sort functions">
+            <a role="button" href="?" aria-pressed="{% if cprofile.sort == 'cumtime' %}true{% else %}false{% endif %}">Cumulative</a>
+            <a role="button" href="?cs=tottime" aria-pressed="{% if cprofile.sort == 'tottime' %}true{% else %}false{% endif %}">Own time</a>
+        </div>
+        <div class="fnlist" style="margin-top:12px">
+            {% for f in cprofile.rows|slice:":200" %}
+            <div class="fn"><div class="fn__bar" style="width:{{ f.bar|floatformat:'1' }}%"></div>
+                <div class="fn__row"><span class="fn__name">{{ f.name }}</span><span class="fn__file">{% if f.file %}{{ f.file|app_path }}:{{ f.line }}{% endif %}</span><span class="fn__calls">{{ f.ncalls }}×</span><span class="fn__ms">{{ f.value|floatformat:"1" }} ms</span></div>
+            </div>
+            {% endfor %}
+        </div>
     </section>
-    {% else %}
-    <div class="silk-empty">
-        <div class="silk-empty__icon"><svg data-icon="bar-chart-2" class="silk-icon silk-icon--large" aria-hidden="true"><use href="#i-bar-chart-2"></use></svg></div>
-        <p class="silk-empty__title">No CProfile data</p>
-        <p class="silk-empty__desc">Enable <code>SILKY_PYTHON_PROFILER = True</code> to capture profiling data.</p>
-    </div>
     {% endif %}
 
+    {% if silk_request.prof_file %}
+        {% include 'silk/inclusion/callgraph.html' %}
+    {% endif %}
+
+    <details class="card">
+        <summary class="card__title">Raw output</summary>
+        <pre class="code">{{ silk_request.pyprofile }}</pre>
+    </details>
+    {% else %}
+    <div class="empty"><p><strong>No cProfile output for this request.</strong></p><p class="muted">Set <code>SILKY_PYTHON_PROFILER = True</code> to profile every request with cProfile.</p></div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -22,7 +22,7 @@ COLOR_MAP = Theme(
     mincolor=(0.18, 0.51, 0.53),
     maxcolor=(0.03, 0.49, 0.50),
     gamma=1.5,
-    fontname='FiraSans',
+    fontname='IBM Plex Sans',
     minfontsize=6.0,
     maxfontsize=6.0,
 )

@@ -1,111 +1,47 @@
 {% extends "silk/base/detail_base.html" %}
-{% load silk_assets %}
 {% load silk_filters %}
-{% load silk_nav %}
 {% load silk_inclusion %}
-{% load static %}
 
-{% block pagetitle %}Silky - Profile Detail - {{ silk_request.path }}{% endblock %}
-
-{% block js %}
-    <script type="text/javascript" src="{% silk_asset 'silk/lib/viz-lite.js' %}"></script>
-    <script type="text/javascript" src="{% silk_asset 'silk/lib/svg-pan-zoom.min.js' %}"></script>
-    {{ block.super }}
-{% endblock %}
-
-{% block style %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% silk_asset 'silk/css/pages/profile_detail.css' %}">
-{% endblock %}
+{% block pagetitle %}Silky - Profile - {{ profile.name|default:profile.func_name }}{% endblock %}
 
 {% block menu %}
     {% profile_menu request profile silk_request %}
 {% endblock %}
 
 {% block data %}
-<div class="silk-detail-page">
-
-    {# ── Profile summary hero ── #}
-    <div class="silk-hero">
-        <div class="silk-hero__badges">
-            <span class="silk-hero__time">{{ profile.start_time | silk_full_datetime }}</span>
+<div class="rd-overview">
+    <div class="req-head">
+        <div>
+            <h1>{{ profile.name|default:profile.func_name|default:"Anonymous block" }}{% if profile.exception_raised %} <span class="flag flag--bad">raised</span>{% endif %}</h1>
+            <p class="sub">{% if profile.func_name %}<code>{{ profile.func_name }}()</code> · {% endif %}{{ profile.start_time|silk_full_datetime }}{% if silk_request %} · in <a href="{% url 'silk:request_detail' request_id=silk_request.pk %}">{{ silk_request.method }} {{ silk_request.path }}</a>{% endif %}</p>
         </div>
-        <div class="silk-hero__path">
-            {% if profile.name %}{{ profile.name }}{% elif profile.func_name %}{{ profile.func_name }}{% endif %}
-        </div>
-        <div class="silk-hero__metrics">
-            <span class="silk-hero__metric">
-                <svg data-icon="clock" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
-                {{ profile.time_taken|floatformat:"0" }}<span class="silk-unit">ms</span>
-            </span>
-            <span class="silk-hero__metric">
-                <svg data-icon="database" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-database"></use></svg>
-                {{ profile.time_spent_on_sql_queries|floatformat:"0" }}<span class="silk-unit">ms</span> DB
-            </span>
-            <span class="silk-hero__metric">
-                <svg data-icon="layers" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-layers"></use></svg>
-                {{ profile.queries.count }} queries
-            </span>
-        </div>
+        {% if profile.file_path %}
+        <a class="btn" data-editor-file="{{ profile.file_path }}" data-editor-line="{{ profile.line_num|default:1 }}" href="vscode://file{{ profile.file_path }}:{{ profile.line_num|default:1 }}"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-code"></use></svg>Open in editor</a>
+        {% endif %}
     </div>
 
-    <div class="silk-detail-body">
-    {# ── Source location ── #}
-    <section class="silk-section">
-        <h3 class="silk-section__heading">
-            <svg data-icon="map-pin" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-map-pin"></use></svg>
-            {% if profile.file_path and profile.line_num %}
-                {{ profile.file_path }}:{{ profile.line_num }}{% if profile.end_line_num %}–{{ profile.end_line_num }}{% endif %}
-            {% else %}
-                Location
-            {% endif %}
-        </h3>
-        <p class="silk-detail-note">Where in your code this profile was defined.</p>
+    <div class="kpis">
+        <div class="kpi"><span>Time</span><b>{{ profile.time_taken|floatformat:"0" }} ms</b></div>
+        <div class="kpi"><span>Time in SQL</span><b>{{ profile.time_spent_on_sql_queries|floatformat:"0" }} ms</b></div>
+        <div class="kpi"><span>Queries</span><b>{{ profile.queries.count }}</b></div>
+    </div>
+
+    <section class="card">
+        <div class="card__title">{% if profile.file_path %}<span class="mono">{{ profile.file_path|app_path }}{% if profile.line_num %}:{{ profile.line_num }}{% if profile.end_line_num %} to {{ profile.end_line_num }}{% endif %}{% endif %}</span>{% else %}Location{% endif %}</div>
         {% if code %}
             {% code code actual_line %}
         {% elif code_error %}
-            <p class="silk-detail-note">{{ code_error }}</p>
+            <p class="muted">{{ code_error }}</p>
+        {% else %}
+            <p class="muted">No source location was recorded for this block.</p>
         {% endif %}
     </section>
 
-    {# ── Profile graph ── #}
     {% if silk_request.prof_file %}
-    <section class="silk-section">
-        <h3 class="silk-section__heading">
-            <svg data-icon="share-2" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-share-2"></use></svg> Profile Graph
-        </h3>
-        <p class="silk-detail-note">
-            Call graph coloured by time (red = slower).
-            Prune nodes taking less than
-            <input id="percent" type="text" value="5"
-                   onkeypress="return event.charCode >= 48 && event.charCode <= 57 && this.value.length < 2"
-                   oninput="createViz()"
-                   class="silk-filter-input" style="width:36px; text-align:center;">
-            % of total time.
-        </p>
-        <div id="graph-div" class="silk-graph-div"></div>
-    </section>
-    {% url 'silk:request_profile_dot' request_id=silk_request.pk as profile_dot_url %}
-    {{ profile_dot_url|json_script:'profileDotURL' }}
-    <script src="{% silk_asset 'silk/js/pages/profile_detail.js' %}"></script>
+        {% include 'silk/inclusion/callgraph.html' %}
     {% endif %}
-
-    {# ── Python profiler output ── #}
     {% if silk_request.pyprofile %}
-    <section class="silk-section">
-        <h3 class="silk-section__heading">
-            <svg data-icon="bar-chart-2" class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-bar-chart-2"></use></svg> Python Profiler
-        </h3>
-        <p class="silk-detail-note">
-            Raw dump from the cPython profiler.
-            {% if silk_request.prof_file %}
-            <a href="{% url 'silk:request_profile_download' request_id=silk_request.pk %}">Download .prof file</a>
-            {% endif %}
-        </p>
-        <pre class="silk-pre silk-pre--wide">{{ silk_request.pyprofile }}</pre>
-    </section>
+    <p class="muted small"><a href="{% url 'silk:cprofile' request_id=silk_request.pk %}">See the request's cProfile output</a></p>
     {% endif %}
-
-    </div>
 </div>
 {% endblock %}

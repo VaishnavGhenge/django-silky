@@ -1,0 +1,15 @@
+{% load silk_assets %}
+{# Lazy call graph. Expects silk_request with a prof_file. #}
+<section class="card" data-callgraph
+         data-dot-url="{% url 'silk:request_profile_dot' request_id=silk_request.pk %}"
+         data-viz-src="{% silk_asset 'silk/lib/viz-lite.js' %}"
+         data-pan-src="{% silk_asset 'silk/lib/svg-pan-zoom.min.js' %}">
+    <div class="card__title">Call graph</div>
+    <div class="graph__bar">
+        <button type="button" class="btn btn--sm" data-graph-draw>Draw call graph</button>
+        <label>Hide functions under <input type="number" min="0" max="99" value="5" data-graph-cutoff disabled aria-label="Cutoff percent"> % of total time</label>
+        <span class="muted small">Loads a 1.8 MB renderer the first time.</span>
+    </div>
+    <div class="graph" data-graph-box><div class="graph__empty">Not drawn yet.</div></div>
+</section>
+<script src="{% silk_asset 'silk/js/pages/callgraph.js' %}" defer></script>
