@@ -1,0 +1,52 @@
+{# "Where the time goes": scatter and heatmap, re-rendered by htmx when the endpoint scope changes. #}
+<section id="sum-where" class="sum-where">
+    <div class="secthead">
+        <h2>Where the time goes</h2>
+        <div class="menu">
+            <button type="button" class="menu__btn" data-menu-toggle aria-haspopup="menu" aria-expanded="false">{{ scope|default:"All endpoints" }}
+                <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>
+            <div class="menu__list menu__list--left" role="menu" hidden>
+                <a role="menuitemradio" aria-checked="{% if not scope %}true{% else %}false{% endif %}" href="{% url 'silk:summary' %}" hx-get="{% url 'silk:summary' %}" hx-target="#sum-where" hx-swap="outerHTML">All endpoints</a>
+                {% for key in endpoint_keys %}
+                <a role="menuitemradio" aria-checked="{% if scope == key %}true{% else %}false{% endif %}" href="{% url 'silk:summary' %}?ep={{ key|urlencode }}" hx-get="{% url 'silk:summary' %}?ep={{ key|urlencode }}" hx-target="#sum-where" hx-swap="outerHTML">{{ key }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        <span class="muted small">{{ scoped_count }} requests</span>
+    </div>
+    <div class="cols cols--even">
+        <div class="card chartcard" data-chart="sum-scatter">
+            <div class="chartcard__head"><div class="card__title">Queries vs response time</div><button type="button" class="chartcard__toggle" data-chart-toggle>Hide</button></div>
+            <div class="chartcard__body">
+            {% if scatter %}
+            <p class="chart__verdict"><b>{{ scatter.verdict.0 }}</b> (ρ {{ scatter.rho|floatformat:"2" }}). {{ scatter.verdict.1 }}</p>
+            <div class="plot">
+                <div class="plot__y">{% for t in scatter.yticks %}<span style="bottom:{{ t.pct|floatformat:'1' }}%">{{ t.label|floatformat:"0" }} ms</span>{% endfor %}</div>
+                <div class="plot__area">
+                    {% for t in scatter.yticks %}<i class="plot__grid" style="bottom:{{ t.pct|floatformat:'1' }}%"></i>{% endfor %}
+                    {% for d in scatter.dots %}<a class="dot {{ d.cls }}" href="{% url 'silk:request_detail' request_id=d.id %}" style="left:{{ d.x|floatformat:'1' }}%;bottom:{{ d.y|floatformat:'1' }}%" title="{{ d.title }}"></a>{% endfor %}
+                </div>
+                <div class="plot__x">{% for x in scatter.xticks %}<span>{{ x }}</span>{% endfor %}</div>
+            </div>
+            <div class="legend"><span class="muted">queries per request →</span><span class="lg-dot">request</span><span class="lg-dot lg-dot--n1">N+1</span><span class="lg-dot lg-dot--err">5xx</span>
+                <span class="muted">log time scale{% if scatter.shown < scatter.total %} · newest {{ scatter.shown }} of {{ scatter.total }}{% endif %} · click a dot to open it</span></div>
+            {% else %}<p class="muted">Not enough requests to plot.</p>{% endif %}
+            </div>
+        </div>
+        <div class="card chartcard" data-chart="sum-heatmap">
+            <div class="chartcard__head"><div class="card__title">Latency distribution</div><button type="button" class="chartcard__toggle" data-chart-toggle>Hide</button></div>
+            <div class="chartcard__body">
+            {% if heatmap %}
+            <div class="plot">
+                <div class="plot__y">{% for t in heatmap.yticks %}<span style="bottom:{{ t.pct|floatformat:'1' }}%">{{ t.label|floatformat:"0" }} ms</span>{% endfor %}</div>
+                <div class="heat" style="grid-template-columns:repeat({{ heatmap.ncols }},1fr)">
+                    {% for col in heatmap.columns %}<div class="heat__col">{% for c in col %}<i{% if c.n %} style="background:color-mix(in srgb, var(--brand) {{ c.alpha }}%, transparent)"{% endif %} title="{{ c.n }} request{{ c.n|pluralize }}, {{ c.lo|floatformat:'0' }} to {{ c.hi|floatformat:'0' }} ms"></i>{% endfor %}</div>{% endfor %}
+                </div>
+                <div class="plot__x plot__x--ends"><span>{{ heatmap.first|date:"M j" }}</span><span>{{ heatmap.last|date:"M j" }}</span></div>
+            </div>
+            <div class="legend"><span class="muted">requests in order, oldest → newest · darker = more · two bands usually mean two code paths, such as cache hit and miss</span></div>
+            {% else %}<p class="muted">Not enough requests to plot.</p>{% endif %}
+            </div>
+        </div>
+    </div>
+</section>

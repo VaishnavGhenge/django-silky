@@ -9,6 +9,7 @@ from django.views.generic import View
 
 from silk import models
 from silk.auth import login_possibly_required, permissions_possibly_required
+from silk.utils import summary_data
 from silk.request_filters import (
     BaseFilter,
     FiltersManager,
@@ -257,53 +258,39 @@ class SummaryView(View):
     def _create_context(self, request):
         raw_filters = self.filters_manager.get(request)
         filters = [BaseFilter.from_dict(filter_d) for _, filter_d in raw_filters.items()]
-        avg_num_q = self._avg_num_queries(filters)
-        avg_db_time = self._avg_time_spent_on_queries(filters) or 0
-        avg_total_time = self._avg_overall_time(filters) or 0
-        db_pressure = round(avg_db_time / avg_total_time * 100, 1) if avg_total_time > 0 else 0
-        num_requests = models.Request.objects.filter(*filters).count()
-        active_preset = raw_filters.get('time_preset', {}).get('value')
-        request_percentiles = self._request_time_percentiles(filters)
-        sql_percentiles = self._sql_time_percentiles(filters)
+        rows = summary_data.load_rows(filters)
+        eps = summary_data.endpoints(rows)
+        scope = request.GET.get('ep', '')
+        scoped = [r for r in rows if r['ep'] == scope] if scope else rows
         c = {
             'request': request,
-            'num_requests': num_requests,
-            'num_profiles': models.Profile.objects.filter(*filters).count(),
-            'avg_num_queries': avg_num_q,
-            'avg_time_spent_on_queries': avg_db_time,
-            'avg_overall_time': avg_total_time,
-            'db_pressure': db_pressure,
-            'longest_queries_by_view': self._longest_query_by_view(filters),
-            'most_time_spent_in_db': self._time_spent_in_db_by_view(filters),
-            'most_queries': self._num_queries_by_view(filters),
-            'hot_paths': self._hot_paths(filters),
-            'n1_suspects': self._n1_suspects(filters),
             'filters': raw_filters,
-            'has_data': num_requests > 0,
-            'time_presets': [
-                {'key': k, 'seconds': v, 'label': k} for k, v in TIME_RANGE_PRESETS.items()
-            ],
-            'active_preset': active_preset,
-            'request_percentiles': request_percentiles,
-            'sql_percentiles': sql_percentiles,
-            'chart_json': json.dumps({
-                'request': request_percentiles,
-                'sql': sql_percentiles,
-                'timeline': self._request_timeline(filters),
-                'status': self._status_distribution(filters),
-                'methods': self._method_distribution(filters),
-                'rt_hist': self._response_time_histogram(filters),
-                'query_hist': self._query_count_histogram(filters),
-            }),
+            'has_data': bool(rows),
+            'capped': len(rows) >= summary_data.MAX_ROWS,
+            'time_presets': [{'key': k, 'seconds': v, 'label': k} for k, v in TIME_RANGE_PRESETS.items()],
+            'active_preset': raw_filters.get('time_preset', {}).get('value'),
+            'stats': summary_data.headline(rows),
+            'latency': summary_data.latency_chart(rows),
+            'focus': summary_data.focus(eps),
+            'status': summary_data.status_breakdown(rows),
+            'endpoints': eps,
+            'endpoint_keys': [e['key'] for e in sorted(eps, key=lambda e: -e['count'])],
+            'scope': scope,
+            'scoped_count': len(scoped),
+            'scatter': summary_data.scatter(scoped),
+            'heatmap': summary_data.heatmap(scoped),
         }
         c.update(csrf(request))
         return c
 
+    def _render(self, request):
+        template = 'silk/inclusion/summary_where.html' if request.headers.get('HX-Request') else 'silk/summary.html'
+        return render(request, template, self._create_context(request))
+
     @method_decorator(login_possibly_required)
     @method_decorator(permissions_possibly_required)
     def get(self, request):
-        c = self._create_context(request)
-        return render(request, 'silk/summary.html', c)
+        return self._render(request)
 
     @method_decorator(login_possibly_required)
     @method_decorator(permissions_possibly_required)

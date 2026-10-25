@@ -7,6 +7,7 @@ Django admin, payment webhooks and a staff sales report. They do not replay HTTP
 requests, and the application modules named in tracebacks do not exist on disk.
 """
 
+import base64
 import json
 import math
 import random
@@ -690,6 +691,8 @@ def _headers(spec, rng):
 def _record(spec, start, rng):
     queries, spans, end = _timeline(spec, start, rng)
     body = json.dumps(spec["body"]) if spec["body"] is not None else ""
+    # Stored the way the middleware does: JSON pretty-printed in body, the response's raw bytes base64-encoded.
+    pretty = json.dumps(spec["body"], sort_keys=True, indent=4) if body else ""
     headers = _headers(spec, rng)
     if body:
         headers["content-type"] = "application/json"
@@ -697,14 +700,15 @@ def _record(spec, start, rng):
     req = models.Request.objects.create(
         method=spec["method"], path=spec["path"], query_params=json.dumps(spec["params"]) if spec["params"] else "",
         start_time=start, end_time=end, view_name=spec["view"],
-        encoded_headers=json.dumps(headers), body=body, raw_body=body,
+        encoded_headers=json.dumps(headers), body=pretty, raw_body=body,
         meta_time=rng.uniform(0.2, 1.5), meta_num_queries=rng.randint(2, 4),
         meta_time_spent_queries=rng.uniform(0.1, 0.8),
     )
     is_json = spec["content_type"] == "application/json"
     response_body = json.dumps(spec["response"]) if is_json else spec["response"]
     models.Response.objects.create(
-        request=req, status_code=spec["status"], body=response_body, raw_body=response_body,
+        request=req, status_code=spec["status"], raw_body=base64.b64encode(response_body.encode()).decode("ascii"),
+        body=json.dumps(spec["response"], sort_keys=True, indent=4) if is_json else response_body,
         encoded_headers=json.dumps({"content-type": spec["content_type"], "content-length": str(len(response_body.encode())),
                                     "vary": "Cookie, Accept-Language", "x-frame-options": "DENY"}),
     )

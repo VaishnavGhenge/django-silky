@@ -1,0 +1,75 @@
+// Summary page: charts, "Fix these first", endpoint table extras.
+
+.note { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+.cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; margin-bottom: 16px; align-items: start; }
+.cols--even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.secthead { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; }
+.secthead h2 { margin: 0; font-size: 15px; }
+.menu__list--left { left: 0; right: auto; min-width: 280px; max-height: 320px; overflow: auto; }
+#sum-where.htmx-request { opacity: .6; }
+
+// Collapsible chart cards (behaviour in silky.js)
+.chartcard__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.chartcard__head .card__title { margin-bottom: 0; }
+.chartcard__body { margin-top: 10px; }
+.chartcard__toggle { flex: none; padding: 2px 8px; border: 0; border-radius: 6px; background: none; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--muted); }
+.chartcard__toggle:hover { color: var(--text); background: var(--row-hover); }
+.chartcard.is-collapsed .chartcard__body { display: none; }
+
+// Line chart: SVG shapes stretch, axis labels stay in HTML so text never distorts
+.chartbox { display: grid; grid-template-columns: 60px minmax(0, 1fr); height: 240px; }
+.chart { display: block; width: 100%; height: 100%; }
+.chart__y { position: relative; }
+.chart__y span { position: absolute; right: 8px; transform: translateY(-50%); font: 11px var(--mono); color: var(--muted); white-space: nowrap; }
+.chart__grid line { stroke: var(--border); stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; }
+.chart__area { fill: var(--brand-soft); }
+.chart__p95 { fill: none; stroke: #e0a33a; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.chart__p50 { fill: none; stroke: var(--brand); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.lg::before { content: ""; display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; background: var(--c); }
+.lg--p95 { --c: #e0a33a; } .lg--p50 { --c: var(--brand); }
+.lg--st2 { --c: var(--dot-ok); } .lg--st3 { --c: var(--info); } .lg--st4 { --c: #e0a33a; } .lg--st5 { --c: #dc2626; }
+.stack { display: flex; height: 10px; border-radius: 5px; overflow: hidden; gap: 2px; }
+.stack i { border-radius: 3px; }
+.stack .st-2 { background: var(--dot-ok); } .stack .st-3 { background: var(--info); } .stack .st-4 { background: #e0a33a; } .stack .st-5 { background: #dc2626; }
+
+.focus {
+  display: flex; align-items: center; gap: 12px; padding: 10px; margin-bottom: 6px; color: var(--text) !important;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); transition: border-color .12s, background .12s;
+}
+.focus:hover { border-color: var(--border-strong); background: var(--row-hover); text-decoration: none; }
+.focus__rank { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--nav); color: var(--nav-text); font: 600 12px var(--mono); }
+.focus__main { flex: 1; min-width: 0; }
+.focus__main code { font: 600 13px var(--mono); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.focus__why { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.why { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 4px; }
+.why--bad { color: var(--bad); background: var(--bad-bg); } .why--warn { color: var(--warn); background: var(--warn-bg); }
+.focus__share { font: 600 15px var(--mono); text-align: right; }
+.focus__share small { display: block; font: 400 11px var(--sans); color: var(--muted); }
+
+.share { display: flex; align-items: center; gap: 8px; justify-content: flex-end; font-size: 12px; }
+.share__bar { width: 54px; height: 6px; border-radius: 999px; background: var(--track); overflow: hidden; }
+.share__bar i { display: block; height: 100%; background: var(--bar-sql); border-radius: 999px; }
+.mini { width: 60px; height: 18px; display: block; }
+.mini path { fill: none; stroke: var(--brand); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+td.is-bad { color: var(--bad); }
+
+// Scatter and heatmap (positioned HTML: dots stay round)
+.chart__verdict { font-size: 13px; color: var(--text-2); margin: 0 0 10px; }
+.chart__verdict b { color: var(--text); }
+.plot { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-rows: 220px auto; }
+.plot__y { position: relative; }
+.plot__y span { position: absolute; right: 8px; transform: translateY(50%); font: 11px var(--mono); color: var(--muted); white-space: nowrap; }
+.plot__area { position: relative; border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 6px 6px 0 0; }
+.plot__grid { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--border); }
+.plot__x { grid-column: 2; display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--muted); margin: 3px 6px 0 0; }
+.dot { position: absolute; width: 8px; height: 8px; margin: 0 0 -4px -4px; border-radius: 50%; background: var(--brand); opacity: .7; transition: transform .1s, opacity .1s; }
+.dot:hover, .dot:focus-visible { opacity: 1; transform: scale(1.8); z-index: 2; text-decoration: none; }
+.dot.is-n1 { background: #e0a33a; } .dot.is-err { background: #dc2626; }
+.lg-dot::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); margin-right: 6px; vertical-align: 0; }
+.lg-dot--n1::before { background: #e0a33a; } .lg-dot--err::before { background: #dc2626; }
+.heat { display: grid; gap: 2px; margin: 6px 6px 0 0; border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); padding-left: 2px; }
+.heat__col { display: grid; grid-template-rows: repeat(10, 1fr); gap: 2px; }
+.heat__col i { border-radius: 3px; background: var(--surface-2); }
+
+@media (max-width: 1100px) { .cols, .cols--even { grid-template-columns: minmax(0, 1fr); } }

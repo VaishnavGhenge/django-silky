@@ -114,6 +114,18 @@
       }
       return;
     }
+    // Chart cards: <div class="chartcard" data-chart="id"> … <button data-chart-toggle>. Remembered per chart.
+    var chartBtn = e.target.closest('[data-chart-toggle]');
+    if (chartBtn) {
+      var card = chartBtn.closest('[data-chart]');
+      var hide = !card.classList.contains('is-collapsed');
+      card.classList.toggle('is-collapsed', hide);
+      chartBtn.textContent = hide ? 'Show' : 'Hide';
+      var hidden = JSON.parse(read('silky-hidden-charts', '{}'));
+      hidden[card.dataset.chart] = hide;
+      write('silky-hidden-charts', JSON.stringify(hidden));
+      return;
+    }
     var copyBtn = e.target.closest('[data-copy-from]');
     if (copyBtn) {
       var src = document.querySelector(copyBtn.dataset.copyFrom);
@@ -161,8 +173,19 @@
       document.getElementById('scrim').hidden = true;
     }
   });
+  silky.applyChartPrefs = function (scope) {
+    var hidden = JSON.parse(read('silky-hidden-charts', '{}')), all = read('silky-charts', 'shown') === 'hidden';
+    (scope || document).querySelectorAll('[data-chart]').forEach(function (card) {
+      var hide = card.dataset.chart in hidden ? hidden[card.dataset.chart] : all;
+      card.classList.toggle('is-collapsed', hide);
+      var btn = card.querySelector('[data-chart-toggle]');
+      if (btn) btn.textContent = hide ? 'Show' : 'Hide';
+    });
+  };
+  document.addEventListener('htmx:afterSettle', function (e) { silky.applyChartPrefs(e.target); });
   document.addEventListener('DOMContentLoaded', function () {
     silky.sync();
+    silky.applyChartPrefs();
     var subbar = document.querySelector('.subbar');
     root.classList.toggle('no-subbar', !subbar || getComputedStyle(subbar).display === 'none');
   });

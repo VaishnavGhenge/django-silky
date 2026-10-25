@@ -1,0 +1,131 @@
+{
+  "label": "phase4",
+  "dataset": {
+    "requests": 5000,
+    "queries": 75973,
+    "profiles": 4885
+  },
+  "runs": 10,
+  "pages": {
+    "summary": {
+      "url": "/silk/",
+      "status": 200,
+      "median_ms": 50.2,
+      "p90_ms": 52.3,
+      "queries": 4,
+      "html_kb": 150.4
+    },
+    "requests": {
+      "url": "/silk/requests/",
+      "status": 200,
+      "median_ms": 12.1,
+      "p90_ms": 12.4,
+      "queries": 13,
+      "html_kb": 55.0
+    },
+    "requests_sorted_time": {
+      "url": "/silk/requests/?order_by=time_taken",
+      "status": 200,
+      "median_ms": 23.2,
+      "p90_ms": 24.7,
+      "queries": 17,
+      "html_kb": 56.3
+    },
+    "request_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/",
+      "status": 200,
+      "median_ms": 5.1,
+      "p90_ms": 5.2,
+      "queries": 6,
+      "html_kb": 30.7
+    },
+    "request_sql": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/",
+      "status": 200,
+      "median_ms": 71.6,
+      "p90_ms": 72.4,
+      "queries": 7,
+      "html_kb": 99.4
+    },
+    "request_sql_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/67211/",
+      "status": 200,
+      "median_ms": 1.6,
+      "p90_ms": 1.7,
+      "queries": 4,
+      "html_kb": 24.7
+    },
+    "request_profiling": {
+      "url": "/silk/request/87c1aaa8-b248-47e2-96c1-69889219d80f/profiling/",
+      "status": 200,
+      "median_ms": 1.9,
+      "p90_ms": 2.0,
+      "queries": 8,
+      "html_kb": 29.0
+    },
+    "profiling": {
+      "url": "/silk/profiling/",
+      "status": 200,
+      "median_ms": 8.9,
+      "p90_ms": 9.0,
+      "queries": 31,
+      "html_kb": 57.5
+    },
+    "profile_detail": {
+      "url": "/silk/profile/1/",
+      "status": 200,
+      "median_ms": 1.4,
+      "p90_ms": 1.5,
+      "queries": 6,
+      "html_kb": 22.4
+    },
+    "cprofile": {
+      "url": "/silk/request/001f69c5-79e5-4ef5-9749-c6098c89ba86/cprofile/",
+      "status": 200,
+      "median_ms": 0.8,
+      "p90_ms": 0.9,
+      "queries": 3,
+      "html_kb": 21.5
+    },
+    "cleardb": {
+      "url": "/silk/cleardb/",
+      "status": 200,
+      "median_ms": 0.5,
+      "p90_ms": 0.5,
+      "queries": 0,
+      "html_kb": 27.9
+    },
+    "sql_patterns": {
+      "url": "/silk/sql/",
+      "status": 200,
+      "median_ms": 81.6,
+      "p90_ms": 82.0,
+      "queries": 5,
+      "html_kb": 36.9
+    },
+    "sql_pattern_panel": {
+      "url": "/silk/sql/?p=4d70df0ef3f2e0979c92741414ddf5ed24149e3b",
+      "status": 200,
+      "median_ms": 113.9,
+      "p90_ms": 115.5,
+      "queries": 13,
+      "html_kb": 55.5
+    },
+    "hotspots": {
+      "url": "/silk/hotspots/",
+      "status": 200,
+      "median_ms": 85.6,
+      "p90_ms": 88.4,
+      "queries": 5,
+      "html_kb": 24.7
+    },
+    "hotspot_panel": {
+      "url": "/silk/hotspots/?loc=%2FUsers%2Fvaishnavghenge%2Fprojects%2Fdjango-silk%2Fproject%2Fexample_app%2Fviews.py%3A56",
+      "status": 200,
+      "median_ms": 138.7,
+      "p90_ms": 142.2,
+      "queries": 13,
+      "html_kb": 36.0
+    }
+  }
+}
