@@ -516,6 +516,19 @@ class TestNPlusOneFilter(TestCase):
         self.assertTrue(NPlusOneFilter('3').contribute_to_query_set(qs).filter(pk=self.n1_request.pk).exists())
         self.assertFalse(NPlusOneFilter('50').contribute_to_query_set(qs).filter(pk=self.n1_request.pk).exists())
 
+    def test_repeating_ids_see_new_requests_despite_cache(self):
+        """The id set is cached, keyed by the newest query, so a new N+1 request shows up at once."""
+        from silk.utils.summary_data import repeating_request_ids
+        self.assertIn(str(self.n1_request.pk), repeating_request_ids(3))
+        now = django_timezone.now()
+        req = models.Request.objects.create(method='GET', path='/later/', num_sql_queries=3,
+                                            start_time=now, end_time=now, time_taken=5)
+        for i in range(3):
+            models.SQLQuery.objects.create(query=f'SELECT * FROM "auth_group" WHERE "auth_group"."id" = {i}',
+                                           start_time=now, end_time=now, traceback='', request=req)
+        self.assertIn(str(req.pk), repeating_request_ids(3))
+        self.assertNotIn(str(req.pk), repeating_request_ids(4))
+
     def test_empty_queryset_returns_empty(self):
         f = NPlusOneFilter('1')
         qs = f.contribute_to_query_set(models.Request.objects.none())

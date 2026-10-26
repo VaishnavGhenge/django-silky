@@ -201,7 +201,7 @@ def _agg(rows, n1_ids, db_ms):
         'q': sum(r[2] or 0 for r in rows) / n,
         'db': db_ms / n,
         'err': sum(1 for r in rows if (r[5] or 0) // 100 == 5) / n * 100,
-        'n1': sum(1 for r in rows if r[0] in n1_ids) / n * 100,
+        'n1': sum(1 for r in rows if str(r[0]) in n1_ids) / n * 100,
     }
 
 

@@ -35,7 +35,7 @@
                     <th class="num c-120 col-opt">SQL share</th>
                 </tr></thead>
                 <tbody>
-                {% for b in blocks|slice:":200" %}
+                {% for b in blocks|slice:":100" %}
                 <tr{% if detail and detail.stats.id == b.id %} class="is-open"{% endif %}>
                     <td class="c-path-cell">
                         <a class="row-link path" href="{{ request.path }}?b={{ b.id }}{% if sort != 'total' %}&amp;sort={{ sort }}{% endif %}{% if q %}&amp;q={{ q|urlencode }}{% endif %}"
@@ -52,7 +52,7 @@
                 </tbody>
             </table>
         </div>
-        {% if blocks|length > 200 %}<p class="muted small">Showing the top 200 of {{ blocks|length }} blocks. Search or change the sort to see others.</p>{% endif %}
+        {% if blocks|length > 100 %}<p class="muted small">Showing the top 100 of {{ blocks|length|num }} blocks. Search or change the sort to see others.</p>{% endif %}
         {% else %}
         <div class="empty">
             <p><strong>{% if q %}No blocks match “{{ q }}”.{% else %}No profiled code yet.{% endif %}</strong></p>

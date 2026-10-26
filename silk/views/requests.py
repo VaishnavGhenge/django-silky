@@ -154,7 +154,8 @@ class RequestsView(View):
             return times[min(timed - 1, int(p * timed))] if timed else None
         errors = qs.filter(response__status_code__gte=500).count()
         from silk.utils.summary_data import repeating_request_ids
-        n1 = qs.filter(pk__in=repeating_request_ids(n1_min)).count()
+        n1_ids = repeating_request_ids(n1_min)
+        n1 = sum(1 for pk in qs.values_list('pk', flat=True) if str(pk) in n1_ids)
         return {
             'n1': n1,
             'spark': self._spark(qs),

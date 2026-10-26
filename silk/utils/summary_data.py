@@ -7,6 +7,7 @@ heatmap are all derived from that list in Python.
 import math
 import statistics
 
+from django.core.cache import cache
 from django.db import connection
 
 from silk.utils.fmt import fmt_ms
@@ -25,15 +26,32 @@ def _pct(sorted_vals, p):
     return sorted_vals[min(len(sorted_vals) - 1, int(p * len(sorted_vals)))]
 
 
+N1_CACHE_SECONDS = 30
+N1_CACHE_MAX = 10000  # ids kept in the cache; larger sets are recomputed (memcached caps values at 1 MB)
+
+
 def repeating_request_ids(repeat_min=REPEAT_MIN):
-    """Ids of requests where some query pattern ran repeat_min or more times (likely N+1)."""
+    """Ids (as strings) of requests where some query pattern ran repeat_min or more times (likely N+1).
+
+    The GROUP BY reads every recorded query, and the sidebar, Requests stats and
+    Summary all ask for it, so the result is cached briefly. The key carries the
+    newest query id, so newly recorded requests show up at once.
+    """
     from silk.models import SQLQuery
+    newest = SQLQuery.objects.order_by('-id').values_list('id', flat=True).first()
+    key = f'silky:n1ids:{repeat_min}:{newest}'
+    ids = cache.get(key)
+    if ids is not None:
+        return ids
     table = connection.ops.quote_name(SQLQuery._meta.db_table)
     sql = (f'SELECT DISTINCT request_id FROM {table} WHERE request_id IS NOT NULL '
            f'GROUP BY pattern_hash, request_id HAVING COUNT(*) >= %s')
     with connection.cursor() as cursor:
         cursor.execute(sql, [repeat_min])
-        return {r[0] for r in cursor.fetchall()}
+        ids = {str(r[0]) for r in cursor.fetchall()}
+    if len(ids) <= N1_CACHE_MAX:
+        cache.set(key, ids, N1_CACHE_SECONDS)
+    return ids
 
 
 def load_rows(filters, repeat_min=REPEAT_MIN):
@@ -44,7 +62,7 @@ def load_rows(filters, repeat_min=REPEAT_MIN):
     n1 = repeating_request_ids(repeat_min)
     return [
         {'id': r[0], 'ms': r[1] or 0, 'q': r[2] or 0, 'ep': r[3] or r[4], 'path': r[4], 'method': r[5],
-         't': r[6], 'sc': (r[7] or 0) // 100, 'n1': r[0] in n1}
+         't': r[6], 'sc': (r[7] or 0) // 100, 'n1': str(r[0]) in n1}
         for r in rows
     ]
 
