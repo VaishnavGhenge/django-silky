@@ -162,3 +162,76 @@ requests (76,000 queries were normalised in Python on every view).
   on SQLite.
 - No aggregate touches the SQL text column, so the pages keep working on
   Oracle, where that column is a LOB that cannot be grouped.
+
+## v1.7.0: the finished redesign, recorded 2026-10-26
+
+All phases together: Profiling, Compare, Settings, the command palette, the
+request side panel and the sidebar with counts and quick views. Same machine
+and dataset as the baseline (5,000 requests, 75,973 queries, 4,885 profiles).
+
+Server renders now clear the cache before every render, so the "cold" column
+includes the sidebar counts, which are otherwise cached for 30 s. "Warm" is
+the same page with the cache kept (`--cached`), which is what a second page
+view within 30 s costs. Browser figures are at CPU 4×.
+
+| Page | Render, 200 req | Render, 5k cold | Render, 5k warm | DB queries, cold / warm | HTML, 5k | JS | Requests | Load | CLS |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| summary | 21 → 15 ms | 465 → **59 ms** | 36 ms | 55 → 14 / 4 | 31 → 147 KB | 1,026 → **71 KB** | 22 → 13 | 613 → **154 ms** | 0.016 → 0.002 |
+| requests | 12 → 8 ms | 22 → 41 ms | 19 ms | 59 → 27 / 17 | 697 → **53 KB** | 822 → **78 KB** | 29 → 14 | 180 → 130 ms | 0.038 → 0.000 |
+| requests, sorted by time | 14 → 12 ms | 29 → 53 ms | 32 ms | 63 → 31 / 21 | 701 → 54 KB | 822 → 78 KB | 29 → 14 | 193 → 143 ms | 0.031 → 0.000 |
+| request detail | 4 → 7 ms | 4 → 29 ms | 6 ms | 6 → 17 / 7 | 11 → 25 KB | 762 → 54 KB | 25 → 15 | 143 → 110 ms | 0.005 → 0.000 |
+| request SQL | 62 → 35 ms | 71 → 61 ms | 39 ms | 7 → 16 / 6 | 84 → 98 KB | 779 → 20 KB | 29 → 12 | 210 → 139 ms | 0.013 → 0.000 |
+| request SQL detail | 2 → 4 ms | 1 → 25 ms | 2 ms | 4 → 14 / 4 | 10 → 22 KB | 763 → 54 KB | 29 → 15 | 125 → 92 ms | 0.020 → 0.000 |
+| request profiling | 2 → 4 ms | 2 → 25 ms | 2 ms | 8 → 20 / 10 | 15 → 18 KB | 809 → 71 KB | 30 → 13 | 128 → 75 ms | 0.001 → 0.000 |
+| profiling | 8 → 12 ms | 9 → 70 ms | 48 ms | 31 → 20 / 10 | 45 → 132 KB | 809 → 71 KB | 30 → 13 | 146 → 160 ms | 0.028 → 0.004 |
+| profile detail | 1 → 3 ms | 1 → 24 ms | 2 ms | 6 → 16 / 6 | 8 → 17 KB | 2,446 → **20 KB** | 29 → 12 | 131 → 65 ms | 0.044 → 0.000 |
+| cProfile | 1 → 3 ms | 1 → 24 ms | 1 ms | 3 → 13 / 3 | 7 → 17 KB | 2,446 → **20 KB** | 29 → 12 | 114 → 68 ms | 0.002 → 0.000 |
+| settings | 0 → 3 ms | 0 → 25 ms | 2 ms | 0 → 15 / 5 | 25 → 29 KB | 728 → 24 KB | 20 → 13 | 109 → 103 ms | 0.010 → 0.001 |
+| SQL patterns | 8 ms | 116 ms | 94 ms | 16 / 6 | 34 KB | 71 KB | 13 | 192 ms | 0.004 |
+| SQL, pattern open | 11 ms | 146 ms | 127 ms | 24 / 14 | 52 KB | 71 KB | 13 | 235 ms | 0.002 |
+| Hotspots | 5 ms | 108 ms | 83 ms | 15 / 5 | 21 KB | 71 KB | 13 | 161 ms | 0.004 |
+| Hotspots, line open | 9 ms | 156 ms | 133 ms | 23 / 13 | 33 KB | 71 KB | 13 | 232 ms | 0.002 |
+| Compare, two time ranges | 9 ms | 74 ms | 52 ms | 37 / 27 | 40 KB | 20 KB | 12 | 159 ms | 0.000 |
+| Compare, pick an endpoint | 5 ms | 29 ms | 7 ms | 31 / 21 | 22 KB | 71 KB | 12 | 79 ms | 0.000 |
+| Compare, two requests | 5 ms | 27 ms | 5 ms | 29 / 19 | 25 KB | 20 KB | 12 | 95 ms | 0.000 |
+| request panel (htmx fragment) | 7 ms | 8 ms | 8 ms | 8 / 8 | 61 KB | | | | |
+
+Interactions on the requests list, CPU 4×: **a filter change takes 70 ms** and
+**opening a request in the side panel takes 44 ms**, against a 180 ms full page
+load for either in the old UI.
+
+### Against the targets
+
+| Metric | Old UI | Target | v1.7.0 |
+|---|---|---|---|
+| JS per page (except profile graph) | 728 KB to 1,026 KB | under 100 KB | **20 to 78 KB**, met |
+| HTTP requests per page | 20 to 30 | under 8 | 12 to 15, not met |
+| Requests HTML at 5k requests | 697 KB | under 120 KB, independent of dataset size | **53 KB** at 200 and 5,000, met |
+| Summary render at 5k requests | 465 ms | under 150 ms | **59 ms** cold, met |
+| DB queries on summary / requests | 55 / 59 | under 15 each | 14 / 27 cold, 4 / 17 warm: met for summary only |
+| Filter, sort or page change | full reload (180 ms) | partial update, under 100 ms | **70 ms**, met |
+| CLS | up to 0.044 | under 0.05 | 0.004 at most, met |
+
+### What changed since Phase 3, and what it costs
+
+- **The sidebar counts cost about 21 ms and 9 queries** whenever their 30 s
+  cache is cold, on every page. That is why small pages such as request detail
+  went from 4 ms to 29 ms cold. With a warm cache they are back to 2 to 6 ms.
+  The request panel avoids the cost entirely because it renders no sidebar.
+- **The requests list does more per render than in Phase 2**: the trend line,
+  per-method and per-status counts, and the N+1 count. The N+1 request ids are
+  cached for 30 s (keyed by the newest query, so new requests still show at
+  once), which took the warm render from 33 ms to 19 ms. Phase 2 measured 10 ms.
+- **The profile pages no longer load the 2.4 MB graph library** on every visit:
+  JS is 20 KB, and the graph loads only when opened.
+- **Profiling renders the top 100 blocks** instead of 200, halving its HTML from
+  247 KB to 132 KB. It does not grow with data; search and sort reach the rest.
+- **Summary HTML is 147 KB at 5,000 requests**: the charts are inline SVG with
+  a link per dot, capped at 400 dots.
+- **Opening a pattern or a code line takes 146 to 156 ms cold**, just over the
+  150 ms used for the Phase 3 pages, because the sidebar counts were added.
+- **One layout shift was found and fixed**: on the Compare endpoint picker,
+  "Compare newest two →" wrapped in the fallback font and unwrapped when the
+  web font loaded, moving every row (CLS 0.127, now 0.000).
+- **HTTP requests stay at 12 to 15** against a target of 8: four font files,
+  two favicons and separate small scripts. Bundling them is still open.

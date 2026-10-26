@@ -1,0 +1,386 @@
+{
+  "label": "v1.7.0",
+  "base": "http://127.0.0.1:8010",
+  "runs": 5,
+  "cpu": 4,
+  "pages": {
+    "summary": {
+      "url": "/silk/",
+      "ttfb_ms": 43,
+      "dcl_ms": 91,
+      "load_ms": 154,
+      "lcp_ms": 160,
+      "cls": 0.002,
+      "tbt_ms": 9,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 13,
+      "total_kb": 430.2,
+      "kb": {
+        "doc": 146.9,
+        "js": 71.1,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "requests": {
+      "url": "/silk/requests/",
+      "ttfb_ms": 21,
+      "dcl_ms": 80,
+      "load_ms": 130,
+      "lcp_ms": 140,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": 70,
+      "panel_ms": 44,
+      "requests": 14,
+      "total_kb": 343.2,
+      "kb": {
+        "doc": 53,
+        "js": 78,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "requests_sorted_time": {
+      "url": "/silk/requests/?order_by=time_taken",
+      "ttfb_ms": 35,
+      "dcl_ms": 93,
+      "load_ms": 143,
+      "lcp_ms": 152,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": 80,
+      "panel_ms": 49,
+      "requests": 14,
+      "total_kb": 344.7,
+      "kb": {
+        "doc": 54.5,
+        "js": 78,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/",
+      "ttfb_ms": 9,
+      "dcl_ms": 62,
+      "load_ms": 110,
+      "lcp_ms": 116,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 15,
+      "total_kb": 294.3,
+      "kb": {
+        "doc": 25.3,
+        "js": 53.9,
+        "css": 79.3,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_sql": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/",
+      "ttfb_ms": 43,
+      "dcl_ms": 85,
+      "load_ms": 139,
+      "lcp_ms": 148,
+      "cls": 0,
+      "tbt_ms": 6,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 12,
+      "total_kb": 330.1,
+      "kb": {
+        "doc": 97.7,
+        "js": 20.2,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_sql_detail": {
+      "url": "/silk/request/61146265-6d55-4f86-b263-53615be5bf1b/sql/67211/",
+      "ttfb_ms": 4,
+      "dcl_ms": 48,
+      "load_ms": 92,
+      "lcp_ms": 100,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 15,
+      "total_kb": 290.5,
+      "kb": {
+        "doc": 21.5,
+        "js": 53.9,
+        "css": 79.3,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "request_profiling": {
+      "url": "/silk/request/87c1aaa8-b248-47e2-96c1-69889219d80f/profiling/",
+      "ttfb_ms": 4,
+      "dcl_ms": 35,
+      "load_ms": 75,
+      "lcp_ms": 84,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 13,
+      "total_kb": 301.7,
+      "kb": {
+        "doc": 18.4,
+        "js": 71.1,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "profiling": {
+      "url": "/silk/profiling/",
+      "ttfb_ms": 50,
+      "dcl_ms": 100,
+      "load_ms": 160,
+      "lcp_ms": 168,
+      "cls": 0.004,
+      "tbt_ms": 5,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 13,
+      "total_kb": 415.2,
+      "kb": {
+        "doc": 131.9,
+        "js": 71.1,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "profile_detail": {
+      "url": "/silk/profile/1/",
+      "ttfb_ms": 4,
+      "dcl_ms": 27,
+      "load_ms": 65,
+      "lcp_ms": 72,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 12,
+      "total_kb": 249.5,
+      "kb": {
+        "doc": 17.1,
+        "js": 20.2,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "cprofile": {
+      "url": "/silk/request/001f69c5-79e5-4ef5-9749-c6098c89ba86/cprofile/",
+      "ttfb_ms": 3,
+      "dcl_ms": 28,
+      "load_ms": 68,
+      "lcp_ms": 76,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 12,
+      "total_kb": 249.8,
+      "kb": {
+        "doc": 17.4,
+        "js": 20.2,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "cleardb": {
+      "url": "/silk/cleardb/",
+      "ttfb_ms": 4,
+      "dcl_ms": 85,
+      "load_ms": 103,
+      "lcp_ms": 112,
+      "cls": 0.001,
+      "tbt_ms": 14,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 13,
+      "total_kb": 265.1,
+      "kb": {
+        "doc": 28.6,
+        "js": 24.3,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "sql_patterns": {
+      "url": "/silk/sql/",
+      "ttfb_ms": 96,
+      "dcl_ms": 179,
+      "load_ms": 192,
+      "lcp_ms": 176,
+      "cls": 0.004,
+      "tbt_ms": 4,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 13,
+      "total_kb": 317.2,
+      "kb": {
+        "doc": 33.9,
+        "js": 71.1,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "sql_pattern_panel": {
+      "url": "/silk/sql/?p=4d70df0ef3f2e0979c92741414ddf5ed24149e3b",
+      "ttfb_ms": 124,
+      "dcl_ms": 217,
+      "load_ms": 235,
+      "lcp_ms": 216,
+      "cls": 0.002,
+      "tbt_ms": 12,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 13,
+      "total_kb": 335.8,
+      "kb": {
+        "doc": 52.5,
+        "js": 71.1,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "hotspots": {
+      "url": "/silk/hotspots/",
+      "ttfb_ms": 83,
+      "dcl_ms": 152,
+      "load_ms": 161,
+      "lcp_ms": 152,
+      "cls": 0.004,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 13,
+      "total_kb": 304.5,
+      "kb": {
+        "doc": 21.2,
+        "js": 71.1,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "hotspot_panel": {
+      "url": "/silk/hotspots/?loc=%2FUsers%2Fvaishnavghenge%2Fprojects%2Fdjango-silk%2Fproject%2Fexample_app%2Fviews.py%3A56",
+      "ttfb_ms": 136,
+      "dcl_ms": 217,
+      "load_ms": 232,
+      "lcp_ms": 216,
+      "cls": 0.002,
+      "tbt_ms": 4,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 13,
+      "total_kb": 315.9,
+      "kb": {
+        "doc": 32.6,
+        "js": 71.1,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "compare_ranges": {
+      "url": "/silk/compare/",
+      "ttfb_ms": 57,
+      "dcl_ms": 123,
+      "load_ms": 159,
+      "lcp_ms": 168,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 12,
+      "total_kb": 272.1,
+      "kb": {
+        "doc": 39.7,
+        "js": 20.2,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "compare_pick": {
+      "url": "/silk/compare/requests/",
+      "ttfb_ms": 10,
+      "dcl_ms": 40,
+      "load_ms": 79,
+      "lcp_ms": 84,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 12,
+      "total_kb": 289.7,
+      "kb": {
+        "doc": 21.6,
+        "js": 71.1,
+        "css": 76.4,
+        "font": 120.6,
+        "img": 0,
+        "other": 0
+      }
+    },
+    "compare_requests": {
+      "url": "/silk/compare/001f69c5-79e5-4ef5-9749-c6098c89ba86/61146265-6d55-4f86-b263-53615be5bf1b/",
+      "ttfb_ms": 7,
+      "dcl_ms": 50,
+      "load_ms": 95,
+      "lcp_ms": 104,
+      "cls": 0,
+      "tbt_ms": 0,
+      "filter_ms": null,
+      "panel_ms": null,
+      "requests": 12,
+      "total_kb": 257,
+      "kb": {
+        "doc": 24.6,
+        "js": 20.2,
+        "css": 76.4,
+        "font": 135.8,
+        "img": 0,
+        "other": 0
+      }
+    }
+  }
+}

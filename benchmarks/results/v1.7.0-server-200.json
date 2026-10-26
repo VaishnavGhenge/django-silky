@@ -1,0 +1,182 @@
+{
+  "label": "v1.7.0",
+  "dataset": {
+    "requests": 200,
+    "queries": 2923,
+    "profiles": 186
+  },
+  "runs": 10,
+  "pages": {
+    "summary": {
+      "url": "/silk/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 15.2,
+      "p90_ms": 15.4,
+      "queries": 14,
+      "html_kb": 98.5
+    },
+    "requests": {
+      "url": "/silk/requests/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 8.4,
+      "p90_ms": 8.6,
+      "queries": 27,
+      "html_kb": 53.4
+    },
+    "requests_sorted_time": {
+      "url": "/silk/requests/?order_by=time_taken",
+      "partial": false,
+      "status": 200,
+      "median_ms": 12.2,
+      "p90_ms": 12.6,
+      "queries": 31,
+      "html_kb": 54.2
+    },
+    "request_detail": {
+      "url": "/silk/request/4f8b03bd-d9db-4994-97cc-9e729b6a0a1f/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 6.5,
+      "p90_ms": 6.6,
+      "queries": 17,
+      "html_kb": 25.2
+    },
+    "request_sql": {
+      "url": "/silk/request/4f8b03bd-d9db-4994-97cc-9e729b6a0a1f/sql/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 34.9,
+      "p90_ms": 35.2,
+      "queries": 16,
+      "html_kb": 85.9
+    },
+    "request_sql_detail": {
+      "url": "/silk/request/4f8b03bd-d9db-4994-97cc-9e729b6a0a1f/sql/2376/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 4.1,
+      "p90_ms": 4.2,
+      "queries": 14,
+      "html_kb": 21.7
+    },
+    "request_profiling": {
+      "url": "/silk/request/edf27cba-bb07-48d1-8029-2f7daa8952d2/profiling/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 3.5,
+      "p90_ms": 3.6,
+      "queries": 20,
+      "html_kb": 18.4
+    },
+    "profiling": {
+      "url": "/silk/profiling/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 12.0,
+      "p90_ms": 12.2,
+      "queries": 20,
+      "html_kb": 131.3
+    },
+    "profile_detail": {
+      "url": "/silk/profile/1/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 3.1,
+      "p90_ms": 3.3,
+      "queries": 16,
+      "html_kb": 17.1
+    },
+    "cprofile": {
+      "url": "/silk/request/02171444-a66b-4305-ae73-703944c26399/cprofile/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 2.6,
+      "p90_ms": 2.7,
+      "queries": 13,
+      "html_kb": 17.4
+    },
+    "cleardb": {
+      "url": "/silk/cleardb/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 2.9,
+      "p90_ms": 3.0,
+      "queries": 15,
+      "html_kb": 28.5
+    },
+    "sql_patterns": {
+      "url": "/silk/sql/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 7.6,
+      "p90_ms": 7.8,
+      "queries": 16,
+      "html_kb": 33.8
+    },
+    "sql_pattern_panel": {
+      "url": "/silk/sql/?p=4d70df0ef3f2e0979c92741414ddf5ed24149e3b",
+      "partial": false,
+      "status": 200,
+      "median_ms": 11.2,
+      "p90_ms": 11.6,
+      "queries": 24,
+      "html_kb": 52.0
+    },
+    "hotspots": {
+      "url": "/silk/hotspots/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 5.4,
+      "p90_ms": 5.5,
+      "queries": 15,
+      "html_kb": 21.2
+    },
+    "hotspot_panel": {
+      "url": "/silk/hotspots/?loc=%2FUsers%2Fvaishnavghenge%2Fprojects%2Fdjango-silk%2Fproject%2Fexample_app%2Fviews.py%3A56",
+      "partial": false,
+      "status": 200,
+      "median_ms": 8.6,
+      "p90_ms": 8.7,
+      "queries": 23,
+      "html_kb": 32.5
+    },
+    "request_panel": {
+      "url": "/silk/request/4f8b03bd-d9db-4994-97cc-9e729b6a0a1f/",
+      "partial": true,
+      "status": 200,
+      "median_ms": 6.7,
+      "p90_ms": 6.8,
+      "queries": 8,
+      "html_kb": 52.6
+    },
+    "compare_ranges": {
+      "url": "/silk/compare/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 9.3,
+      "p90_ms": 9.6,
+      "queries": 37,
+      "html_kb": 45.8
+    },
+    "compare_pick": {
+      "url": "/silk/compare/requests/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 5.1,
+      "p90_ms": 5.3,
+      "queries": 31,
+      "html_kb": 21.6
+    },
+    "compare_requests": {
+      "url": "/silk/compare/02171444-a66b-4305-ae73-703944c26399/4f8b03bd-d9db-4994-97cc-9e729b6a0a1f/",
+      "partial": false,
+      "status": 200,
+      "median_ms": 5.0,
+      "p90_ms": 5.2,
+      "queries": 29,
+      "html_kb": 24.0
+    }
+  }
+}

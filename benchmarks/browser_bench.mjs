@@ -51,6 +51,7 @@ const pages = JSON.parse(readFileSync(pagesFile, 'utf8')).pages;
 const result = { label, base, runs, cpu, pages: {} };
 
 for (const [name, info] of Object.entries(pages)) {
+  if (info.partial) continue; // htmx fragments, measured by server_bench.py only
   const samples = [];
   let assets = null;
   for (let i = 0; i < runs; i++) {
@@ -68,6 +69,16 @@ for (const [name, info] of Object.entries(pages)) {
       chip.click();
       setTimeout(() => resolve(null), 5000);
     }));
+    // Requests list: time from a row click until its side panel has settled.
+    m.panel = await page.evaluate(() => new Promise((resolve) => {
+      const link = document.querySelector('#req-dynamic tbody a.row-link');
+      const panel = document.getElementById('req-panel');
+      if (!link || !panel || !window.htmx) return resolve(null);
+      const start = performance.now();
+      document.addEventListener('htmx:afterSettle', (e) => { if (e.detail.target === panel) resolve(performance.now() - start); });
+      link.click();
+      setTimeout(() => resolve(null), 5000);
+    }));
     samples.push(m);
     if (!assets) assets = { requests: m.requests, kb: Object.fromEntries(Object.entries(m.kb).map(([k, v]) => [k, round(v, 1)])) };
     await ctx.close();
@@ -78,10 +89,11 @@ for (const [name, info] of Object.entries(pages)) {
     ttfb_ms: round(pick('ttfb')), dcl_ms: round(pick('dcl')), load_ms: round(pick('load')), lcp_ms: round(pick('lcp')),
     cls: round(pick('cls'), 3), tbt_ms: round(pick('tbt')),
     filter_ms: samples[0].interaction == null ? null : round(median(samples.map((x) => x.interaction))),
+    panel_ms: samples[0].panel == null ? null : round(median(samples.map((x) => x.panel))),
     requests: assets.requests, total_kb: round(Object.values(assets.kb).reduce((a, b) => a + b, 0), 1), kb: assets.kb,
   };
   const r = result.pages[name];
-  console.log(`${name.padEnd(22)} load ${String(r.load_ms).padStart(5)} ms  lcp ${String(r.lcp_ms).padStart(5)} ms  cls ${r.cls.toFixed(3)}  tbt ${String(r.tbt_ms).padStart(4)} ms  ${String(r.requests).padStart(3)} req  ${r.total_kb} KB (js ${r.kb.js})${r.filter_ms != null ? `  filter ${r.filter_ms} ms` : ''}`);
+  console.log(`${name.padEnd(22)} load ${String(r.load_ms).padStart(5)} ms  lcp ${String(r.lcp_ms).padStart(5)} ms  cls ${r.cls.toFixed(3)}  tbt ${String(r.tbt_ms).padStart(4)} ms  ${String(r.requests).padStart(3)} req  ${r.total_kb} KB (js ${r.kb.js})${r.filter_ms != null ? `  filter ${r.filter_ms} ms` : ''}${r.panel_ms != null ? `  panel ${r.panel_ms} ms` : ''}`);
 }
 
 await browser.close();

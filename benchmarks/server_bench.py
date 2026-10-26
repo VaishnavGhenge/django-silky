@@ -80,23 +80,41 @@ def pages():
         urls['hotspot_panel'] = reverse('silk:hotspots') + '?' + urlencode({'loc': location})
     except Exception:  # NoReverseMatch / missing columns on the old UI
         pass
+    try:
+        other = Request.objects.filter(view_name=req.view_name).exclude(pk=req.pk).first() or Request.objects.exclude(pk=req.pk).first()
+        urls['request_panel'] = reverse('silk:request_detail', args=[req.id])  # htmx fragment, see PARTIAL
+        urls['compare_ranges'] = reverse('silk:compare')
+        urls['compare_pick'] = reverse('silk:compare_pick')
+        urls['compare_requests'] = reverse('silk:compare_requests', args=[other.id, req.id])
+    except Exception:  # pages absent from the old UI
+        pass
     return {k: v for k, v in urls.items() if v}
 
 
-def measure(client, url, runs):
+# Pages fetched the way htmx fetches them (HX-Request header): the request
+# panel beside the list. Fragments, so the browser benchmark skips them.
+PARTIAL = {'request_panel'}
+
+
+def measure(client, url, runs, partial=False, cached=False):
+    from django.core.cache import cache
     from django.db import connection
     from django.test.utils import CaptureQueriesContext
-    client.get(url)  # warm caches and template loading
+    headers = {'HTTP_HX_REQUEST': 'true'} if partial else {}
+    client.get(url, **headers)  # warm template loading
     times, queries, size, status = [], 0, 0, None
     for _ in range(runs):
+        if not cached:
+            cache.clear()  # sidebar counts are cached for 30 s; measure the cold render
         with CaptureQueriesContext(connection) as ctx:
             start = time.perf_counter()
-            resp = client.get(url)
+            resp = client.get(url, **headers)
             times.append((time.perf_counter() - start) * 1000)
         queries, size, status = len(ctx.captured_queries), len(resp.content), resp.status_code
     times.sort()
     return {
         'url': url,
+        'partial': partial,
         'status': status,
         'median_ms': round(statistics.median(times), 1),
         'p90_ms': round(times[int(len(times) * 0.9) - 1 if len(times) >= 10 else -1], 1),
@@ -110,6 +128,7 @@ def main():
     ap.add_argument('--requests', type=int, default=200, help='dataset size (recorded requests)')
     ap.add_argument('--runs', type=int, default=10, help='timed renders per page')
     ap.add_argument('--label', default='run', help='name for the results file')
+    ap.add_argument('--cached', action='store_true', help='keep the cache between renders (warm sidebar counts)')
     args = ap.parse_args()
 
     DATA.mkdir(exist_ok=True)
@@ -127,7 +146,7 @@ def main():
         'label': args.label,
         'dataset': {'requests': Request.objects.count(), 'queries': SQLQuery.objects.count(), 'profiles': Profile.objects.count()},
         'runs': args.runs,
-        'pages': {name: measure(client, url, args.runs) for name, url in pages().items()},
+        'pages': {name: measure(client, url, args.runs, name in PARTIAL, args.cached) for name, url in pages().items()},
     }
     bad = {name: m['status'] for name, m in out['pages'].items() if m['status'] != 200}
     if bad:
