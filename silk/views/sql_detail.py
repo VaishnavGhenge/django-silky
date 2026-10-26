@@ -12,6 +12,7 @@ from silk.auth import login_possibly_required, permissions_possibly_required
 from silk.models import Profile, Request, SQLQuery
 from silk.utils.insights import app_frame, parse_frames
 from silk.views.code import _code
+from silk.views.sql import _offset_ms
 
 
 def _is_lib_frame(line):
@@ -79,6 +80,7 @@ class SQLDetailView(View):
         }
         if request_id:
             context['silk_request'] = get_object_or_404(Request, pk=request_id)
+            context['offset_ms'] = _offset_ms(sql_query, context['silk_request'])
         if profile_id:
             context['profile'] = get_object_or_404(Profile, pk=int(profile_id))
         if pos and file_path and line_num:

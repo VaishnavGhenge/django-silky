@@ -192,3 +192,12 @@ def num(n):
     """A count as '75,973'."""
     from silk.utils.fmt import fmt_int
     return fmt_int(n)
+
+
+@register.filter
+def offset(ms):
+    """Time after the request started, as '+12 ms'; '' when unknown or before the request (bad data)."""
+    if not isinstance(ms, (int, float)) or ms < 0:
+        return ''
+    from silk.utils.fmt import fmt_ms
+    return '+' + fmt_ms(ms)

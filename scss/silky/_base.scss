@@ -42,6 +42,7 @@ kbd {
 
 .muted { color: var(--muted); }
 .mono { font-family: var(--mono); }
+.nowrap { white-space: nowrap; }
 
 // Animate between pages (Chrome, Edge, Safari 18); other browsers navigate normally.
 @view-transition { navigation: auto; }

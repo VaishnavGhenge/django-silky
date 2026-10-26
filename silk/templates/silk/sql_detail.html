@@ -26,7 +26,7 @@
     <div class="req-head">
         <div>
             <h1><span class="sqltype t-{{ sql_query.query|sql_type }}">{{ sql_query.query|sql_type }}</span> {{ sql_query.tables_involved|join:", "|default:"query" }}</h1>
-            <p class="sub">{% if silk_request %}In <a href="{% url 'silk:request_detail' request_id=silk_request.pk %}">{{ silk_request.method }} {{ silk_request.path }}</a>, {% endif %}started {{ sql_query.start_time_relative }} into the request.</p>
+            <p class="sub">{% if silk_request %}In <a href="{% url 'silk:request_detail' request_id=silk_request.pk %}">{{ silk_request.method }} {{ silk_request.path }}</a>, {% endif %}{% if offset_ms is not None and offset_ms >= 0 %}started {{ offset_ms|dur }} into the request.{% else %}recorded {{ sql_query.start_time|silk_date_time }}.{% endif %}</p>
         </div>
         {% if sql_query.pattern_hash %}<a class="btn" href="{% url 'silk:sql' %}?p={{ sql_query.pattern_hash }}">This pattern across requests</a>{% endif %}
     </div>

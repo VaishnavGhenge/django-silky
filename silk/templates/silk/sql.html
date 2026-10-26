@@ -50,7 +50,7 @@
             {% for q in items %}
             {% sql_detail_url silk_request profile q as detail_url %}
             <tr{% if n_plus_one_ids and q.pk in n_plus_one_ids %} class="is-repeat"{% endif %}>
-                <td class="mono small">{% if q.start_time_relative %}+{{ q.start_time_relative }}{% endif %}</td>
+                {% with at=q.offset_ms|offset %}<td class="mono small nowrap" title="{% if at %}Started this long after the request{% else %}Start time falls outside the request{% endif %}">{{ at|default:"·" }}</td>{% endwith %}
                 <td class="c-path-cell">
                     <a class="row-link pat" href="{{ detail_url }}"><span class="sqltype t-{{ q.query|sql_type }}">{{ q.query|sql_type }}</span><code>{{ q.tables_involved|join:", "|default:"·" }}</code>{% if n_plus_one_ids and q.pk in n_plus_one_ids %} <span class="flag">repeated</span>{% endif %}</a>
                     <div class="pat__sql">{{ q.query|truncatechars:200 }}</div>

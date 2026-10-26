@@ -10,6 +10,13 @@ from silk.utils.pagination import _page
 __author__ = 'mtford'
 
 
+def _offset_ms(query, silk_request):
+    """When the query started, in ms after the request started; None if either time is missing."""
+    if not (query.start_time and silk_request.start_time):
+        return None
+    return (query.start_time - silk_request.start_time).total_seconds() * 1000
+
+
 class SQLView(View):
     page_sizes = [5, 10, 25, 100, 200, 500, 1000]
     default_page_size = 200
@@ -40,7 +47,7 @@ class SQLView(View):
             silk_request = get_object_or_404(Request, id=request_id)
             all_queries = list(SQLQuery.objects.filter(request=silk_request).order_by('-start_time'))
             for q in all_queries:
-                q.start_time_relative = q.start_time - silk_request.start_time
+                q.offset_ms = _offset_ms(q, silk_request)
             n_plus_one = detect_n_plus_one(all_queries)
             page = _page(request, all_queries, per_page)
             context['silk_request'] = silk_request
