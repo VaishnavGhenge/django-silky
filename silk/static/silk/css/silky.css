@@ -3842,6 +3842,7 @@ details.card[open] > summary {
   color: var(--link);
   font-weight: 600;
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .rngcard {

@@ -30,7 +30,7 @@
 .kind--same { color: var(--muted); background: var(--track); }
 .diff a.pat { color: inherit; display: flex; align-items: center; gap: 8px; }
 .diff a.pat:hover code { text-decoration: underline; }
-.linkish { color: var(--link); font-weight: 600; font-size: 12px; }
+.linkish { color: var(--link); font-weight: 600; font-size: 12px; white-space: nowrap; }
 
 .rngcard { margin-bottom: 14px; }
 .rngbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
