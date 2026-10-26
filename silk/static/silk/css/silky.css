@@ -853,28 +853,33 @@ kbd {
   gap: 10px;
 }
 
-.topsearch {
+.search.topsearch {
   width: 300px;
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.14);
   color: var(--nav-text);
 }
 
-.topsearch:focus-within {
+.search.topsearch:focus-within {
   background: rgba(255, 255, 255, 0.16);
   border-color: var(--brand);
 }
 
-.topsearch input {
+.search.topsearch input {
   color: var(--nav-text);
 }
 
-.topsearch input::placeholder {
+.search.topsearch input::placeholder {
   color: var(--nav-text);
-  opacity: 0.55;
+  opacity: 0.6;
 }
 
-.topsearch kbd {
+.search.topsearch .silk-icon {
+  color: var(--nav-text);
+  opacity: 0.7;
+}
+
+.search.topsearch kbd {
   background: transparent;
   border-color: rgba(255, 255, 255, 0.25);
   color: var(--nav-text);
@@ -922,6 +927,11 @@ kbd {
 
 :root:not([data-layout=top]) .topsearch kbd {
   border-color: var(--border);
+  color: var(--muted);
+  opacity: 1;
+}
+
+:root:not([data-layout=top]) .topsearch .silk-icon {
   color: var(--muted);
   opacity: 1;
 }

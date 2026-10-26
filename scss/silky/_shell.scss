@@ -62,11 +62,13 @@
 .tab:hover { opacity: 1; text-decoration: none; }
 .tab.is-active { opacity: 1; border-bottom-color: var(--brand); }
 .topbar__right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.topsearch { width: 300px; background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .14); color: var(--nav-text); }
-.topsearch:focus-within { background: rgba(255, 255, 255, .16); border-color: var(--brand); }
-.topsearch input { color: var(--nav-text); }
-.topsearch input::placeholder { color: var(--nav-text); opacity: .55; }
-.topsearch kbd { background: transparent; border-color: rgba(255, 255, 255, .25); color: var(--nav-text); opacity: .7; }
+// On the dark bar. Doubled class so these beat the page-coloured .search rules in _lists.scss.
+.search.topsearch { width: 300px; background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .14); color: var(--nav-text); }
+.search.topsearch:focus-within { background: rgba(255, 255, 255, .16); border-color: var(--brand); }
+.search.topsearch input { color: var(--nav-text); }
+.search.topsearch input::placeholder { color: var(--nav-text); opacity: .6; }
+.search.topsearch .silk-icon { color: var(--nav-text); opacity: .7; }
+.search.topsearch kbd { background: transparent; border-color: rgba(255, 255, 255, .25); color: var(--nav-text); opacity: .7; }
 
 :root:not([data-layout="top"]) .topbar {
   background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -80,6 +82,7 @@
 :root:not([data-layout="top"]) .topsearch input { color: var(--text); }
 :root:not([data-layout="top"]) .topsearch input::placeholder { color: var(--muted); opacity: 1; }
 :root:not([data-layout="top"]) .topsearch kbd { border-color: var(--border); color: var(--muted); opacity: 1; }
+:root:not([data-layout="top"]) .topsearch .silk-icon { color: var(--muted); opacity: 1; }
 :root:not([data-layout="top"]) .topbar .iconbtn { color: var(--text-2) !important; border-color: var(--border); background: var(--surface); margin-left: auto; }
 :root:not([data-layout="top"]) .topbar .iconbtn:hover { background: var(--row-hover); }
 
