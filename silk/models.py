@@ -28,9 +28,9 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 
 from silk.config import SilkyConfig
-from silk.utils.profile_parser import parse_profile
 from silk.utils.insights import code_location
 from silk.utils.n_plus_one import pattern_hash
+from silk.utils.profile_parser import parse_profile
 
 Logger = logging.getLogger('silk.models')
 

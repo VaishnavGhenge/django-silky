@@ -7,6 +7,7 @@ import statistics
 from django.core.cache import cache
 
 from silk.utils.insights import MIN_REQUESTS_FOR_USUAL, SLOWER_FACTOR, SLOWER_MIN_MS
+from silk.utils.prefs import N1_MIN
 
 CACHE_SECONDS = 30
 SCAN_MAX = 20000     # newest requests read to find the slower-than-usual ones
@@ -31,9 +32,9 @@ def slower_than_usual_ids():
     return ids
 
 
-def nav_counts(slow_ms):
+def nav_counts(slow_ms, n1_min=N1_MIN):
     """Counts for the sidebar items and quick views."""
-    key = f'silky:nav:{slow_ms}'
+    key = f'silky:nav:{slow_ms}:{n1_min}'
     counts = cache.get(key)
     if counts is not None:
         return counts
@@ -46,7 +47,7 @@ def nav_counts(slow_ms):
         'profiling': Profile.objects.count(),
         'slow': Request.objects.filter(time_taken__gte=slow_ms).count(),
         'errors': Request.objects.filter(response__status_code__gte=500).count(),
-        'n1': len(repeating_request_ids()),
+        'n1': len(repeating_request_ids(n1_min)),
         'slower': len(slower_than_usual_ids()),
         'writes': Request.objects.filter(method__in=WRITE_METHODS).count(),
     }
@@ -58,7 +59,11 @@ def quick_filters(view, slow_ms):
     """Session filters (ident to dict) that a quick view stands for."""
     from silk.models import Response
     from silk.request_filters import (
-        MultiMethodFilter, MultiStatusCodeFilter, NPlusOneFilter, OverallTimeFilter, SlowerThanUsualFilter,
+        MultiMethodFilter,
+        MultiStatusCodeFilter,
+        NPlusOneFilter,
+        OverallTimeFilter,
+        SlowerThanUsualFilter,
     )
     if view == 'slow':
         return {'overalltime': OverallTimeFilter(slow_ms).as_dict()}

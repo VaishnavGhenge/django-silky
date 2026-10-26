@@ -1,7 +1,7 @@
 from django.urls import path
 
 from silk.views.clear_db import ClearDBView
-from silk.views.compare import CompareRangesView, ComparePickView, CompareRequestsView
+from silk.views.compare import ComparePickView, CompareRangesView, CompareRequestsView
 from silk.views.cprofile import CProfileView
 from silk.views.profile_detail import ProfilingDetailView
 from silk.views.profile_dot import ProfileDotView

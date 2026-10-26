@@ -7,7 +7,7 @@ from django.views.generic import View
 
 from silk.auth import login_possibly_required, permissions_possibly_required
 from silk.models import Request
-from silk.utils import compare
+from silk.utils import compare, prefs
 
 FIELD_FORMAT = '%Y-%m-%dT%H:%M'   # what <input type="datetime-local"> sends
 
@@ -54,7 +54,7 @@ class CompareRangesView(View):
         active = next((p for p in presets if p['a'] == a and p['b'] == b), None)
         for p in presets:
             p['link'] = _range_link(p['a'], p['b'], ep)
-        data = compare.compare_ranges(a, b, ep)
+        data = compare.compare_ranges(a, b, ep, prefs.thresholds(request)['n1_min'])
         for item in data['menu']:
             item['link'] = _range_link(a, b, item['key'])
         for e in data['endpoints']:
@@ -93,5 +93,5 @@ class CompareRequestsView(View):
         a = get_object_or_404(Request, pk=a_id)
         b = get_object_or_404(Request, pk=b_id)
         context = {'request': request, 'mode': 'requests', 'only_changes': request.GET.get('all') != '1',
-                   **compare.compare_requests(a, b)}
+                   **compare.compare_requests(a, b, prefs.thresholds(request)['n1_min'])}
         return render(request, 'silk/compare_requests.html', context)

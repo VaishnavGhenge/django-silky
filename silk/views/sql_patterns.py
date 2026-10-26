@@ -5,7 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import View
 
 from silk.auth import login_possibly_required, permissions_possibly_required
-from silk.utils import sql_patterns
+from silk.utils import prefs, sql_patterns
 
 SQL_SORTS = {
     'total': lambda p: -p['total'],
@@ -37,7 +37,8 @@ class SQLPatternsView(View):
         if sort not in SQL_SORTS:
             sort = 'total'
 
-        all_patterns = sql_patterns.patterns()
+        n1_min = prefs.thresholds(request)['n1_min']
+        all_patterns = sql_patterns.patterns(n1_min)
         p95 = sql_patterns.p95_by_pattern()
         for p in all_patterns:
             p['p95'] = p95.get(p['pattern_hash'], p['avg'])
@@ -61,9 +62,10 @@ class SQLPatternsView(View):
             t['share'] = t['total'] / total_ms * 100 if total_ms else 0
 
         # Current filters as a query string, so row and close links keep them.
-        qs = urlencode([(k, v) for k, v in [('q', q), ('type', typ), ('table', table),
-                                             ('repeating', '1' if repeating else ''), ('slow', '1' if slow else ''),
-                                             ('sort', '' if sort == 'total' else sort)] if v])
+        params = [('q', q), ('type', typ), ('table', table),
+                  ('repeating', '1' if repeating else ''), ('slow', '1' if slow else ''),
+                  ('sort', '' if sort == 'total' else sort)]
+        qs = urlencode([(k, v) for k, v in params if v])
         open_hash = request.GET.get('p', '')
         context = {
             'rows': rows[:200],
@@ -82,8 +84,8 @@ class SQLPatternsView(View):
             'f': {'q': q, 'type': typ, 'table': table, 'repeating': repeating, 'slow': slow, 'sort': sort},
             'slow_pattern_ms': sql_patterns.SLOW_PATTERN_MS,
             'p95_sample': sql_patterns.P95_SAMPLE,
-            'detail': sql_patterns.pattern_detail(open_hash) if open_hash else None,
-            'repeat_min': sql_patterns.REPEAT_MIN,
+            'detail': sql_patterns.pattern_detail(open_hash, n1_min) if open_hash else None,
+            'repeat_min': n1_min,
             'qs': qs,
             'open_hash': open_hash,
         }
@@ -96,7 +98,8 @@ class HotspotsView(View):
     @method_decorator(login_possibly_required)
     @method_decorator(permissions_possibly_required)
     def get(self, request):
-        rows = sql_patterns.hotspots()
+        n1_min = prefs.thresholds(request)['n1_min']
+        rows = sql_patterns.hotspots(n1_min)
         top = rows[0]['total'] if rows else 1
         for r in rows:
             r['bar'] = max(2, round(r['total'] / top * 100)) if top else 2
@@ -107,7 +110,8 @@ class HotspotsView(View):
             'rows': rows[:200],
             'top3_share': top3,
             'count': len(rows),
-            'detail': sql_patterns.hotspot_detail(loc) if loc else None,
+            'detail': sql_patterns.hotspot_detail(loc, n1_min) if loc else None,
+            'repeat_min': n1_min,
             'open_loc': loc,
         }
         return render(request, _template(request, 'silk/hotspots.html', 'silk/inclusion/hotspots_split.html'), context)

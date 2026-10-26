@@ -12,7 +12,7 @@
         <div class="stat"><div class="stat__label">5xx rate</div>
             <div class="stat__value{% if stats.error_rate >= 5 %} is-bad{% endif %}">{{ stats.error_rate|default:0|floatformat:"1" }}<small>%</small></div>
             <div class="stat__sub">{{ stats.errors|default:0 }} server errors</div></div>
-        <div class="stat"><div class="stat__label">N+1 suspects</div><div class="stat__value">{{ stats.n1|default:0 }}</div><div class="stat__sub">same query run 3+ times</div></div>
+        <div class="stat"><div class="stat__label">N+1 suspects</div><div class="stat__value">{{ stats.n1|default:0|num }}</div><div class="stat__sub">same query run {{ thresholds.n1_min }}+ times</div></div>
         <div class="stat"><div class="stat__label">Avg queries</div><div class="stat__value">{{ stats.avg_queries|default:0|floatformat:"1" }}</div><div class="stat__sub">per request</div></div>
     </div>
 

@@ -10,12 +10,13 @@ import statistics
 from django.db import connection
 
 from silk.utils.fmt import fmt_ms
+from silk.utils.prefs import N1_MIN
 
 MAX_ROWS = 20000      # requests read for the page
 SCATTER_MAX = 400     # dots drawn in the scatter (newest); each is a link, so this bounds the HTML
 LINE_BUCKETS = 24
 HEAT_COLS, HEAT_ROWS = 36, 10
-REPEAT_MIN = 3
+REPEAT_MIN = N1_MIN   # default; each viewer can change it in Settings
 
 
 def _pct(sorted_vals, p):
@@ -24,23 +25,23 @@ def _pct(sorted_vals, p):
     return sorted_vals[min(len(sorted_vals) - 1, int(p * len(sorted_vals)))]
 
 
-def repeating_request_ids():
-    """Ids of requests where some query pattern ran REPEAT_MIN or more times (likely N+1)."""
+def repeating_request_ids(repeat_min=REPEAT_MIN):
+    """Ids of requests where some query pattern ran repeat_min or more times (likely N+1)."""
     from silk.models import SQLQuery
     table = connection.ops.quote_name(SQLQuery._meta.db_table)
     sql = (f'SELECT DISTINCT request_id FROM {table} WHERE request_id IS NOT NULL '
            f'GROUP BY pattern_hash, request_id HAVING COUNT(*) >= %s')
     with connection.cursor() as cursor:
-        cursor.execute(sql, [REPEAT_MIN])
+        cursor.execute(sql, [repeat_min])
         return {r[0] for r in cursor.fetchall()}
 
 
-def load_rows(filters):
+def load_rows(filters, repeat_min=REPEAT_MIN):
     from silk.models import Request
     qs = Request.objects.filter(*filters).filter(time_taken__isnull=False).order_by('-start_time')
     rows = list(qs.values_list('id', 'time_taken', 'num_sql_queries', 'view_name', 'path', 'method',
                                'start_time', 'response__status_code')[:MAX_ROWS])
-    n1 = repeating_request_ids()
+    n1 = repeating_request_ids(repeat_min)
     return [
         {'id': r[0], 'ms': r[1] or 0, 'q': r[2] or 0, 'ep': r[3] or r[4], 'path': r[4], 'method': r[5],
          't': r[6], 'sc': (r[7] or 0) // 100, 'n1': r[0] in n1}

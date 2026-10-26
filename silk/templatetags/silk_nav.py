@@ -24,4 +24,5 @@ def silky_nav_counts(context):
     request = context.get('request')
     if request is None:
         return {}
-    return nav_counts(thresholds(request)['slow_ms'])
+    th = thresholds(request)
+    return nav_counts(th['slow_ms'], th['n1_min'])

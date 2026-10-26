@@ -102,7 +102,7 @@ class ClearDBView(View):
 
     def _context(self, request, **extra):
         return {**_retention_context(), **_recording_context(), **_data_context(),
-                'thresholds': prefs.thresholds(request), 'defaults': {'slow_ms': prefs.SLOW_MS, 'ok_ms': prefs.OK_MS},
+                'thresholds': prefs.thresholds(request), 'defaults': {'slow_ms': prefs.SLOW_MS, 'ok_ms': prefs.OK_MS, 'n1_min': prefs.N1_MIN},
                 **extra}
 
     @method_decorator(login_possibly_required)

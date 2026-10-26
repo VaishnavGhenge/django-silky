@@ -330,7 +330,7 @@ class MultiStatusCodeFilter(BaseFilter):
 
 
 class NPlusOneFilter(BaseFilter):
-    """Filter requests that have potential N+1 SQL query patterns (3+ identical queries).
+    """Filter requests that have potential N+1 SQL query patterns (N+ identical queries).
 
     All filtering is performed in contribute_to_query_set — the Q object itself is empty
     so the subsequent .filter(self) is a no-op. This mirrors the batch N+1 detection
@@ -338,8 +338,18 @@ class NPlusOneFilter(BaseFilter):
     """
 
     def __init__(self, value='1'):
-        # value is a boolean flag ('1' = enabled).
+        # value is the repeat count that flags a request; '1' (the old on/off
+        # flag) and anything below 2 mean the default.
         super().__init__(value)
+
+    @property
+    def repeat_min(self):
+        from silk.utils.prefs import N1_MIN
+        try:
+            n = int(self.value)
+        except (TypeError, ValueError):
+            return N1_MIN
+        return n if n >= 2 else N1_MIN
 
     def contribute_to_query_set(self, query_set):
         from silk.models import SQLQuery  # local import avoids circular reference
@@ -357,7 +367,7 @@ class NPlusOneFilter(BaseFilter):
             buckets[rid][fp] += 1
         n1_ids = [
             rid for rid, fps in buckets.items()
-            if any(cnt >= 3 for cnt in fps.values())
+            if any(cnt >= self.repeat_min for cnt in fps.values())
         ]
         return query_set.filter(pk__in=n1_ids)
 

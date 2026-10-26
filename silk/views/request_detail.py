@@ -8,10 +8,10 @@ from silk.auth import login_possibly_required, permissions_possibly_required
 from silk.code_generation.curl import curl_cmd
 from silk.code_generation.django_test_client import gen
 from silk.models import Request, SQLQuery
+from silk.utils import prefs
 from silk.utils.compare import endpoint_key, endpoint_q
 from silk.utils.insights import request_insights
 from silk.utils.n_plus_one import detect_n_plus_one
-
 
 PANEL_QUERIES = 100   # queries listed in the side panel's SQL tab
 
@@ -50,9 +50,10 @@ class RequestView(View):
                                     content_type=silk_request.content_type)
 
         all_queries = list(SQLQuery.objects.filter(request=silk_request)) if silk_request.num_sql_queries > 0 else []
+        n1_min = prefs.thresholds(request)['n1_min']
         if all_queries:
-            context['n_plus_one'] = detect_n_plus_one(all_queries)
-        context['insights'] = request_insights(silk_request, all_queries)
+            context['n_plus_one'] = detect_n_plus_one(all_queries, n1_min)
+        context['insights'] = request_insights(silk_request, all_queries, n1_min)
         context['previous_id'] = (Request.objects
                                   .filter(endpoint_q(endpoint_key(silk_request.view_name, silk_request.path)),
                                           start_time__lt=silk_request.start_time)

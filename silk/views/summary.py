@@ -1,7 +1,6 @@
-import json
 
 from django.db.models import Avg, Count, Max, Min, Q, Sum
-from django.db.models.functions import TruncHour, TruncDay
+from django.db.models.functions import TruncDay, TruncHour
 from django.shortcuts import render
 from django.template.context_processors import csrf
 from django.utils.decorators import method_decorator
@@ -9,14 +8,13 @@ from django.views.generic import View
 
 from silk import models
 from silk.auth import login_possibly_required, permissions_possibly_required
-from silk.utils import prefs, summary_data
 from silk.request_filters import (
+    TIME_RANGE_PRESETS,
     BaseFilter,
     FiltersManager,
-    TIME_RANGE_PRESETS,
     filters_from_request,
 )
-
+from silk.utils import prefs, summary_data
 
 PERCENTILES = [25, 50, 75, 95, 99]
 
@@ -258,11 +256,11 @@ class SummaryView(View):
     def _create_context(self, request):
         raw_filters = self.filters_manager.get(request)
         filters = [BaseFilter.from_dict(filter_d) for _, filter_d in raw_filters.items()]
-        rows = summary_data.load_rows(filters)
+        th = prefs.thresholds(request)
+        rows = summary_data.load_rows(filters, th['n1_min'])
         eps = summary_data.endpoints(rows)
         scope = request.GET.get('ep', '')
         scoped = [r for r in rows if r['ep'] == scope] if scope else rows
-        th = prefs.thresholds(request)
         c = {
             'thresholds': th,
             'request': request,

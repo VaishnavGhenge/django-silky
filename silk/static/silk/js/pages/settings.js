@@ -53,17 +53,21 @@
       var slow = Math.max(50, +document.getElementById('slow-ms').value || 1000);
       var ok = Math.max(10, Math.min(slow - 1, +document.getElementById('ok-ms').value || 300));
       setCookie('silky-slow-ms', slow);
+      var n1 = Math.min(50, Math.max(2, Math.round(+document.getElementById('n1-min').value || 3)));
       setCookie('silky-ok-ms', ok);
+      setCookie('silky-n1-min', n1);
       document.getElementById('slow-ms').value = slow;
       document.getElementById('ok-ms').value = ok;
-      s.toast('Thresholds saved: amber from ' + ok + ' ms, red from ' + slow + ' ms');
+      document.getElementById('n1-min').value = n1;
+      s.toast('Thresholds saved: amber from ' + ok + ' ms, red from ' + slow + ' ms, N+1 after ' + n1 + ' repeats');
       reloadSoon();
       return;
     }
     if (e.target.closest('[data-reset-thresholds]')) {
-      ['slow-ms', 'ok-ms'].forEach(function (id) { var el = document.getElementById(id); el.value = el.dataset.default; });
+      ['slow-ms', 'ok-ms', 'n1-min'].forEach(function (id) { var el = document.getElementById(id); el.value = el.dataset.default; });
       setCookie('silky-slow-ms', document.getElementById('slow-ms').value);
       setCookie('silky-ok-ms', document.getElementById('ok-ms').value);
+      setCookie('silky-n1-min', document.getElementById('n1-min').value);
       s.toast('Thresholds reset');
       reloadSoon();
       return;

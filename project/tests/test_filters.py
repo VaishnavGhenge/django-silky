@@ -12,8 +12,8 @@ from silk.request_filters import (
     AfterDateFilter,
     BaseFilter,
     BeforeDateFilter,
-    FilterValidationError,
     FiltersManager,
+    FilterValidationError,
     FunctionNameFilter,
     MethodFilter,
     MultiMethodFilter,
@@ -508,6 +508,13 @@ class TestNPlusOneFilter(TestCase):
             )
         qs = self._apply_n1(models.Request.objects.filter(pk=req.pk))
         self.assertFalse(qs.filter(pk=req.pk).exists())
+
+    def test_repeat_count_comes_from_the_value(self):
+        """The filter's value is the repeat count; '1', the old on/off flag, means the default of 3."""
+        qs = self._scoped_qs()
+        self.assertEqual(NPlusOneFilter('1').repeat_min, 3)
+        self.assertTrue(NPlusOneFilter('3').contribute_to_query_set(qs).filter(pk=self.n1_request.pk).exists())
+        self.assertFalse(NPlusOneFilter('50').contribute_to_query_set(qs).filter(pk=self.n1_request.pk).exists())
 
     def test_empty_queryset_returns_empty(self):
         f = NPlusOneFilter('1')

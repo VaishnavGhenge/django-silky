@@ -60,14 +60,14 @@ def siblings(silk_request):
             'older': older.values_list('pk', flat=True).first(), 'newer': newer.values_list('pk', flat=True).first()}
 
 
-def _request_side(r):
+def _request_side(r, repeat_min):
     from silk.models import SQLQuery
     queries = SQLQuery.objects.filter(request=r)
     patterns = _pattern_rows(queries)
     db = queries.aggregate(ms=Sum('time_taken'))['ms'] or 0
     return {
         'request': r, 'sib': siblings(r), 'patterns': patterns, 'db': db,
-        'repeated': sum(p['n'] for p in patterns.values() if p['n'] >= REPEAT_MIN),
+        'repeated': sum(p['n'] for p in patterns.values() if p['n'] >= repeat_min),
     }
 
 
@@ -81,8 +81,8 @@ def _change(a, b, lower_is_better=True, fmt='ms'):
     return {'text': ('+' if d > 0 else '−') + value + pct, 'cls': 'is-good' if good else 'is-bad'}
 
 
-def compare_requests(a, b):
-    A, B = _request_side(a), _request_side(b)
+def compare_requests(a, b, repeat_min=REPEAT_MIN):
+    A, B = _request_side(a, repeat_min), _request_side(b, repeat_min)
     ta, tb = a.time_taken or 0, b.time_taken or 0
     time_pct = abs(tb - ta) / ta * 100 if ta else 0
     qd = b.num_sql_queries - a.num_sql_queries
@@ -234,10 +234,10 @@ def _endpoint_counts(rng):
     return by
 
 
-def compare_ranges(a, b, ep=''):
+def compare_ranges(a, b, ep='', repeat_min=REPEAT_MIN):
     from silk.models import SQLQuery
     ra, rb = _rows(a, ep), _rows(b, ep)
-    n1 = repeating_request_ids()
+    n1 = repeating_request_ids(repeat_min)
     db_a = SQLQuery.objects.filter(_range_q(a, ep, 'request__')).aggregate(ms=Sum('time_taken'))['ms'] or 0
     db_b = SQLQuery.objects.filter(_range_q(b, ep, 'request__')).aggregate(ms=Sum('time_taken'))['ms'] or 0
     A, B = _agg(ra, n1, db_a), _agg(rb, n1, db_b)

@@ -10,10 +10,14 @@ from .factories import RequestMinFactory
 class TestThresholds(TestCase):
     def test_defaults_and_cookie_values(self):
         rf = RequestFactory()
-        self.assertEqual(prefs.thresholds(rf.get('/')), {'slow_ms': 1000, 'ok_ms': 300})
+        self.assertEqual(prefs.thresholds(rf.get('/')), {'slow_ms': 1000, 'ok_ms': 300, 'n1_min': 3})
         req = rf.get('/')
         req.COOKIES = {'silky-slow-ms': '500', 'silky-ok-ms': '900'}
-        self.assertEqual(prefs.thresholds(req), {'slow_ms': 500, 'ok_ms': 499})
+        self.assertEqual(prefs.thresholds(req), {'slow_ms': 500, 'ok_ms': 499, 'n1_min': 3})
+        req.COOKIES = {'silky-n1-min': '5'}
+        self.assertEqual(prefs.thresholds(req)['n1_min'], 5)
+        req.COOKIES = {'silky-n1-min': '1'}
+        self.assertEqual(prefs.thresholds(req)['n1_min'], 2)
         req.COOKIES = {'silky-slow-ms': 'junk'}
         self.assertEqual(prefs.thresholds(req)['slow_ms'], 1000)
 
@@ -46,6 +50,12 @@ class TestSettingsPage(TestCase):
         RequestMinFactory()
         self.client.cookies['silky-slow-ms'] = '750'
         self.assertContains(self.client.get(reverse('silk:requests')), 'Slow &gt; 750 ms')
+
+    def test_n1_repeat_count_uses_cookie(self):
+        RequestMinFactory()
+        self.client.cookies['silky-n1-min'] = '6'
+        self.assertContains(self.client.get(reverse('silk:requests')), 'same query run 6+ times')
+        self.assertContains(self.client.get(reverse('silk:cleardb')), 'id="n1-min" min="2" max="50" step="1" value="6"')
 
     def test_run_gc_reports_removed_count(self):
         resp = self.client.post(reverse('silk:cleardb'), {'run_gc': '1'})

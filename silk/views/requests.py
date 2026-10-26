@@ -10,9 +10,9 @@ from django.views.generic import View
 from silk.auth import login_possibly_required, permissions_possibly_required
 from silk.models import Request, Response, SQLQuery
 from silk.request_filters import (
+    TIME_RANGE_PRESETS,
     BaseFilter,
     FiltersManager,
-    TIME_RANGE_PRESETS,
     filters_from_request,
 )
 from silk.utils import prefs, quick_views
@@ -140,7 +140,7 @@ class RequestsView(View):
         order = {m: i for i, m in enumerate(self.METHOD_ORDER)}
         return sorted(methods, key=lambda m: (order.get(m, len(order)), m))
 
-    def _stats(self, qs):
+    def _stats(self, qs, n1_min):
         """Headline numbers for the filtered set, computed in the database."""
         qs = qs.order_by()
         count = qs.count()
@@ -154,7 +154,7 @@ class RequestsView(View):
             return times[min(timed - 1, int(p * timed))] if timed else None
         errors = qs.filter(response__status_code__gte=500).count()
         from silk.utils.summary_data import repeating_request_ids
-        n1 = qs.filter(pk__in=repeating_request_ids()).count()
+        n1 = qs.filter(pk__in=repeating_request_ids(n1_min)).count()
         return {
             'n1': n1,
             'spark': self._spark(qs),
@@ -269,6 +269,10 @@ class RequestsView(View):
 
         path = request.GET.get('path', None)
         sort_list = self._get_sort_list(request)
+        th = prefs.thresholds(request)
+        # The N+1 filter always uses the viewer's current repeat count from Settings.
+        if raw_filters.get('nplusone', {}).get('value'):
+            raw_filters['nplusone'] = {**raw_filters['nplusone'], 'value': str(th['n1_min'])}
 
         qs = self._get_objects(
             show=None,  # paginator handles limiting
@@ -279,7 +283,7 @@ class RequestsView(View):
             sort_list=sort_list,
         )
 
-        stats = self._stats(qs)
+        stats = self._stats(qs, th['n1_min'])
         # One query for the page: join the response (status code) and compute DB
         # time as a subquery, instead of two extra queries per row.
         page_obj = get_page(request, qs.select_related('response').annotate(db_ms=db_time_expr(Request)), per_page)
@@ -300,14 +304,13 @@ class RequestsView(View):
                 buckets[rid][fp] += 1
             n1_request_ids = {
                 rid for rid, fps in buckets.items()
-                if any(cnt >= 3 for cnt in fps.values())
+                if any(cnt >= th['n1_min'] for cnt in fps.values())
             }
             for r in page_obj.object_list:
                 r.has_n1 = r.pk in n1_request_ids
             has_n1_on_page = bool(n1_request_ids)
 
         # Time bar (square-root scale so fast requests stay visible) and speed tier per row.
-        th = prefs.thresholds(request)
         page_max = max([r.time_taken or 0 for r in page_obj.object_list] + [1])
         for r in page_obj.object_list:
             ms = r.time_taken or 0

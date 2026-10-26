@@ -10,6 +10,7 @@ import statistics
 import sys
 
 from silk.utils.n_plus_one import detect_n_plus_one
+from silk.utils.prefs import N1_MIN
 
 _FRAME = re.compile(r'File "(?P<file>[^"]+)", line (?P<line>\d+), in (?P<func>\S+)')
 _SILK_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -188,9 +189,9 @@ def query_count_test(silk_request, repeated_groups):
     )
 
 
-def request_insights(silk_request, queries):
+def request_insights(silk_request, queries, repeat_min=N1_MIN):
     """Everything the request overview shows, from the request and its queries."""
-    result = detect_n_plus_one(queries)
+    result = detect_n_plus_one(queries, repeat_min)
     groups = []
     for g in result.groups:
         frame = app_frame(g.representative.traceback)

@@ -6,8 +6,13 @@ charts) lives in localStorage and never reaches the server.
 """
 SLOW_MS = 1000   # red, and the Slow filter
 OK_MS = 300      # amber from here up to SLOW_MS
+N1_MIN = 3       # a query shape repeated this often in one request is flagged N+1
 
-_LIMITS = {'silky-slow-ms': (SLOW_MS, 50, 600000), 'silky-ok-ms': (OK_MS, 10, 600000)}
+_LIMITS = {
+    'silky-slow-ms': (SLOW_MS, 50, 600000),
+    'silky-ok-ms': (OK_MS, 10, 600000),
+    'silky-n1-min': (N1_MIN, 2, 50),
+}
 
 
 def _cookie_int(request, name):
@@ -23,7 +28,7 @@ def _cookie_int(request, name):
 def thresholds(request):
     slow = _cookie_int(request, 'silky-slow-ms')
     ok = min(_cookie_int(request, 'silky-ok-ms'), slow - 1)
-    return {'slow_ms': slow, 'ok_ms': ok}
+    return {'slow_ms': slow, 'ok_ms': ok, 'n1_min': _cookie_int(request, 'silky-n1-min')}
 
 
 def tier(ms, th):

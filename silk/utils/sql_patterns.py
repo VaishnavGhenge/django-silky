@@ -13,9 +13,11 @@ from django.db import connection
 from django.db.models import Avg, Count, Max, Min, Sum
 
 from silk.utils.insights import app_frame, repeat_kind, suggest_fix
+from silk.utils.prefs import N1_MIN
 
 # A pattern that runs this many times inside one request is flagged as repeating.
-REPEAT_MIN = 3
+# This is the default; each viewer can change it in Settings.
+REPEAT_MIN = N1_MIN
 P95_SAMPLE = 20000      # newest queries read to estimate each pattern's p95
 SLOW_PATTERN_MS = 100   # the "p95 ≥" chip on the SQL page
 _TABLE = re.compile(r'\b(?:FROM|INTO|UPDATE)\s+[`"\[]?([\w.]+)', re.I)
@@ -37,8 +39,8 @@ def _queries():
     return SQLQuery.objects.order_by()
 
 
-def repeating_patterns():
-    """{pattern_hash: number of requests in which it ran REPEAT_MIN or more times}."""
+def repeating_patterns(repeat_min=REPEAT_MIN):
+    """{pattern_hash: number of requests in which it ran repeat_min or more times}."""
     from silk.models import SQLQuery
     table = connection.ops.quote_name(SQLQuery._meta.db_table)
     # Two-level GROUP BY so the database returns one row per pattern; the
@@ -49,12 +51,12 @@ def repeating_patterns():
         f'GROUP BY pattern_hash, request_id) t WHERE t.c >= %s GROUP BY t.pattern_hash'
     )
     with connection.cursor() as cursor:
-        cursor.execute(sql, [REPEAT_MIN])
+        cursor.execute(sql, [repeat_min])
         return dict(cursor.fetchall())
 
 
-def looping_locations():
-    """{code_location: number of requests in which that line ran REPEAT_MIN or more queries}.
+def looping_locations(repeat_min=REPEAT_MIN):
+    """{code_location: number of requests in which that line ran repeat_min or more queries}.
 
     A line that runs several queries in one request sits in a loop: the usual N+1 shape.
     """
@@ -66,7 +68,7 @@ def looping_locations():
         f'GROUP BY code_location, request_id) t WHERE t.c >= %s GROUP BY t.code_location'
     )
     with connection.cursor() as cursor:
-        cursor.execute(sql, [REPEAT_MIN])
+        cursor.execute(sql, [repeat_min])
         return dict(cursor.fetchall())
 
 
@@ -75,7 +77,7 @@ def _samples(ids):
     return {r['pk']: r for r in rows}
 
 
-def patterns():
+def patterns(repeat_min=REPEAT_MIN):
     """One dict per query pattern: calls, timings, requests, table, type, repeat count."""
     rows = list(
         _queries().values('pattern_hash').annotate(
@@ -84,7 +86,7 @@ def patterns():
         ).order_by('-total')
     )
     samples = _samples([r['sample'] for r in rows])
-    repeats = repeating_patterns()
+    repeats = repeating_patterns(repeat_min)
     for r in rows:
         sql = samples.get(r['sample'], {}).get('query', '')
         r.update(sql=sql, table=sql_table(sql), type=sql_type(sql), repeats=repeats.get(r['pattern_hash'], 0),
@@ -126,7 +128,7 @@ def histogram(values, bins=24):
     return {'bars': [max(4, round(c / peak * 100)) if c else 0 for c in counts], 'max': top}
 
 
-def pattern_detail(pattern_hash):
+def pattern_detail(pattern_hash, repeat_min=REPEAT_MIN):
     """Everything the pattern panel shows, or None if the pattern no longer exists."""
     from silk.models import Request
     qs = _queries().filter(pattern_hash=pattern_hash)
@@ -146,7 +148,7 @@ def pattern_detail(pattern_hash):
         frame = app_frame(tb)
 
     fix = None
-    if occurrences and occurrences[0]['n'] >= REPEAT_MIN:
+    if occurrences and occurrences[0]['n'] >= repeat_min:
         group = list(qs.filter(request_id=occurrences[0]['request'].pk)[:50])
         fix = suggest_fix(group)
         fix['kind'] = repeat_kind(group)
@@ -162,11 +164,11 @@ def pattern_detail(pattern_hash):
         'fix': fix,
         'hist': histogram(list(qs.values_list('time_taken', flat=True)[:5000])),
         'occurrences': occurrences,
-        'repeat_min': REPEAT_MIN,
+        'repeat_min': repeat_min,
     }
 
 
-def hotspots():
+def hotspots(repeat_min=REPEAT_MIN):
     """One dict per calling line: queries, requests, DB time, and whether it runs repeating patterns."""
     rows = list(
         _queries().exclude(code_location='').values('code_location').annotate(
@@ -174,7 +176,7 @@ def hotspots():
         ).order_by('-total')
     )
     samples = _samples([r['sample'] for r in rows])
-    looping = looping_locations()
+    looping = looping_locations(repeat_min)
     total_all = sum(r['total'] or 0 for r in rows) or 1
     for r in rows:
         frame = app_frame(samples.get(r['sample'], {}).get('traceback', '')) or {}
@@ -191,7 +193,7 @@ def hotspots():
     return rows
 
 
-def hotspot_detail(location):
+def hotspot_detail(location, repeat_min=REPEAT_MIN):
     """Queries a calling line runs, the endpoints that reach it, and a likely fix."""
     qs = _queries().filter(code_location=location)
     stats = qs.aggregate(calls=Count('id'), total=Sum('time_taken'), requests=Count('request', distinct=True), sample=Min('id'))
@@ -200,7 +202,7 @@ def hotspot_detail(location):
     frame = app_frame(_samples([stats['sample']])[stats['sample']]['traceback']) or {}
     pats = list(qs.values('pattern_hash').annotate(calls=Count('id'), total=Sum('time_taken'), sample=Min('id')).order_by('-total'))
     samples = _samples([p['sample'] for p in pats])
-    repeats = repeating_patterns()
+    repeats = repeating_patterns(repeat_min)
     for p in pats:
         sql = samples.get(p['sample'], {}).get('query', '')
         p.update(sql=sql, table=sql_table(sql), type=sql_type(sql), repeats=repeats.get(p['pattern_hash'], 0), total=p['total'] or 0)
