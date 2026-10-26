@@ -5,6 +5,59 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.7.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.7.0) (2026-10-26)
+
+A rebuilt interface. Every page is redesigned, three pages are new (SQL, Hotspots, Compare), and filtering, sorting and opening a request update the page in place instead of reloading it. On 5,000 recorded requests the Summary page renders in **59 ms instead of 465 ms**, a filter change takes 70 ms instead of a 180 ms reload, and JavaScript per page drops from 0.7 to 2.4 MB to **20 to 78 KB**. Full figures are in [`benchmarks/README.md`](benchmarks/README.md).
+
+### Upgrading
+
+- **Run `manage.py migrate silk`.** Migration `0010_sqlquery_pattern_location` adds `SQLQuery.pattern_hash` and `SQLQuery.code_location` with two composite indexes, and backfills existing rows in batches. The backfill took about 10 s for 76,000 queries on SQLite.
+- **Template overrides need checking.** The old base templates, per-page CSS and JS, and the unused inclusion templates are removed (110 files). A project that overrides `silk/base/*.html` or other Silk templates should compare them against the new ones. No URL names or `SILKY_*` settings changed.
+- Saved colour schemes migrate on first load: midnight and high contrast become the dark theme. The header-style option is gone.
+
+### Features
+
+- **App shell.** A sidebar (collapsible, a drawer on phones, or top tabs) with counts, a search box in the top bar on every page, and quick views for slow requests, server errors, N+1 suspects, requests slower than usual for their endpoint, and writes. Themes are system, light or dark, with four accents. Fonts and icons ship locally, so Silk works offline.
+- **Requests.** Filter chips with counts replace the slide-out filter form, and the list swaps in place through htmx. Clicking a row opens the request in a side panel with Overview, SQL, Request, Response and Profile tabs; `j` and `k` step between requests, `Esc` closes it, and Ctrl or Cmd click still opens the full page. Five headline cards (requests with a trend line, p95, 5xx rate, N+1 suspects, average queries) sit above the list.
+- **Request overview.** The SQL versus Python split, the endpoint's usual time and query count, N+1 versus duplicate detection with a likely fix that points at the calling line, the slowest queries, and copyable curl and `assertNumQueries` tests.
+- **SQL page (new).** Every recorded query grouped by shape, with calls, requests, total, average and p95 time, DB time per table, and a panel with the formatted SQL, the calling line, a duration histogram, the requests that run it and a likely fix. The p95 is estimated over the newest 20,000 queries.
+- **Hotspots page (new).** Lines of application code ranked by the database time they cause, with lines that run inside a loop flagged.
+- **Summary.** Latency over time, "Fix these first" (endpoints ranked by total time, with the reasons they cost), status codes, an endpoint table with trend lines, and a queries-versus-time scatter and latency heatmap that can be scoped to one endpoint. Charts render server-side and each can be hidden.
+- **Profiling.** Profiles grouped into code blocks by name, function and location, with a panel showing the spread and the slowest runs. cProfile output is parsed into a sortable function list. The call-graph library (1.8 MB) loads only when a graph is opened.
+- **Compare (new).** Two requests side by side (verdict, metric changes, query pattern diff, stepping through the endpoint's history), or two time ranges with presets, an endpoint scope and per-endpoint and per-pattern changes. Request pages link to a comparison with the previous request.
+- **Settings.** Editor links (VS Code, Cursor, PyCharm, Sublime Text) with path mapping for Docker and VMs, and three thresholds stored as cookies so the server applies them: when a request counts as slow, when it turns amber, and how many repeats of one query count as N+1 (default 3). Also the recording configuration with notes on risky values, and data actions including garbage collection.
+- **Keyboard.** `Ctrl`/`Cmd`+`K` opens a command palette, `?` lists shortcuts, `/` focuses search, and `g` plus a letter jumps between pages.
+- Durations read in seconds from 1,000 ms ("5.09 s"), and large counts carry thousands separators.
+
+### Performance
+
+- The requests list joins each row's response and computes DB time as a subquery: **59 queries down to 13** for the list itself. Its HTML no longer grows with recorded data (697 KB down to 53 KB at 5,000 requests).
+- Query grouping for the SQL and Hotspots pages is a database `GROUP BY` on the new indexed columns: 116 and 108 ms at 5,000 requests, against about 1 s when normalising in Python.
+- Sidebar counts and the set of N+1 request ids are cached for 30 s in Django's default cache. The N+1 cache key carries the newest query id, so newly recorded requests show up at once. With a cold cache the counts add about 21 ms and 9 queries to a page.
+- Silk's CSS and JS URLs carry a version stamp (the installed version, or the file's modification time in `DEBUG`), so browsers never run stale assets after an upgrade.
+
+### Removed
+
+- Bootstrap, both jQuery UI builds, the datetime picker, sortable.js, d3, Lucide, and the Fira and Fantasque fonts. jQuery is gone from every page. `silk/static` drops from 4.6 MB to 2.0 MB.
+- The multi-column sort chips and the cards view on the requests list. Existing multi-column sort URLs still work.
+
+### Bug Fixes
+
+- The calling line of a query is detected correctly for real recordings, which store the innermost frame first.
+- The likely-fix model name is right for app labels that contain underscores.
+- The profile tabs show as current when a profile is opened outside its request.
+- Sticky table headers no longer leave a gap on pages without a page bar.
+
+### Development
+
+- `benchmarks/` holds a server benchmark (render time, queries and HTML size per page, through the test client) and a browser benchmark (load, LCP, layout shift, blocking time and asset weight in headless Chromium), with results for every phase of the redesign.
+
+### Tests
+
+- Test baseline: **391 passed, 1 skipped** (up from 346).
+
+---
+
 ## [1.6.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.6.0) (2026-10-25)
 
 Sync with upstream [jazzband/django-silk](https://github.com/jazzband/django-silk) through 5.6.0 and its post-5.6.0 master (commit `d273516`). No new migrations.
