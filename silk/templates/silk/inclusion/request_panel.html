@@ -15,13 +15,39 @@
         <div data-rp-pane="overview">{% include 'silk/inclusion/request_overview.html' %}</div>
         <div data-rp-pane="sql" hidden>
             {% if queries %}
-            <p class="note">In the order they ran.{% if queries|length == 100 %} The first 100.{% endif %} <a href="{% url 'silk:request_sql' request_id=silk_request.pk %}">Open the SQL tab</a></p>
-            <div class="wf">
-                {% for q in queries %}
-                <a class="wf__row" href="{% url 'silk:request_sql_detail' request_id=silk_request.pk sql_id=q.pk %}">
-                    <span class="wf__sql"><span class="sqltype t-{{ q.query|sql_type }}">{{ q.query|sql_type }}</span> {{ q.query|truncatechars:140 }}</span>
-                    <span class="wf__track"><i style="width:{% widthratio q.time_taken queries_max 100 %}%"></i></span>
-                    <span class="wf__ms">{{ q.time_taken|dur }}</span>
+            {% with g=insights.repeated.0 %}{% if g %}
+            <div class="alert alert--warn" role="status">
+                <span><b>{% if g.kind == 'dup' %}Duplicate query:{% else %}Possible N+1:{% endif %}</b>
+                {% if g.kind == 'dup' %}identical query ran{% else %}the same query shape ran{% endif %} {{ g.count }} times ({{ g.total_ms|dur }} total){% if insights.repeated|length > 1 %}, plus {{ insights.repeated|length|add:"-1" }} more repeated pattern{{ insights.repeated|length|add:"-1"|pluralize }}{% endif %}.</span>
+                <button type="button" class="alert__link linkbtn" data-sql-view="grouped">Show grouped</button>
+            </div>
+            {% endif %}{% endwith %}
+            <div class="rp-sqlbar">
+                <div class="seg" role="group" aria-label="SQL view">
+                    <button type="button" data-sql-view="timeline" aria-pressed="true">Timeline</button>
+                    <button type="button" data-sql-view="grouped" aria-pressed="false">Grouped <span class="count">{{ sql.groups|length }}</span></button>
+                </div>
+                <span class="muted small">{% if queries|length == 100 %}The first 100. {% endif %}<a href="{% url 'silk:request_sql' request_id=silk_request.pk %}">Open the SQL tab</a></span>
+            </div>
+            <div class="wf wf--tl" data-sql-pane="timeline">
+                {% for r in sql.rows %}
+                <a class="wf__row{% if r.repeated %} is-repeat{% endif %}" href="{% url 'silk:request_sql_detail' request_id=silk_request.pk sql_id=r.q.pk %}"{% if sql.timeline %} title="Started {{ r.offset|dur }} into the request"{% endif %}>
+                    <span class="wf__n">#{{ forloop.counter }}</span>
+                    <span class="wf__sql"><span class="wf__kw t-{{ r.type }}">{{ r.type }}</span> <b>{{ r.table }}</b> {{ r.q.query|truncatechars:140 }}</span>
+                    <span class="wf__track"><i style="margin-left:{{ r.left|unlocalize }}%;width:{{ r.width|unlocalize }}%"></i></span>
+                    <span class="wf__ms">{{ r.ms|dur }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            <p class="muted small wf__axis">{% if sql.timeline %}Bars show when each query ran within the request's {{ sql.span_ms|dur }}.{% else %}Some start times fall outside the request, so bars show durations only.{% endif %}</p>
+            <div class="wf wf--tl" data-sql-pane="grouped" hidden>
+                {% url 'silk:sql' as sql_url %}
+                {% for g in sql.groups %}
+                <a class="wf__row{% if g.repeated %} is-repeat{% endif %}" href="{{ sql_url }}?p={{ g.hash }}">
+                    <span class="wf__n">{{ g.n }}×</span>
+                    <span class="wf__sql"><span class="wf__kw t-{{ g.type }}">{{ g.type }}</span> <b>{{ g.table }}</b> {{ g.q.query|truncatechars:140 }}</span>
+                    <span class="wf__track"><i style="width:{{ g.width|unlocalize }}%"></i></span>
+                    <span class="wf__ms">{{ g.ms|dur }}</span>
                 </a>
                 {% endfor %}
             </div>

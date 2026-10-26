@@ -80,14 +80,28 @@
     p.querySelectorAll('[data-rp-tab]').forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.rpTab === name)); });
     p.querySelectorAll('[data-rp-pane]').forEach(function (pane) { pane.hidden = pane.dataset.rpPane !== name; });
   }
+  // SQL tab: timeline or grouped by shape, also kept while moving between requests.
+  var sqlView = 'timeline';
+  function showSqlView(name) {
+    var p = panel();
+    if (!p) return;
+    sqlView = name;
+    p.querySelectorAll('.seg [data-sql-view]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.sqlView === name)); });
+    p.querySelectorAll('[data-sql-pane]').forEach(function (pane) { pane.hidden = pane.dataset.sqlPane !== name; });
+    var axis = p.querySelector('.wf__axis');
+    if (axis) axis.hidden = name !== 'timeline';
+  }
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-rp-tab]');
     if (t) showTab(t.dataset.rpTab);
+    var v = e.target.closest('[data-sql-view]');
+    if (v) showSqlView(v.dataset.sqlView);
   });
   document.addEventListener('htmx:afterSwap', function (e) {
     if (e.detail.target !== panel()) return;
     var p = panel(), rp = p.querySelector('.rp');
     showTab(panelTab);
+    showSqlView(sqlView);
     if (window.hljs) p.querySelectorAll('pre code[class*="language-"]').forEach(function (c) { window.hljs.highlightElement(c); });
     p.hidden = false;
     p.scrollTop = 0;

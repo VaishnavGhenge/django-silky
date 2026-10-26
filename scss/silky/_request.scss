@@ -47,6 +47,22 @@
 .wf__track { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
 .wf__track i { display: block; height: 100%; border-radius: 4px; background: var(--bar-sql); }
 .wf__ms { text-align: right; font: 500 12px var(--mono); color: var(--text); }
+.wf--tl .wf__row { grid-template-columns: 38px minmax(0, 1fr) minmax(90px, 32%) 64px; gap: 10px; padding: 6px 10px; }
+.wf--tl .wf__track { position: relative; overflow: visible; }
+.wf--tl .wf__track i { min-width: 2px; }
+.wf__n { color: var(--muted); font: 500 12px var(--mono); }
+.wf__sql b { font-weight: 500; color: var(--text); }
+.wf__kw { font-weight: 600; color: var(--link); }
+.wf__kw.t-DELETE { color: var(--bad); } .wf__kw.t-UPDATE, .wf__kw.t-INSERT { color: var(--warn); }
+.wf__row.is-repeat { background: color-mix(in srgb, var(--warn-bg) 55%, transparent); }
+.wf__row.is-repeat:hover { background: var(--warn-bg); }
+.wf__row.is-repeat .wf__track i { background: var(--bar-dup); }
+.wf__axis { margin: 6px 0 0; }
+.rp-sqlbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 10px; }
+@media (max-width: 720px) {
+  .wf--tl .wf__row { grid-template-columns: 30px minmax(0, 1fr) 56px; }
+  .wf--tl .wf__track { display: none; }
+}
 
 @media (max-width: 760px) {
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
