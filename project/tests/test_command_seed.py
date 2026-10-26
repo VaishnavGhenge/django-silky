@@ -1,4 +1,5 @@
 import json
+import random
 from datetime import timedelta
 from io import StringIO
 
@@ -6,10 +7,10 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase
 from django.utils import timezone
+from example_app.models import Blind
 from freezegun import freeze_time
 
-from example_app.models import Blind
-from silk.management.commands.silk_seed import APP_ROOT
+from silk.management.commands.silk_seed import APP_ROOT, Traffic, _record
 from silk.models import Profile, Request, SQLQuery
 from silk.utils.insights import app_frame, repeat_kind
 from silk.utils.n_plus_one import detect_n_plus_one
@@ -46,6 +47,7 @@ class TestSeedCommand(TestCase):
                 previous_end = query.end_time
             response = request.response
             statuses.append(response.status_code)
+            self.assertTrue(response.raw_body_decoded)
             if request.method == "GET":
                 self.assertEqual(request.body, "")
             if request.query_params:
@@ -83,7 +85,15 @@ class TestSeedCommand(TestCase):
     def test_server_errors_are_recorded(self):
         self.seed(requests=1500, seed=42)
         self.assertTrue(Request.objects.filter(response__status_code=500).exists())
-        self.assertTrue(Profile.objects.filter(exception_raised=True).exists())
+
+    def test_gateway_timeout_marks_the_profile(self):
+        rng = random.Random(1)
+        traffic = Traffic(rng, timezone.now())
+        spec = next(s for s in (traffic.checkout() for _ in range(500)) if s["status"] == 500)
+        request = _record(spec, timezone.now() - timedelta(minutes=5), rng)
+        charge = request.profile_set.get(name="gateway.charge")
+        self.assertTrue(charge.exception_raised)
+        self.assertGreater(charge.time_taken, 9000)
 
     def test_clear_replaces_logs_and_keeps_application_data(self):
         existing = Blind.objects.create(name="Customer's existing blind", child_safe=True)

@@ -318,6 +318,8 @@ pip install --group test  # pip >= 25.1
 
 # Run the example project
 DB_ENGINE=sqlite3 python project/manage.py migrate
+# Replace old profiling records with a week of synthetic shop traffic
+DB_ENGINE=sqlite3 python project/manage.py silk_seed --clear --requests 1000 --days 7 --seed 42
 DB_ENGINE=sqlite3 python project/manage.py runserver
 # Visit http://127.0.0.1:8000/silk/  (login: admin / admin)
 
@@ -331,6 +333,17 @@ npm run build
 # Run tests
 DB_ENGINE=sqlite3 python -m pytest project/tests/ -q
 ```
+
+`silk_seed` simulates a week of traffic for a fictional Django kitchenware shop: a storefront
+API, cart and checkout, logins, the Django admin, payment webhooks and a staff sales report.
+Traffic follows a daily rhythm with an evening peak. The data includes the problems Silk is
+meant to find: an N+1 on the order list, a 100-row admin changelist N+1, an exchange rate
+fetched once per product variant, slow `LIKE` searches, a multi-second report with cProfile
+output, and occasional 4xx and 500 responses (gateway timeouts, statement timeouts, a webhook
+race). SQL and profiles stay within their request's timeline, and recorded query counts match
+the stored queries. The application paths in tracebacks are fictional, so source links do not
+open. `--clear` deletes only Silk profiling records. With SQLite, the default database
+file is named `postgres`; set `DB_NAME` to use a different file.
 
 ---
 

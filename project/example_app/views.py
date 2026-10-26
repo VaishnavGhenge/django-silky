@@ -29,7 +29,7 @@ class ExampleCreateView(CreateView):
     success_url = reverse_lazy('example_app:index')
 
 
-# ── JSON API views (used by silk_seed for realistic profiling data) ──────────
+# ── JSON API views ───────────────────────────────────────────────────────────
 
 def api_blind_list(request):
     """GET /api/blinds/ — list with optional ?search= and ?child_safe= filters."""
