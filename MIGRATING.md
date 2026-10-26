@@ -1,5 +1,19 @@
 # Migrating from django-silk to django-silky
 
+## Upgrading to django-silky 1.7.0: one new migration
+
+**What changed.** 1.7.0 rebuilds the interface and adds the SQL, Hotspots and Compare pages. To group queries by shape and by calling line in the database, migration `silk.0010_sqlquery_pattern_location` adds two columns to `silk_sqlquery` (`pattern_hash` and `code_location`), two composite indexes, and fills both columns for queries already recorded.
+
+**What to do.** Run the migration after upgrading:
+
+```bash
+python manage.py migrate silk
+```
+
+The backfill reads every recorded query in batches of 2,000. It took about 10 s for 76,000 queries on SQLite; on a large table, run it when a short write lock on `silk_sqlquery` is acceptable, or clear old data first.
+
+**Template overrides.** The old base templates and per-page assets are gone. If your project overrides any `silk/...` template, compare it against the new one. URL names and `SILKY_*` settings are unchanged.
+
 ## Upgrading to django-silky 1.2.0 — defaults are now secure
 
 **What changed.** In earlier releases `SILKY_AUTHENTICATION` and `SILKY_AUTHORISATION` both defaulted to `False`, so anyone with network access to `/silk/` could read the full profiling UI. Starting with 1.2.0 both default to `True`, and the default `SILKY_PERMISSIONS` predicate requires `user.is_staff`.
@@ -24,10 +38,10 @@ SILKY_AUTHORISATION = False
 ## From django-silk to django-silky
 
 `django-silky` is a **drop-in replacement** for `django-silk`. It uses the
-same Django app label (`silk`), the same database schema, and the same
-migrations (0001 – 0008). Switching does **not** drop, alter, or move any
-existing tables — all recorded requests, SQL queries, and profiles are
-retained.
+same Django app label (`silk`) and carries upstream's migrations (0001 to
+0009) unchanged. It adds one of its own, 0010, which adds two columns and two
+indexes to `silk_sqlquery`. Switching does not drop or move any existing
+table, and all recorded requests, SQL queries and profiles are kept.
 
 ---
 
@@ -35,13 +49,13 @@ retained.
 
 | django-silk version | Compatible with django-silky? | Notes |
 |---|---|---|
-| 5.4.x (latest) | ✅ Yes — direct swap | No migration needed |
-| 5.3.x | ✅ Yes | No migration needed |
-| 5.0 – 5.2 | ✅ Yes | No migration needed |
-| < 5.0 | ✅ Yes — direct swap | No migration needed |
+| 5.6.x (latest) | ✅ Yes | Run `migrate silk` (applies 0010) |
+| 5.0 to 5.5 | ✅ Yes | Run `migrate silk` (applies 0009 if missing, then 0010) |
+| < 5.0 | ✅ Yes | Run `migrate silk` (applies every missing migration) |
 
-> **Baseline:** `django-silky` is forked from `django-silk` master
-> (post-5.4.3, commit `2db6175`). The database schema is identical.
+> **Baseline:** `django-silky` is synced with `django-silk` through 5.6.0 and
+> its later master (commit `d273516`). Its schema is upstream's plus the two
+> columns from migration 0010.
 
 ---
 
@@ -69,9 +83,12 @@ retained.
    pip install django-silky
    ```
 
-3. **No `migrate` needed.** django-silky ships the exact same app label
-   (`silk`) and the exact same migration files (0001 – 0008) as django-silk.
-   Nothing to apply, nothing to fake, nothing to roll back.
+3. **Run the migrations.** django-silky keeps the app label (`silk`) and
+   upstream's migration files, and adds 0010:
+
+   ```bash
+   python manage.py migrate silk
+   ```
 
 4. **No `settings.py` changes.** The app label stays `'silk'`:
 
@@ -90,24 +107,25 @@ retained.
 
 ### From django-silk < 5.0
 
-Same steps as above — just swap the package. django-silky carries the full
-set of upstream migrations (0001 – 0008), so any not-yet-applied migrations
-from older django-silk installs are already included; Django will see them
-as part of the installed app and treat the state as consistent.
+Same steps as above. django-silky carries the full set of upstream
+migrations, so `migrate silk` applies whatever an older install is missing,
+then 0010.
 
 ---
 
 ## What changes in the UI
 
-The underlying data model is unchanged. The only differences are visual:
+Silk records the same data as django-silk. What you see differs:
 
-- **Requests page** — sortable chips, inline filter bar, paginator, method/status badges
-- **Summary page** — metric cards, time-range presets, top-N tables
-- **Request detail** — hero bar with metric pills, section cards
-- **SQL / Profiling** — same data, modernized layout
-- **Dark mode** — toggle in the nav bar, preference saved in `localStorage`
+- **Requests**: filter chips with counts, a top bar search, and a side panel that opens a request without leaving the list
+- **Request detail**: an overview with the SQL versus Python split, N+1 and duplicate detection with a likely fix, and copyable curl and query-count tests
+- **SQL and Hotspots** (new): queries grouped by shape, and lines of your code ranked by the database time they cause
+- **Summary**: latency over time, the endpoints to fix first, and where the time goes
+- **Profiling**: profiles grouped into code blocks, and cProfile output as a sortable function list
+- **Compare** (new): two requests, or two time ranges
+- **Settings**: theme and accent, editor links, and thresholds for slow requests and N+1
 
-All configuration settings (`SILKY_*`) continue to work exactly as before.
+All configuration settings (`SILKY_*`) work as before.
 
 ---
 
@@ -120,8 +138,15 @@ pip uninstall django-silky
 pip install django-silk
 ```
 
-No data migration or `manage.py migrate` is required in either direction —
-the schema is shared.
+The two columns added by migration 0010 have a database default, so
+django-silk keeps recording after a downgrade even with them in place. To
+remove them and return to upstream's schema, migrate back before swapping:
+
+```bash
+python manage.py migrate silk 0009
+pip uninstall django-silky
+pip install django-silk
+```
 
 ---
 
@@ -140,13 +165,13 @@ After switching, spot-check a few things in the `/silk/` UI:
 ## Frequently asked questions
 
 **Do I need to run `manage.py migrate` when switching?**
-No. django-silky ships the identical schema and the same migration files
-(0001 – 0008) as django-silk. The swap is purely a package replacement.
+Yes, once: `python manage.py migrate silk` applies migration 0010, which
+django-silk does not have.
 
 **Does django-silky add new migrations?**
-Not at this time. If future schema changes are needed they will be added as
-new numbered migrations (0009, 0010, …) in the standard Django way, and a
-note will appear here.
+One so far: 0010 adds `pattern_hash` and `code_location` to `silk_sqlquery`,
+with indexes, for the SQL and Hotspots pages. Any later ones will be listed
+here.
 
 **Can I use django-silky and django-silk at the same time?**
 No — both install under the `silk` app label, so only one can be installed

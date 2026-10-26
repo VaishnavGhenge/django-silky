@@ -1,7 +1,7 @@
 Profiling
 =========
 
-Silk can be used to profile arbitrary blocks of code and provides ``silk_profile``, a Python decorator and a context manager for this purpose. Profiles will then appear in the 'Profiling' tab within Silk's user interface.
+Silk can be used to profile arbitrary blocks of code and provides ``silk_profile``, a Python decorator and a context manager for this purpose. Profiles then appear on Silk's Profiling page, grouped into code blocks by name and location.
 
 Decorator
 ---------

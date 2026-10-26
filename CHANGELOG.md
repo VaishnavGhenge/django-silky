@@ -11,7 +11,7 @@ A rebuilt interface. Every page is redesigned, three pages are new (SQL, Hotspot
 
 ### Upgrading
 
-- **Run `manage.py migrate silk`.** Migration `0010_sqlquery_pattern_location` adds `SQLQuery.pattern_hash` and `SQLQuery.code_location` with two composite indexes, and backfills existing rows in batches. The backfill took about 10 s for 76,000 queries on SQLite.
+- **Run `manage.py migrate silk`.** Migration `0010_sqlquery_pattern_location` adds `SQLQuery.pattern_hash` and `SQLQuery.code_location` with two composite indexes, and backfills existing rows in batches. The backfill took about 10 s for 76,000 queries on SQLite. Both columns have a database default, so django-silk keeps recording after a downgrade; `migrate silk 0009` removes them (see [MIGRATING.md](MIGRATING.md)).
 - **Template overrides need checking.** The old base templates, per-page CSS and JS, and the unused inclusion templates are removed (110 files). A project that overrides `silk/base/*.html` or other Silk templates should compare them against the new ones. No URL names or `SILKY_*` settings changed.
 - Saved colour schemes migrate on first load: midnight and high contrast become the dark theme. The header-style option is gone.
 

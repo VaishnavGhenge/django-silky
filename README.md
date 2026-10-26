@@ -8,24 +8,26 @@
 [![Downloads total](https://static.pepy.tech/badge/django-silky)](https://pepy.tech/project/django-silky)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**django-silky** is a modernized-UI fork of [django-silk](https://github.com/jazzband/django-silk) — a live profiling and inspection tool for the Django framework.
+**django-silky** is a modernized-UI fork of [django-silk](https://github.com/jazzband/django-silk), a live profiling and inspection tool for the Django framework.
 
-It keeps 100 % of the original functionality (request/response recording, SQL inspection, code profiling, dynamic profiling) while shipping a fully redesigned interface built on CSS custom properties (light **and** dark mode), Lucide icons, an inline filter bar, multi-column sort chips, and proper pagination.
+It records the same data as django-silk (requests and responses, SQL queries, code profiles, dynamic profiling) and adds a rebuilt interface aimed at one question: what should I fix first? It groups queries by shape and by the line of your code that ran them, flags N+1 patterns with a likely fix, compares two requests or two time ranges, and filters without reloading the page. JavaScript per page is 20 to 78 KB, against 0.7 to 2.4 MB in django-silk ([benchmarks](benchmarks/README.md)).
 
 ---
 
 ## What's different from django-silk?
 
-| Feature | django-silk | django-silky |
+| | django-silk | django-silky |
 |---|---|---|
-| Theme | Fixed dark nav, light body | Full light/dark toggle, persisted in `localStorage` |
-| Filter UI | 300 px slide-out drawer | Inline collapsible filter bar |
-| Filter selectors | Single-value dropdowns | Multi-select for method, status code, and path (with search) |
-| Sort | Single column, GET param | Multi-column sort chips (session-persisted) |
-| Pagination | Query-slice (`LIMIT N`) | Real Django `Paginator` with prev/next/page numbers |
-| Detail pages | Plain tables | Hero bar + metric pills + section cards |
-| Icons | Font Awesome (CDN) | Lucide (self-hosted, no external requests) |
-| URL sharing | State lost on reload | Sort + per-page encoded in URL; filter bar state in `localStorage` |
+| Requests list | Slide-out filter form, full page reload per change | Filter chips with counts, top bar search, updates in place; requests open in a side panel |
+| Request detail | Tables of fields | Overview with SQL versus Python time, N+1 and duplicate detection, a likely fix at the calling line, copyable curl and query-count tests |
+| SQL across requests | Per request only | **SQL** page: every query grouped by shape, with p95, DB time per table and the requests that run it |
+| Where queries come from | Stack trace per query | **Hotspots** page: lines of your code ranked by the DB time they cause, loops flagged |
+| Summary | Counts and top-N tables | Latency over time, endpoints to fix first with the reason, scatter and heatmap per endpoint |
+| Profiling | List of profiles | Grouped into code blocks; cProfile as a sortable function list; call graph loads on demand |
+| Comparison | None | **Compare** two requests, or two time ranges such as before and after a deploy |
+| Settings | Clear data | Theme and accent, editor links with path mapping, slow and N+1 thresholds, recording config with risk notes |
+| Keyboard | None | Command palette (Ctrl/Cmd+K), `/` to search, `j`/`k` through requests, `g` + letter between pages |
+| Assets | jQuery, Font Awesome from a CDN | No jQuery or CDN; htmx and an inline icon sprite; fonts ship with the package |
 
 ---
 
@@ -33,16 +35,24 @@ It keeps 100 % of the original functionality (request/response recording, SQL in
 
 <table>
 <tr>
-<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/analytics-dashboard.png" alt="Analytics dashboard – dark mode" width="420"/><br/><sub><b>Analytics dashboard</b> — activity timeline, status donut, method bars, RT histogram, latency percentiles, queries-per-request histogram</sub></td>
-<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/requests-filter-bar.png" alt="Requests list with filter bar open" width="420"/><br/><sub><b>Requests list</b> — inline filter bar with multi-select method, status, path, and view filters; multi-column sort chips</sub></td>
+<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/summary.png" alt="Summary page" width="420"/><br/><sub><b>Summary</b>: latency over time, the endpoints to fix first and why, status codes, and where the time goes</sub></td>
+<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/request-panel.png" alt="Requests list with a request open in the side panel" width="420"/><br/><sub><b>Request panel</b>: opens beside the list; duplicate query found with the calling line and a likely fix</sub></td>
 </tr>
 <tr>
-<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/n1-banner.png" alt="N+1 detection banner on SQL tab" width="420"/><br/><sub><b>N+1 detection</b> — banner with detected pattern, query count badge, and per-query cost; offending rows highlighted</sub></td>
-<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/profile-detail-code.png" alt="Profile detail – code view" width="420"/><br/><sub><b>Profile detail</b> — source file, function code highlighted, and associated SQL queries</sub></td>
+<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/sql-patterns.png" alt="SQL page with a pattern open" width="420"/><br/><sub><b>SQL</b>: every query grouped by shape, DB time per table, and an N+1 pattern with the line that runs it</sub></td>
+<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/hotspots.png" alt="Hotspots page with a code line open" width="420"/><br/><sub><b>Hotspots</b>: lines of app code ranked by the DB time they cause</sub></td>
 </tr>
 <tr>
-<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/profile-detail-queries.png" alt="cProfile output" width="420"/><br/><sub><b>cProfile output</b> — raw cProfile dump with ncalls, tottime, cumtime, and filename:function</sub></td>
-<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/meta.png" alt="Settings page – colour scheme picker and data management" width="420"/><br/><sub><b>Settings</b> — colour scheme picker (Light / Dark / Midnight / High Contrast) and selective data-clear controls</sub></td>
+<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/requests.png" alt="Requests list" width="420"/><br/><sub><b>Requests</b>: headline numbers, filter chips with counts, N+1 flags per row</sub></td>
+<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/profiling.png" alt="Profiling page with a code block open" width="420"/><br/><sub><b>Profiling</b>: profiles grouped into code blocks, with the spread and the slowest runs</sub></td>
+</tr>
+<tr>
+<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/compare.png" alt="Compare two time ranges" width="420"/><br/><sub><b>Compare</b>: two time ranges, with the verdict and per-endpoint changes</sub></td>
+<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/settings.png" alt="Settings page" width="420"/><br/><sub><b>Settings</b>: editor links with path mapping, thresholds, appearance and recording config</sub></td>
+</tr>
+<tr>
+<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/summary-dark.png" alt="Summary page in dark theme" width="420"/><br/><sub><b>Dark theme</b>: system, light or dark, with four accents</sub></td>
+<td><img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/command-palette.png" alt="Command palette over the requests list" width="420"/><br/><sub><b>Command palette</b>: Ctrl/Cmd+K to jump anywhere</sub></td>
 </tr>
 </table>
 
@@ -50,16 +60,18 @@ It keeps 100 % of the original functionality (request/response recording, SQL in
 
 ## Migrating from django-silk
 
-`django-silky` is a drop-in replacement — same app label (`silk`), same
-database schema (migrations 0001 – 0008), all your existing data is retained.
+`django-silky` is a drop-in replacement: same app label (`silk`), upstream's
+migrations unchanged, and your recorded data is kept. It adds one migration
+of its own (0010, two columns and two indexes on `silk_sqlquery`), so run
+`migrate` once after switching.
 
 ```bash
 pip uninstall django-silk
 pip install django-silky
-# No manage.py migrate needed — schema is identical
+python manage.py migrate silk
 ```
 
-For full instructions, version compatibility details, and rollback steps see
+For version compatibility and rollback steps see
 **[MIGRATING.md](MIGRATING.md)**.
 
 ---
@@ -135,11 +147,20 @@ The UI is now available at `/silk/`.
 
 ### Request Inspection
 
-Silk's middleware records every HTTP request and response — method, status code, path, timing, SQL query count, and headers/bodies — and presents them in a filterable, sortable, paginated table.
+Silk's middleware records every HTTP request and response: method, status code, path, timing, SQL query count, headers and bodies. The Requests page filters them with chips (method, status class, slow, N+1, time range, query count) and a search box, and opens each request in a side panel beside the list. Each request shows how its time splits between SQL and Python, how it compares with the endpoint's usual time and query count, and any repeated queries, with whether they are an N+1 or a plain duplicate and the likely fix.
 
 ### SQL Inspection
 
-Every SQL query executed during a request is captured with its execution time, tables involved, number of joins, and a full stack trace so you can see exactly where in your code it was triggered.
+Every SQL query is captured with its execution time and a stack trace, so you can see where in your code it ran. Beyond the per-request view:
+
+- **SQL** groups every recorded query by shape (values replaced), with calls, requests, total, average and p95 time, DB time per table, and the requests that run each pattern.
+- **Hotspots** ranks the lines of your application code by the database time they cause, and flags lines that run queries inside a loop.
+
+Source locations link to your editor (VS Code, Cursor, PyCharm or Sublime Text), with a path mapping for code that runs in Docker or a VM.
+
+### Compare
+
+Compare two requests to the same endpoint (time, queries and a pattern-by-pattern diff), or two time ranges such as before and after a deploy, with the change per endpoint and per query pattern.
 
 ### Code Profiling
 
@@ -168,7 +189,7 @@ SILKY_PYTHON_PROFILER = True
 SILKY_PYTHON_PROFILER_BINARY = True  # also save .prof files
 ```
 
-When enabled, a call-graph coloured by time is shown on the profile detail page.
+When enabled, each request's cProfile output is shown as a sortable function list, and a call graph coloured by time loads on request.
 
 #### Dynamic profiling
 

@@ -16,7 +16,7 @@ Silk
 
 Silk is a live profiling and inspection tool for the Django framework. Silk intercepts and stores HTTP requests and database queries before presenting them in a user interface for further inspection:
 
-.. image:: /images/1.png
+.. image:: /images/summary.png
 
 A **live demo** is available `here`_.
 
@@ -43,6 +43,14 @@ Features
 
 - SQL query inspection
 
+  - Queries grouped by shape across all requests, with p95 time and DB time per table
+
+  - Hotspots: lines of application code ranked by the database time they cause
+
+  - N+1 and duplicate query detection, with a likely fix at the calling line
+
+- Compare two requests, or two time ranges such as before and after a deploy
+
 - Profiling of arbitrary code blocks via a Python context manager and decorator
 
   - Execution Time
@@ -52,6 +60,8 @@ Features
   - Can also be injected dynamically at runtime e.g. if read-only dependency.
 
 - Authentication/Authorisation for production use
+
+- Per-browser settings: theme, editor links, and thresholds for slow requests and N+1
 
 
 Requirements

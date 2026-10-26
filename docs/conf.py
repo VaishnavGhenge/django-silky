@@ -46,7 +46,10 @@ copyright = '2014, Michael Ford'
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = importlib.metadata.version("django-silk")
+try:
+    release = importlib.metadata.version("django-silky")
+except importlib.metadata.PackageNotFoundError:
+    release = importlib.metadata.version("django-silk")
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
