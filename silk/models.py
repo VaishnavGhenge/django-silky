@@ -313,8 +313,10 @@ class SQLQuery(models.Model):
     analysis = TextField(null=True, blank=True)
     # Filled on save so the SQL and Hotspots pages can GROUP BY in the database
     # instead of normalising every recorded query in Python.
-    pattern_hash = CharField(max_length=40, blank=True, default='')
-    code_location = CharField(max_length=300, blank=True, default='')
+    # db_default keeps the columns optional for writers that do not know them,
+    # such as django-silk after a downgrade.
+    pattern_hash = CharField(max_length=40, blank=True, default='', db_default='')
+    code_location = CharField(max_length=300, blank=True, default='', db_default='')
     objects = SQLQueryManager()
 
     class Meta:

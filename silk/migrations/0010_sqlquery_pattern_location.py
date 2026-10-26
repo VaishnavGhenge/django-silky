@@ -37,12 +37,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sqlquery',
             name='code_location',
-            field=models.CharField(blank=True, default='', max_length=300),
+            field=models.CharField(blank=True, db_default='', default='', max_length=300),
         ),
         migrations.AddField(
             model_name='sqlquery',
             name='pattern_hash',
-            field=models.CharField(blank=True, default='', max_length=40),
+            field=models.CharField(blank=True, db_default='', default='', max_length=40),
         ),
         migrations.AddIndex(
             model_name='sqlquery',
