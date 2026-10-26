@@ -12,7 +12,7 @@
             {% if not silk_request %}
             <div class="seg" role="group" aria-label="View">
                 <button type="button" data-set-field="tab" data-value="" aria-pressed="{% if tab == 'blocks' %}true{% else %}false{% endif %}">Code blocks <span class="count">{{ blocks|length }}</span></button>
-                <button type="button" data-set-field="tab" data-value="cprofile" aria-pressed="{% if tab == 'cprofile' %}true{% else %}false{% endif %}">cProfile <span class="count">{{ cprofile_count }}</span></button>
+                <button type="button" data-set-field="tab" data-value="cprofile" aria-pressed="{% if tab == 'cprofile' %}true{% else %}false{% endif %}">cProfile <span class="count">{{ cprofile_count|num }}</span></button>
             </div>
             {% endif %}
             {% if filters and not silk_request %}
@@ -42,7 +42,7 @@
                            hx-get="{{ request.path }}?b={{ b.id }}{% if sort != 'total' %}&amp;sort={{ sort }}{% endif %}{% if q %}&amp;q={{ q|urlencode }}{% endif %}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true">{{ b.name|default:b.func_name|default:"anonymous block" }}{% if b.raised %} <span class="flag flag--bad">{{ b.raised }} raised</span>{% endif %}</a>
                         {% if b.file_path %}<a class="loc-link" data-editor-file="{{ b.file_path }}" data-editor-line="{{ b.line_num|default:1 }}" href="vscode://file{{ b.file_path }}:{{ b.line_num|default:1 }}" title="Open in editor">{% if b.func_name %}{{ b.func_name }}() · {% endif %}{{ b.file_path|app_path }}{% if b.line_num %}:{{ b.line_num }}{% endif %}</a>{% elif b.func_name %}<div class="view">{{ b.func_name }}()</div>{% endif %}
                     </td>
-                    <td class="num mono">{{ b.runs }}</td>
+                    <td class="num mono">{{ b.runs|num }}</td>
                     <td class="num"><div class="timecell t-{% time_tier b.avg %}"><b>{{ b.total|dur }}</b><span class="timebar"><i style="width:{{ b.bar|floatformat:'1' }}%"></i></span></div></td>
                     <td class="num mono">{{ b.avg|dur }}</td>
                     <td class="num mono col-opt">{{ b.max|dur }}</td>
@@ -104,7 +104,7 @@
         </div>
         <div class="d-body">
             <div class="kpis">
-                <div class="kpi"><span>Runs</span><b>{{ s.runs }}</b></div>
+                <div class="kpi"><span>Runs</span><b>{{ s.runs|num }}</b></div>
                 <div class="kpi"><span>Avg</span><b>{{ s.avg|dur }}</b></div>
                 <div class="kpi"><span>Max</span><b>{{ s.max|dur }}</b></div>
                 <div class="kpi"><span>Avg queries</span><b>{{ s.avg_q|floatformat:"1" }}</b></div>
@@ -118,7 +118,7 @@
             <div class="hist" aria-hidden="true">{% for b in d.hist.bars %}<i style="height:{{ b }}%"></i>{% endfor %}</div>
             <div class="hist__axis"><span>0</span><span>{{ d.hist.max|dur }}</span></div>
             {% endif %}
-            <h2 class="h3">Slowest runs ({{ d.runs|length }}{% if s.runs > d.runs|length %} of {{ s.runs }}{% endif %})</h2>
+            <h2 class="h3">Slowest runs ({{ d.runs|length }}{% if s.runs > d.runs|length %} of {{ s.runs|num }}{% endif %})</h2>
             <div class="occ">
                 {% for p in d.runs %}
                 <a class="occ__row" href="{% if p.request_id %}{% url 'silk:request_profile_detail' request_id=p.request_id profile_id=p.pk %}{% else %}{% url 'silk:profile_detail' profile_id=p.pk %}{% endif %}">

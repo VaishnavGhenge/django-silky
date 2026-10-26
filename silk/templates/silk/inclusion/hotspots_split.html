@@ -24,8 +24,8 @@
                         </a>
                         {% if r.code %}<code class="hot__code">{{ r.code }}</code>{% endif %}
                     </td>
-                    <td class="num mono">{{ r.calls }}</td>
-                    <td class="num mono">{{ r.requests }}</td>
+                    <td class="num mono">{{ r.calls|num }}</td>
+                    <td class="num mono">{{ r.requests|num }}</td>
                     <td class="num mono">{{ r.per_request|floatformat:"1" }}</td>
                     <td class="num"><div class="timecell t-good"><b>{{ r.total|dur }} <span class="muted">{{ r.share|floatformat:"0" }}%</span></b><span class="timebar"><i style="width:{{ r.bar }}%"></i></span></div></td>
                 </tr>
@@ -55,8 +55,8 @@
             {% if d.code %}<pre class="code">{{ d.code }}</pre>{% endif %}
             <div class="kpis">
                 <div class="kpi"><span>DB time</span><b>{{ d.stats.total|dur }}</b></div>
-                <div class="kpi"><span>Queries</span><b>{{ d.stats.calls }}</b></div>
-                <div class="kpi"><span>Requests</span><b>{{ d.stats.requests }}</b></div>
+                <div class="kpi"><span>Queries</span><b>{{ d.stats.calls|num }}</b></div>
+                <div class="kpi"><span>Requests</span><b>{{ d.stats.requests|num }}</b></div>
                 <div class="kpi"><span>Per request</span><b>{{ d.per_request|floatformat:"1" }}</b></div>
             </div>
             {% if d.fix %}
@@ -70,7 +70,7 @@
             <div class="groups">
                 {% for p in d.patterns %}
                 <a class="group" href="{% url 'silk:sql' %}?p={{ p.pattern_hash }}">
-                    <span class="group__n{% if p.repeats %} is-hot{% endif %}">{{ p.calls }}×</span>
+                    <span class="group__n{% if p.repeats %} is-hot{% endif %}">{{ p.calls|num }}×</span>
                     <span class="wf__sql"><span class="sqltype t-{{ p.type }}">{{ p.type }}</span> {{ p.table }} <span class="muted">{{ p.sql|truncatechars:120 }}</span></span>
                     <span class="wf__ms">{{ p.total|dur }}</span>
                 </a>

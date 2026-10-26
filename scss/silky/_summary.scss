@@ -1,7 +1,9 @@
 // Summary page: charts, "Fix these first", endpoint table extras.
 
 .note { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
-.cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; margin-bottom: 16px; align-items: start; }
+.note code { font: 500 12px var(--mono); background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; color: var(--text); }
+.cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; margin-bottom: 16px; }
+.cols:has(.chartcard.is-collapsed) { align-items: start; }
 .cols--even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .secthead { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; }
 .secthead h2 { margin: 0; font-size: 15px; }

@@ -34,6 +34,8 @@
 .btn--sm { height: 26px; font-size: 12px; }
 
 .h3 { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 18px 0 8px; }
+.h3--row { display: flex; align-items: center; justify-content: space-between; gap: 12px; text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); }
+.h3--row .muted { font-weight: 400; }
 .wf { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
 .wf__row {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 26%) 70px; gap: 12px; align-items: center;

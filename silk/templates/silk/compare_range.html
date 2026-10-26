@@ -58,7 +58,7 @@
     {% include 'silk/inclusion/compare_metrics.html' %}
 
     {% if not ep and endpoints %}
-    <div class="secthead"><h2>Endpoints</h2><span class="muted small">biggest p95 regressions first</span></div>
+    <h2 class="h3 h3--row">Endpoints<span class="muted small">biggest p95 regressions first</span></h2>
     <div class="tablewrap">
         <table class="reqs">
             <thead><tr><th>Endpoint</th><th class="num c-80">A</th><th class="num c-80">B</th><th class="num c-90">A p95</th><th class="num c-90">B p95</th><th class="num c-140">Change</th><th class="num c-130">Queries/req</th></tr></thead>
@@ -79,7 +79,7 @@
     </div>
     {% endif %}
 
-    <div class="secthead"><h2>Query patterns</h2><span class="muted small">calls per request, largest time change first</span></div>
+    <h2 class="h3 h3--row">Query patterns<span class="muted small">calls per request, largest time change first</span></h2>
     <div class="tablewrap">
         <table class="reqs">
             <thead><tr><th>Pattern</th><th class="num c-110">A calls/req</th><th class="num c-110">B calls/req</th><th class="num c-140">Time/req change</th></tr></thead>

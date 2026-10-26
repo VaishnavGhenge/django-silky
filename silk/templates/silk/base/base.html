@@ -56,11 +56,11 @@
             <a class="side-item {% navactive request 'silk:hotspots' class='is-active' %}" href="{% url 'silk:hotspots' %}">
                 <svg class="silk-icon" aria-hidden="true"><use href="#i-flame"></use></svg><span class="side-label">Hotspots</span>{% if nav.hotspots %}<span class="side-count">{{ nav.hotspots }}</span>{% endif %}
             </a>
-            <a class="side-item {% navactive request 'silk:summary' class='is-active' %}" href="{% url 'silk:summary' %}">
-                <svg class="silk-icon" aria-hidden="true"><use href="#i-layout-dashboard"></use></svg><span class="side-label">Summary</span>
-            </a>
             <a class="side-item {% navactive request 'silk:profiling' class='is-active' %}" href="{% url 'silk:profiling' %}">
                 <svg class="silk-icon" aria-hidden="true"><use href="#i-cpu"></use></svg><span class="side-label">Profiling</span>{% if nav.profiling %}<span class="side-count">{{ nav.profiling }}</span>{% endif %}
+            </a>
+            <a class="side-item {% navactive request 'silk:summary' class='is-active' %}" href="{% url 'silk:summary' %}">
+                <svg class="silk-icon" aria-hidden="true"><use href="#i-layout-dashboard"></use></svg><span class="side-label">Summary</span>
             </a>
             <a class="side-item {% if request.resolver_match.url_name|slice:':7' == 'compare' %}is-active{% endif %}" href="{% url 'silk:compare' %}">
                 <svg class="silk-icon" aria-hidden="true"><use href="#i-git-compare"></use></svg><span class="side-label">Compare</span>
@@ -106,8 +106,8 @@
                 <a class="tab {% navactive request 'silk:requests' class='is-active' %}" href="{% url 'silk:requests' %}">Requests</a>
                 <a class="tab {% navactive request 'silk:sql' class='is-active' %}" href="{% url 'silk:sql' %}">SQL</a>
                 <a class="tab {% navactive request 'silk:hotspots' class='is-active' %}" href="{% url 'silk:hotspots' %}">Hotspots</a>
-                <a class="tab {% navactive request 'silk:summary' class='is-active' %}" href="{% url 'silk:summary' %}">Summary</a>
                 <a class="tab {% navactive request 'silk:profiling' class='is-active' %}" href="{% url 'silk:profiling' %}">Profiling</a>
+                <a class="tab {% navactive request 'silk:summary' class='is-active' %}" href="{% url 'silk:summary' %}">Summary</a>
                 <a class="tab {% if request.resolver_match.url_name|slice:':7' == 'compare' %}is-active{% endif %}" href="{% url 'silk:compare' %}">Compare</a>
             </nav>
             <div class="topbar__right">

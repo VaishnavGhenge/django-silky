@@ -13,3 +13,11 @@ def ms_parts(ms):
 def fmt_ms(ms):
     number, unit = ms_parts(ms)
     return f'{number} {unit}'
+
+
+def fmt_int(n):
+    """A count with thousands separators: 75973 as '75,973'. Anything else passes through."""
+    try:
+        return f'{int(n):,}'
+    except (TypeError, ValueError):
+        return n

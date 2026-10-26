@@ -185,3 +185,10 @@ def dur_num(ms):
 def dur_unit(ms):
     from silk.utils.fmt import ms_parts
     return ms_parts(ms)[1]
+
+
+@register.filter
+def num(n):
+    """A count as '75,973'."""
+    from silk.utils.fmt import fmt_int
+    return fmt_int(n)

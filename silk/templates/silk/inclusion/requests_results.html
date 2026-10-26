@@ -4,7 +4,7 @@
     {% url 'silk:requests' as list_url %}
 
     <div class="stats stats--5">
-        <div class="stat"><div class="stat__label">Requests</div><div class="stat__value">{{ stats.count }}</div>
+        <div class="stat"><div class="stat__label">Requests</div><div class="stat__value">{{ stats.count|num }}</div>
             {% if stats.spark %}<svg class="stat__spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><path class="stat__spark-area" d="{{ stats.spark }} L120 28 L0 28 Z"/><path d="{{ stats.spark }}"/></svg>{% endif %}</div>
         <div class="stat"><div class="stat__label">p95 time</div>
             <div class="stat__value">{% if stats.p95 is not None %}{{ stats.p95|dur_num }}<small>{{ stats.p95|dur_unit }}</small>{% else %}·{% endif %}</div>
@@ -45,11 +45,19 @@
         <input type="hidden" name="filter-slower-typ" value="SlowerThanUsualFilter">
         <input type="hidden" name="filter-slower-value" value="{{ filters.slower.value|default:'' }}">
 
-        {# Less common filters live in More: time range, query count and page size. #}
+        {# Less common filters live in More: rarer methods, time range, query count and page size. #}
         <div class="menu">
             <button type="button" class="chip" data-menu-toggle aria-haspopup="true" aria-expanded="false" aria-pressed="{% if more_active %}true{% else %}false{% endif %}">More{% if more_active %} <span class="count">{{ more_active }}</span>{% endif %}
                 <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>
             <div class="menu__list menu__list--left menu__list--panel" hidden>
+                {% if other_method_chips %}
+                <div class="menu__section">Other methods</div>
+                <div class="chipset">
+                    {% for m in other_method_chips %}
+                    <button type="button" class="chip" data-chip="method" data-value="{{ m.method }}" aria-pressed="{% if m.method in selected_methods %}true{% else %}false{% endif %}">{{ m.method }} <span class="count">{{ m.count }}</span></button>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 <div class="menu__section">Time range</div>
                 <div class="chipset">
                     <button type="button" class="chip" data-chip="seconds" data-value="" aria-pressed="{% if not filters.seconds.value %}true{% else %}false{% endif %}">All time</button>
@@ -147,7 +155,7 @@
 
     {% if page_obj.has_other_pages %}
     <nav class="pager" aria-label="Pages">
-        <span class="muted">{{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}</span>
+        <span class="muted">{{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count|num }}</span>
         <div class="pager__links">
             {% if page_obj.has_previous %}
             <a class="btn btn--sm" href="{{ list_url }}?page={{ page_obj.previous_page_number }}" hx-get="{{ list_url }}?page={{ page_obj.previous_page_number }}" hx-target="#req-dynamic" hx-swap="outerHTML" hx-push-url="true">‹ Previous</a>

@@ -1,5 +1,6 @@
 {% extends 'silk/base/base.html' %}
 {% load silk_assets %}
+{% load silk_filters %}
 {% load static %}
 
 {% block pagetitle %}Silky - SQL{% endblock %}
@@ -15,7 +16,7 @@
     <div class="req-head">
         <div>
             <h1>SQL</h1>
-            <p class="sub">{{ stats.calls }} queries grouped into {{ stats.patterns }} patterns by shape, across every recorded request.</p>
+            <p class="sub">{{ stats.calls|num }} queries grouped into {{ stats.patterns }} patterns by shape, across every recorded request.</p>
         </div>
     </div>
     {% include 'silk/inclusion/sql_patterns_split.html' %}

@@ -321,6 +321,13 @@ class RequestsView(View):
             except (TypeError, ValueError, KeyError):
                 selected_methods = []
 
+        # The common five stay in the chip row; HEAD, OPTIONS and the rest sit in More.
+        method_chips = self._method_chips()
+        main_methods = [m for m in method_chips if m['method'] in self.METHOD_ORDER[:5]]
+        other_methods = [m for m in method_chips if m not in main_methods]
+        more_active = sum(1 for k in ('seconds', 'numqueriesfilter') if raw_filters.get(k, {}).get('value'))
+        more_active += sum(1 for m in other_methods if m['method'] in selected_methods)
+
         context = {
             'show': show,
             'per_page': per_page,
@@ -335,8 +342,9 @@ class RequestsView(View):
             'options_paths': self._get_paths(),
             'options_status_codes': self._get_status_codes(),
             'options_methods': self._get_methods(),
-            'method_chips': self._method_chips(),
-            'more_active': sum(1 for k in ('seconds', 'numqueriesfilter') if raw_filters.get(k, {}).get('value')),
+            'method_chips': main_methods,
+            'other_method_chips': other_methods,
+            'more_active': more_active,
             'view_names': self._get_views(),
             'filters': raw_filters,
             'sort_list': sort_list,

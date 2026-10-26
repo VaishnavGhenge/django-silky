@@ -1,5 +1,6 @@
 {% extends 'silk/base/base.html' %}
 {% load silk_assets %}
+{% load silk_filters %}
 
 {% block pagetitle %}Silky - Settings{% endblock %}
 
@@ -57,7 +58,7 @@
             <h2>Thresholds</h2>
             <p class="note">What Silky colours amber and red, and what the Slow filter on Requests means. Saved as cookies so the server can use them.</p>
             <div class="thr">
-                <label>Slow request<span class="thr__in"><input type="number" class="input mono" id="slow-ms" min="50" step="50" value="{{ thresholds.slow_ms }}" data-default="{{ defaults.slow_ms }}"><em>ms</em></span><small>red, and the Slow filter</small></label>
+                <label>Slow request<span class="thr__in"><input type="number" class="input mono" id="slow-ms" min="50" step="50" value="{{ thresholds.slow_ms }}" data-default="{{ defaults.slow_ms }}"><em>ms</em></span><small>red, and the Slow filter{% if nav.requests %}: {{ nav.slow|num }} of {{ nav.requests|num }} requests{% endif %}</small></label>
                 <label>Getting slow<span class="thr__in"><input type="number" class="input mono" id="ok-ms" min="10" step="10" value="{{ thresholds.ok_ms }}" data-default="{{ defaults.ok_ms }}"><em>ms</em></span><small>amber from here, green below</small></label>
             </div>
             <div class="sec__actions">
@@ -133,8 +134,8 @@
         <section class="card sec" id="sec-data">
             <h2>Data</h2>
             <div class="datastats">
-                <div><b>{{ data.requests }}</b><span>requests</span></div>
-                <div><b>{{ data.queries }}</b><span>queries</span></div>
+                <div><b>{{ data.requests|num }}</b><span>requests</span></div>
+                <div><b>{{ data.queries|num }}</b><span>queries</span></div>
                 <div><b>{{ data.profiles }}</b><span>profiles</span></div>
                 <div><b>{% if data.oldest %}{{ data.oldest|timesince }}{% else %}·{% endif %}</b><span>oldest record</span></div>
             </div>
@@ -161,7 +162,7 @@
     <form method="post" action="{% url 'silk:cleardb' %}">
         {% csrf_token %}
         <h2 id="clear-title">Clear all recorded data?</h2>
-        <p class="note">This deletes {{ data.requests }} requests and everything recorded with them. Type <code>clear</code> to confirm.</p>
+        <p class="note">This deletes {{ data.requests|num }} requests and everything recorded with them. Type <code>clear</code> to confirm.</p>
         <input class="input mono" id="clear-confirm" autocomplete="off" spellcheck="false" aria-label="Type clear to confirm">
         <div class="sec__actions">
             <button class="btn" type="button" data-dialog-close>Cancel</button>

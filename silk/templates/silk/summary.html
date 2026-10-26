@@ -12,7 +12,7 @@
 <div class="req-head">
     <div>
         <h1>Summary</h1>
-        <p class="sub">Health of {{ endpoints|length }} endpoint{{ endpoints|length|pluralize }} over {{ stats.count }} recorded request{{ stats.count|pluralize }}{% if capped %} (the newest {{ stats.count }}){% endif %}.</p>
+        <p class="sub">Health of {{ endpoints|length }} endpoint{{ endpoints|length|pluralize }} over {{ stats.count|num }} recorded request{{ stats.count|pluralize }}{% if capped %} (the newest {{ stats.count|num }}){% endif %}.</p>
     </div>
     <form method="post" action="{% url 'silk:summary' %}" class="chipset" aria-label="Time range">
         {% csrf_token %}
@@ -27,12 +27,12 @@
 <div class="empty"><p><strong>No requests recorded{% if active_preset %} in this range{% endif %}.</strong></p><p class="muted">Make a request to your app and it will appear here.</p></div>
 {% else %}
 <div class="stats">
-    <div class="stat"><div class="stat__label">Requests</div><div class="stat__value">{{ stats.count }}</div></div>
+    <div class="stat"><div class="stat__label">Requests</div><div class="stat__value">{{ stats.count|num }}</div></div>
     <div class="stat"><div class="stat__label">p50</div><div class="stat__value">{{ stats.p50|dur_num }}<small>{{ stats.p50|dur_unit }}</small></div></div>
     <div class="stat"><div class="stat__label">p95</div><div class="stat__value">{{ stats.p95|dur_num }}<small>{{ stats.p95|dur_unit }}</small></div></div>
-    <div class="stat"><div class="stat__label">5xx rate</div><div class="stat__value{% if stats.error_rate >= 5 %} is-bad{% endif %}">{{ stats.error_rate|floatformat:"1" }}<small>%</small></div><div class="stat__sub">{{ stats.errors }} server errors</div></div>
+    <div class="stat"><div class="stat__label">5xx rate</div><div class="stat__value{% if stats.error_rate >= 5 %} is-bad{% endif %}">{{ stats.error_rate|floatformat:"1" }}<small>%</small></div><div class="stat__sub">{{ stats.errors|num }} server errors</div></div>
     <div class="stat"><div class="stat__label">Avg queries</div><div class="stat__value">{{ stats.avg_queries|floatformat:"1" }}</div><div class="stat__sub">per request</div></div>
-    <div class="stat"><div class="stat__label">N+1 suspects</div><div class="stat__value">{{ stats.n1 }}</div><div class="stat__sub">requests</div></div>
+    <div class="stat"><div class="stat__label">N+1 suspects</div><div class="stat__value">{{ stats.n1|num }}</div><div class="stat__sub">requests</div></div>
 </div>
 
 <div class="cols">
@@ -49,7 +49,7 @@
                 <path class="chart__p50" d="{{ latency.p50 }}"/>
             </svg>
         </div>
-        <div class="legend"><span class="lg lg--p95">p95</span><span class="lg lg--p50">p50</span><span class="muted">oldest → newest, {{ latency.requests }} requests in {{ latency.buckets }} buckets</span></div>
+        <div class="legend"><span class="lg lg--p95">p95</span><span class="lg lg--p50">p50</span><span class="muted">oldest → newest, {{ latency.requests|num }} requests in {{ latency.buckets }} buckets</span></div>
         {% else %}<p class="muted">Not enough requests to plot.</p>{% endif %}
         </div>
     </div>
@@ -82,7 +82,7 @@
         {% for e in endpoints %}
         <tr>
             <td class="c-path-cell"><a class="row-link path" href="{% url 'silk:requests' %}?view={{ e.key|urlencode }}">{{ e.key }}</a>{% if e.n1 %} <span class="flag">N+1</span>{% endif %}</td>
-            <td class="num mono">{{ e.count }}</td>
+            <td class="num mono">{{ e.count|num }}</td>
             <td class="num mono">{{ e.p50|dur }}</td>
             <td class="num mono{% if e.p95 >= thresholds.slow_ms %} is-bad{% endif %}">{{ e.p95|dur }}</td>
             <td class="num mono">{{ e.avg_q|floatformat:"1" }}</td>

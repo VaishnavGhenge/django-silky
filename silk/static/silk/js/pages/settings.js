@@ -35,6 +35,9 @@
     });
   });
 
+  // Counts on this page and in the sidebar are rendered with the old thresholds.
+  function reloadSoon() { setTimeout(function () { location.reload(); }, 900); }
+
   document.addEventListener('click', function (e) {
     var ed = e.target.closest('[data-editor]');
     if (ed) { s.write('silky-editor', ed.dataset.editor); refreshEditor(); s.toast('Editor: ' + ed.textContent); return; }
@@ -54,6 +57,7 @@
       document.getElementById('slow-ms').value = slow;
       document.getElementById('ok-ms').value = ok;
       s.toast('Thresholds saved: amber from ' + ok + ' ms, red from ' + slow + ' ms');
+      reloadSoon();
       return;
     }
     if (e.target.closest('[data-reset-thresholds]')) {
@@ -61,6 +65,7 @@
       setCookie('silky-slow-ms', document.getElementById('slow-ms').value);
       setCookie('silky-ok-ms', document.getElementById('ok-ms').value);
       s.toast('Thresholds reset');
+      reloadSoon();
       return;
     }
     var c = e.target.closest('[data-confirm]');

@@ -10,7 +10,7 @@
         {% if not detail %}
         <div class="stats">
             <div class="stat"><div class="stat__label">Total DB time</div><div class="stat__value">{{ stats.total_ms|dur_num }}<small>{{ stats.total_ms|dur_unit }}</small></div><div class="stat__sub">all recorded queries</div></div>
-            <div class="stat"><div class="stat__label">Patterns</div><div class="stat__value">{{ stats.patterns }}</div><div class="stat__sub">{{ stats.selects }} are SELECTs</div></div>
+            <div class="stat"><div class="stat__label">Patterns</div><div class="stat__value">{{ stats.patterns|num }}</div><div class="stat__sub">{{ stats.selects }} are SELECTs</div></div>
             <div class="stat"><div class="stat__label">N+1 patterns</div><div class="stat__value">{{ stats.repeating }}</div><div class="stat__sub">repeated {{ repeat_min }}+ times in a request</div></div>
             <div class="stat"><div class="stat__label">Slowest p95</div><div class="stat__value">{% if stats.slowest %}{{ stats.slowest.p95|dur_num }}<small>{{ stats.slowest.p95|dur_unit }}</small>{% else %}·{% endif %}</div><div class="stat__sub">{{ stats.slowest.table|default:"" }}</div></div>
         </div>
@@ -69,8 +69,8 @@
                         </a>
                         <div class="pat__sql">{{ p.sql|truncatechars:220 }}</div>
                     </td>
-                    <td class="num mono">{{ p.calls }}</td>
-                    <td class="num mono">{{ p.requests }}</td>
+                    <td class="num mono">{{ p.calls|num }}</td>
+                    <td class="num mono">{{ p.requests|num }}</td>
                     <td class="num"><div class="timecell t-good"><b>{{ p.total|dur }}</b><span class="timebar"><i style="width:{{ p.bar }}%"></i></span></div></td>
                     <td class="num mono">{{ p.avg|dur }}</td>
                     <td class="num mono{% if p.p95 >= slow_pattern_ms %} is-warn{% endif %}">{{ p.p95|dur }}</td>
@@ -100,10 +100,10 @@
         </div>
         <div class="d-body">
             <div class="kpis">
-                <div class="kpi"><span>Calls</span><b>{{ d.stats.calls }}</b></div>
+                <div class="kpi"><span>Calls</span><b>{{ d.stats.calls|num }}</b></div>
                 <div class="kpi"><span>Total</span><b>{{ d.stats.total|dur }}</b></div>
                 <div class="kpi"><span>Avg</span><b>{{ d.stats.avg|dur }}</b></div>
-                <div class="kpi"><span>Requests</span><b>{{ d.stats.requests }}</b></div>
+                <div class="kpi"><span>Requests</span><b>{{ d.stats.requests|num }}</b></div>
             </div>
             <pre class="code" id="pattern-sql">{{ d.formatted }}</pre>
             {% if d.frame %}
@@ -125,7 +125,7 @@
             <div class="hist" aria-hidden="true">{% for b in d.hist.bars %}<i style="height:{{ b }}%"></i>{% endfor %}</div>
             <div class="hist__axis"><span>0</span><span>{{ d.hist.max|dur }}</span></div>
             {% endif %}
-            <h2 class="h3">Requests running it ({{ d.stats.requests }})</h2>
+            <h2 class="h3">Requests running it ({{ d.stats.requests|num }})</h2>
             <div class="occ">
                 {% for o in d.occurrences %}
                 <a class="occ__row" href="{% url 'silk:request_detail' request_id=o.request.pk %}">

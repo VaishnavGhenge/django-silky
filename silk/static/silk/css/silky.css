@@ -2450,6 +2450,21 @@ kbd {
   margin: 18px 0 8px;
 }
 
+.h3--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.h3--row .muted {
+  font-weight: 400;
+}
+
 .wf {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -3048,11 +3063,23 @@ td.is-warn {
   margin: 0 0 10px;
 }
 
+.note code {
+  font: 500 12px var(--mono);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 4px;
+  color: var(--text);
+}
+
 .cols {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: 16px;
   margin-bottom: 16px;
+}
+
+.cols:has(.chartcard.is-collapsed) {
   align-items: start;
 }
 
