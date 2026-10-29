@@ -12,6 +12,8 @@
 
 It records the same data as django-silk (requests and responses, SQL queries, code profiles, dynamic profiling) and adds a rebuilt interface aimed at one question: what should I fix first? It groups queries by shape and by the line of your code that ran them, flags N+1 patterns with a likely fix, compares two requests or two time ranges, and filters without reloading the page. JavaScript per page is 20 to 78 KB, against 0.7 to 2.4 MB in django-silk ([benchmarks](benchmarks/README.md)).
 
+<img src="https://raw.githubusercontent.com/VaishnavGhenge/django-silky/master/screenshots/demo.gif" alt="Opening an N+1 suspect: the request panel names the calling line and suggests select_related, then the SQL and Hotspots pages" width="840"/>
+
 ---
 
 ## What's different from django-silk?
