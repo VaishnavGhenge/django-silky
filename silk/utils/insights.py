@@ -8,6 +8,7 @@ import os
 import re
 import statistics
 import sys
+import sysconfig
 
 from silk.utils.n_plus_one import detect_n_plus_one
 from silk.utils.prefs import N1_MIN
@@ -21,8 +22,19 @@ SLOWER_MIN_MS = 200
 MIN_REQUESTS_FOR_USUAL = 5
 
 
+def _stdlib_dirs():
+    """Where the standard library lives, also resolved, since Homebrew and pyenv reach it through symlinks."""
+    paths = sysconfig.get_paths()
+    dirs = {os.path.dirname(os.__file__), paths.get('stdlib'), paths.get('platstdlib')}
+    dirs |= {os.path.realpath(d) for d in dirs if d}
+    return tuple(d.rstrip(os.sep) + os.sep for d in dirs if d)
+
+
+_STDLIB_DIRS = _stdlib_dirs()
+
+
 def _is_app_file(path):
-    if 'site-packages' in path or path.startswith(_SILK_DIR):
+    if 'site-packages' in path or path.startswith(_SILK_DIR) or path.startswith(_STDLIB_DIRS):
         return False
     lib_path = os.environ.get('VIRTUAL_ENV') or sys.prefix
     return not (lib_path and path.startswith(lib_path))

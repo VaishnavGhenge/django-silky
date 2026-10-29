@@ -1,3 +1,5 @@
+import contextlib
+import os
 from types import SimpleNamespace
 
 from django.test import TestCase
@@ -5,6 +7,7 @@ from django.test import TestCase
 from silk.models import Request
 from silk.utils.insights import (
     app_frame,
+    parse_frames,
     query_count_test,
     repeat_kind,
     request_insights,
@@ -81,6 +84,15 @@ class TestAppFrame(TestCase):
 '''
         via = app_frame(stack)['via']
         self.assertEqual((via['short'], via['line'], via['func']), ('django/template/base.py', 895, '_resolve_lookup'))
+
+    def test_standard_library_frames_are_not_app_code(self):
+        # contextlib wraps every view Django calls; a Python outside the venv must not make it "your code".
+        stdlib = os.path.realpath(contextlib.__file__)
+        stack = TRACEBACK.replace(
+            '  File "/app/shop/views.py"',
+            f'  File "{stdlib}", line 85, in inner\n    return func(*args, **kwds)\n  File "/app/shop/views.py"')
+        self.assertFalse(parse_frames(stack)[1]['app'])
+        self.assertEqual(app_frame(stack)['file'], '/app/shop/views.py')
 
     def test_none_when_only_library_frames(self):
         only_lib = TRACEBACK.replace('/app/shop/views.py', '/venv/lib/python3.12/site-packages/x.py')
