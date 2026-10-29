@@ -50,7 +50,7 @@
                     {% if f.app %}<a class="tb__file" data-editor-file="{{ f.file }}" data-editor-line="{{ f.line }}" href="vscode://file{{ f.file }}:{{ f.line }}" title="Open in editor">{{ f.file|app_path }}:{{ f.line }}</a>{% else %}<span class="tb__file">{{ f.file|app_path }}:{{ f.line }}</span>{% endif %}
                     <em>{{ f.func }}</em>
                     {% if f.is_top %}<span class="flag">ran the query</span>{% endif %}
-                    <a class="tb__src" href="?pos={{ f.pos }}&amp;file_path={{ f.file|urlencode }}&amp;line_num={{ f.line }}#f{{ f.pos }}" id="f{{ f.pos }}">source</a>
+                    {% if f.pos %}<a class="tb__src" href="?pos={{ f.pos }}&amp;file_path={{ f.file|urlencode }}&amp;line_num={{ f.line }}#f{{ f.pos }}" id="f{{ f.pos }}">source</a>{% endif %}
                 </div>
                 {% if f.code %}<code class="tb__code">{{ f.code }}</code>{% endif %}
                 {% if f.pos == pos and code %}{% code code actual_line %}{% endif %}
