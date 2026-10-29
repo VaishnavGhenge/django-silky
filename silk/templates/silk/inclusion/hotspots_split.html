@@ -53,6 +53,7 @@
         </div>
         <div class="d-body">
             {% if d.code %}<pre class="code">{{ d.code }}</pre>{% endif %}
+            {% include 'silk/inclusion/frame_via.html' with via=d.via %}
             <div class="kpis">
                 <div class="kpi"><span>DB time</span><b>{{ d.stats.total|dur }}</b></div>
                 <div class="kpi"><span>Queries</span><b>{{ d.stats.calls|num }}</b></div>
@@ -71,7 +72,7 @@
                 {% for p in d.patterns %}
                 <a class="group" href="{% url 'silk:sql' %}?p={{ p.pattern_hash }}">
                     <span class="group__n{% if p.repeats %} is-hot{% endif %}">{{ p.calls|num }}×</span>
-                    <span class="wf__sql"><span class="sqltype t-{{ p.type }}">{{ p.type }}</span> {{ p.table }} <span class="muted">{{ p.sql|truncatechars:120 }}</span></span>
+                    <span class="wf__sql"><span class="sqltype t-{{ p.type }}">{{ p.type }}</span> {{ p.table }}{% if p.via %} <span class="group__via" title="Runs in {{ p.via.short }}:{{ p.via.line }}">via {{ p.via.func }}()</span>{% endif %} <span class="muted">{{ p.sql|truncatechars:120 }}</span></span>
                     <span class="wf__ms">{{ p.total|dur }}</span>
                 </a>
                 {% endfor %}

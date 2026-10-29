@@ -112,6 +112,7 @@
                 <span class="frame__loc"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-code"></use></svg>{{ d.frame.file|app_path }}:{{ d.frame.line }} <em>{{ d.frame.func }}</em></span>
                 {% if d.frame.code %}<code class="frame__code">{{ d.frame.code }}</code>{% endif %}
             </a>
+            {% include 'silk/inclusion/frame_via.html' with via=d.frame.via %}
             {% endif %}
             {% if d.fix %}
             <div class="fix">

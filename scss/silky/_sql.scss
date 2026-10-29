@@ -79,6 +79,7 @@ a.occ__row:hover { background: var(--row-hover); text-decoration: none; }
 .occ__n.is-hot { color: var(--warn); font-weight: 600; }
 .occ__ms { font-family: var(--mono); text-align: right; }
 .group { display: grid; grid-template-columns: 56px minmax(0, 1fr) 70px; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12px; align-items: center; color: var(--text-2) !important; }
+.group__via { color: var(--muted); }
 .group:last-child { border-bottom: 0; }
 a.group:hover { background: var(--row-hover); text-decoration: none; }
 .group__n { font: 600 13px var(--mono); }

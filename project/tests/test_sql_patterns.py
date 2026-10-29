@@ -56,6 +56,23 @@ class TestAggregation(TestCase):
         self.assertEqual(row['calls'], 4)
         self.assertEqual(row['repeats'], 1)
 
+    def test_hotspot_names_a_shared_library_only_when_every_pattern_uses_it(self):
+        def via_stack(lib, line, func):
+            return (f'  File "/venv/lib/python3.12/site-packages/django/db/models/base.py", line 800, in save\n    self.save_base()\n'
+                    f'  File "/venv/lib/python3.12/site-packages/{lib}", line {line}, in {func}\n    obj.save()\n'
+                    '  File "/app/shop/views.py", line 31, in login\n    auth_login(request, user)\n')
+        r = RequestMinFactory()
+        SQLQueryFactory(request=r, traceback=via_stack('django/contrib/auth/models.py', 23, 'update_last_login'),
+                        query='UPDATE "shop_customer" SET "last_login" = 1')
+        loc = '/app/shop/views.py:31'
+        self.assertEqual(sql_patterns.hotspot_detail(loc)['via']['func'], 'update_last_login')
+
+        SQLQueryFactory(request=r, traceback=via_stack('django/contrib/sessions/backends/db.py', 114, 'save'),
+                        query='INSERT INTO "django_session" VALUES (1)')
+        detail = sql_patterns.hotspot_detail(loc)
+        self.assertIsNone(detail['via'])
+        self.assertEqual({p['via']['func'] for p in detail['patterns']}, {'update_last_login', 'save'})
+
     def test_pattern_detail_includes_fix_for_repeats(self):
         record_loop(RequestMinFactory(), n=4)
         p = sql_patterns.patterns()[0]

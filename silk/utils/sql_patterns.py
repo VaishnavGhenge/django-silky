@@ -204,8 +204,10 @@ def hotspot_detail(location, repeat_min=REPEAT_MIN):
     samples = _samples([p['sample'] for p in pats])
     repeats = repeating_patterns(repeat_min)
     for p in pats:
-        sql = samples.get(p['sample'], {}).get('query', '')
-        p.update(sql=sql, table=sql_table(sql), type=sql_type(sql), repeats=repeats.get(p['pattern_hash'], 0), total=p['total'] or 0)
+        sample = samples.get(p['sample'], {})
+        sql = sample.get('query', '')
+        via = (app_frame(sample.get('traceback', '')) or {}).get('via')
+        p.update(sql=sql, table=sql_table(sql), type=sql_type(sql), repeats=repeats.get(p['pattern_hash'], 0), total=p['total'] or 0, via=via)
     endpoints = list(qs.values('request__view_name', 'request__path').annotate(n=Count('id')).order_by('-n')[:20])
 
     fix = None
@@ -217,6 +219,8 @@ def hotspot_detail(location, repeat_min=REPEAT_MIN):
         fix = suggest_fix(group)
         fix['kind'] = repeat_kind(group)
 
+    # One line can reach the database through several libraries; name one only when all patterns share it.
+    vias = {(p['via']['short'], p['via']['line']) if p['via'] else None for p in pats}
     calls = stats['calls']
     return {
         'location': location,
@@ -226,6 +230,7 @@ def hotspot_detail(location, repeat_min=REPEAT_MIN):
         'line': frame.get('line', 0),
         'func': frame.get('func', ''),
         'code': frame.get('code', ''),
+        'via': frame.get('via') if len(vias) == 1 else None,
         'patterns': pats,
         'endpoints': endpoints,
         'fix': fix,

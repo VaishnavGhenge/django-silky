@@ -51,20 +51,34 @@ def parse_frames(traceback):
     return frames
 
 
+def lib_path(path):
+    """A library path from its package directory on ('rest_framework/views.py'), or the last two parts."""
+    norm = path.replace('\\', '/')
+    for marker in ('site-packages/', 'dist-packages/'):
+        if marker in norm:
+            return norm.split(marker, 1)[1]
+    return '/'.join(norm.split('/')[-2:])
+
+
 def app_frame(traceback):
     """The app's own frame closest to the database call in a recorded traceback, or None.
 
     Silk's middleware stores stacks innermost first (silk/sql.py reverses them);
     a standard Python traceback is outermost first. The side the database and
     Silk frames sit on tells the order. Returns a dict with file, line, func and
-    code (the source line, if recorded).
+    code (the source line, if recorded), plus 'via': the library frame nearest
+    the database between that line and the query, or None. When the query comes
+    from a library the app line only hands control to (a middleware calling
+    get_response, a view returning serializer.data), 'via' is the code that ran it.
     """
     frames = parse_frames(traceback)
-    app = [f for f in frames if f['app']]
-    if not app:
+    if not any(f['app'] for f in frames):
         return None
-    innermost_first = _is_db_frame(frames[0]['file']) and not _is_db_frame(frames[-1]['file'])
-    return app[0] if innermost_first else app[-1]
+    if not (_is_db_frame(frames[0]['file']) and not _is_db_frame(frames[-1]['file'])):
+        frames.reverse()
+    i = next(i for i, f in enumerate(frames) if f['app'])
+    via = next((f for f in frames[:i] if not _is_db_frame(f['file'])), None)
+    return {**frames[i], 'via': {**via, 'short': lib_path(via['file'])} if via else None}
 
 
 LOCATION_MAX = 300
