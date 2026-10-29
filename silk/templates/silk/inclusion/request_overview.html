@@ -34,6 +34,7 @@
                 {% if g.frame %}<a class="fix__loc" data-editor-file="{{ g.frame.file }}" data-editor-line="{{ g.frame.line }}" href="vscode://file{{ g.frame.file }}:{{ g.frame.line }}" title="Open in editor"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-code"></use></svg>{{ g.frame.file|app_path }}:{{ g.frame.line }}</a>{% endif %}
             </div>
             {% if g.frame.code %}<code class="fix__line">{{ g.frame.code }}</code>{% endif %}
+            {% include 'silk/inclusion/frame_via.html' with via=g.frame.via %}
             <p>{{ g.fix.text }}</p>
             <div class="fix__code"><pre id="copy-fix">{{ g.fix.code }}</pre>
                 <button class="btn btn--sm" type="button" data-copy-from="#copy-fix" data-copy-label="Fix copied"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-copy"></use></svg>Copy</button></div>

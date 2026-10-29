@@ -50,6 +50,38 @@ class TestAppFrame(TestCase):
         frame = app_frame(stack)
         self.assertEqual((frame['file'], frame['line']), ('/app/shop/helpers.py', 12))
 
+    def test_no_via_when_app_line_calls_the_orm_directly(self):
+        self.assertIsNone(app_frame(TRACEBACK)['via'])
+
+    def test_via_names_the_library_code_that_ran_the_query(self):
+        # A pass-through middleware is the nearest app frame; simplejwt actually loads the user.
+        stack = '''  File "/venv/lib/python3.12/site-packages/django/db/models/query.py", line 633, in get
+    num = len(clone)
+  File "/venv/lib/python3.12/site-packages/rest_framework_simplejwt/authentication.py", line 132, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "/venv/lib/python3.12/site-packages/rest_framework/request.py", line 389, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "/app/core/middleware.py", line 102, in __call__
+    return self.get_response(request)
+'''
+        frame = app_frame(stack)
+        self.assertEqual((frame['file'], frame['line']), ('/app/core/middleware.py', 102))
+        self.assertEqual(frame['via']['short'], 'rest_framework_simplejwt/authentication.py')
+        self.assertEqual((frame['via']['line'], frame['via']['func']), (132, 'get_user'))
+
+    def test_via_in_outermost_first_stack_is_the_frame_nearest_the_database(self):
+        stack = '''  File "/app/shop/views.py", line 20, in order_list
+    return render(request, 'orders.html', {'orders': orders})
+  File "/venv/lib/python3.12/site-packages/django/template/base.py", line 1040, in render
+    return self.render_annotated(context)
+  File "/venv/lib/python3.12/site-packages/django/template/base.py", line 895, in _resolve_lookup
+    current = getattr(current, bit)
+  File "/venv/lib/python3.12/site-packages/django/db/models/fields/related_descriptors.py", line 236, in __get__
+    rel_obj = self.get_object(instance)
+'''
+        via = app_frame(stack)['via']
+        self.assertEqual((via['short'], via['line'], via['func']), ('django/template/base.py', 895, '_resolve_lookup'))
+
     def test_none_when_only_library_frames(self):
         only_lib = TRACEBACK.replace('/app/shop/views.py', '/venv/lib/python3.12/site-packages/x.py')
         self.assertIsNone(app_frame(only_lib))

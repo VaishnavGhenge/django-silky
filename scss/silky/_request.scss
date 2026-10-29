@@ -27,6 +27,8 @@
 .fix__head { display: flex; align-items: center; gap: 10px; font-size: 13px; }
 .fix__loc { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; font: 500 12px var(--mono); }
 .fix__line { display: block; margin-top: 8px; font: 12px/1.5 var(--mono); color: var(--text); background: var(--surface-2); border-radius: 6px; padding: 6px 8px; }
+.frame-via { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+.frame-via code { font: 12px var(--mono); color: var(--text-2); }
 .fix p { margin: 8px 0; font-size: 13px; color: var(--text-2); }
 .fix__code { position: relative; }
 .fix__code pre { margin: 0; padding: 10px 80px 10px 12px; border-radius: 6px; background: var(--brand-soft); color: var(--text); font: 12px/1.6 var(--mono); white-space: pre-wrap; }

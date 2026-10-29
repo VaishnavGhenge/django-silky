@@ -2424,6 +2424,17 @@ kbd {
   padding: 6px 8px;
 }
 
+.frame-via {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.frame-via code {
+  font: 12px var(--mono);
+  color: var(--text-2);
+}
+
 .fix p {
   margin: 8px 0;
   font-size: 13px;
@@ -3022,6 +3033,10 @@ a.occ__row:hover {
   font-size: 12px;
   align-items: center;
   color: var(--text-2) !important;
+}
+
+.group__via {
+  color: var(--muted);
 }
 
 .group:last-child {
