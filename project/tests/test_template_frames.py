@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+import jinja2
 from django.shortcuts import reverse
 from django.template import Context, Engine, Template
 from django.test import TestCase
@@ -59,3 +60,22 @@ class TestTemplateFrames(TestCase):
     def test_template_without_a_file_adds_no_frame(self):
         stack = self.render_capturing_stack(Template('{% for o in orders %}{{ o.customer.name }}{% endfor %}'))
         self.assertNotIn('in template\n', stack)
+
+    def test_jinja2_frame_shows_the_template_line_not_the_generated_one(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, 'orders.html')
+            with open(path, 'w') as f:
+                f.write('<ul>\n{% for o in orders %}\n  <li>{{ o.customer.name }}</li>\n{% endfor %}\n</ul>\n')
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(d))
+            seen = []
+
+            class Customer:
+                @property
+                def name(self):
+                    seen.append(_stack())
+                    return 'Ada'
+
+            env.get_template('orders.html').render(orders=[{'customer': Customer()}])
+        entries = [ln for ln in seen[0].split('\n') if path in ln]
+        self.assertEqual(entries, ['  File "%s", line 3, in template' % path])
+        self.assertIn('    <li>{{ o.customer.name }}</li>\n', seen[0])
