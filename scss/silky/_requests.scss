@@ -36,7 +36,12 @@
 }
 
 // ── Side panel ───────────────────────────────────────────────────
-#req-split.has-detail { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+#req-split.has-detail { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+// With the panel open the list is about half as wide; narrower fixed columns keep the path readable.
+#req-split.has-detail .c-method { width: 62px; }
+#req-split.has-detail .c-status { width: 58px; }
+#req-split.has-detail .c-time { width: 96px; }
+#req-split.has-detail .c-q { width: 76px; }
 #req-split.has-detail .c-db, #req-split.has-detail .c-when,
 #req-split.has-detail .reqs td:nth-child(6), #req-split.has-detail .reqs td:nth-child(7) { display: none; }
 #req-split.has-detail .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
