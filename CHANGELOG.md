@@ -5,6 +5,30 @@
      https://github.com/VaishnavGhenge/django-silky
      ────────────────────────────────────────────────────────────────────────── -->
 
+## [1.7.1](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.7.1) (2026-10-30)
+
+Silk now points at the code that actually ran a query when your own line only hands control to something else: a template, a library, or a middleware that calls `get_response`. No migration. Queries recorded before the upgrade keep the location they were recorded with.
+
+### Features
+
+- **Template lines** ([#24](https://github.com/VaishnavGhenge/django-silky/pull/24), [#27](https://github.com/VaishnavGhenge/django-silky/pull/27)). A query triggered by `{{ obj.customer.name }}` or by a `{% for %}` over a lazy queryset was blamed on the view's `render()` call. Silk now records the template file and line, read from the origin and token Django attaches to every parsed node, so the likely fix, the SQL page, Hotspots and "Open in editor" point at the template. Jinja2 templates get the same treatment: their frames carried the generated code's line number (17 instead of 3 in the test template) and now map back to the template line. Neither needs `DEBUG`. If reading template state fails, Silk records the plain frame and the query runs as usual.
+- **The library call behind a line** ([#23](https://github.com/VaishnavGhenge/django-silky/pull/23)). When a library runs the query, the nearest app frame is often a line that only passes control on. On one DRF project, a pass-through middleware was the top hotspot with 1,115 queries; they were simplejwt's `get_user()` (447), `get_object_or_404()` (318) and DRF serializers (275). The likely fix, SQL pattern and Hotspots panels now add "Query runs in `rest_framework_simplejwt/authentication.py:132`, `get_user()`, which this line calls into." Hotspots names one library for a line only when all of its query patterns share it, and otherwise names it per pattern.
+
+### Bug Fixes
+
+- **Standard library frames are no longer app code** ([#25](https://github.com/VaishnavGhenge/django-silky/pull/25)). With Python from Homebrew, pyenv or the system, a venv does not contain the standard library, so frames such as `contextlib.py` (which wraps every view) were highlighted as your code and could be picked as the line that ran a query.
+- **Request paths stay readable with the side panel open** ([#26](https://github.com/VaishnavGhenge/django-silky/pull/26)). At 1280 px the path column was 47 px wide and showed every path as "/…". It is now 198 px.
+
+### Development
+
+- `jinja2` is a test dependency.
+
+### Tests
+
+- Test baseline: **407 passed, 1 skipped** (up from 391).
+
+---
+
 ## [1.7.0](https://github.com/VaishnavGhenge/django-silky/releases/tag/v1.7.0) (2026-10-26)
 
 A rebuilt interface. Every page is redesigned, three pages are new (SQL, Hotspots, Compare), and filtering, sorting and opening a request update the page in place instead of reloading it. On 5,000 recorded requests the Summary page renders in **59 ms instead of 465 ms**, a filter change takes 70 ms instead of a 180 ms reload, and JavaScript per page drops from 0.7 to 2.4 MB to **20 to 78 KB**. Full figures are in [`benchmarks/README.md`](benchmarks/README.md).
