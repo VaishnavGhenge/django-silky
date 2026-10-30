@@ -25,7 +25,7 @@ MIN_REQUESTS_FOR_USUAL = 5
 def _stdlib_dirs():
     """Where the standard library lives, also resolved, since Homebrew and pyenv reach it through symlinks."""
     paths = sysconfig.get_paths()
-    dirs = {os.path.dirname(os.__file__), paths.get('stdlib'), paths.get('platstdlib')}
+    dirs = {os.path.dirname(getattr(os, '__file__', '')), paths.get('stdlib'), paths.get('platstdlib')}
     dirs |= {os.path.realpath(d) for d in dirs if d}
     return tuple(d.rstrip(os.sep) + os.sep for d in dirs if d)
 
