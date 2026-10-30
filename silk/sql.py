@@ -1,4 +1,6 @@
 import logging
+import os
+import sys
 import traceback
 
 from django.core.exceptions import EmptyResultSet
@@ -9,6 +11,45 @@ from silk.collector import DataCollector
 from silk.config import SilkyConfig
 
 Logger = logging.getLogger('silk.sql')
+
+_TEMPLATE_BASE = os.path.join('django', 'template', 'base.py')
+_TAG = {'VAR': '{{ %s }}', 'BLOCK': '{%% %s %%}'}
+
+
+def _template_frame(frame):
+    """A traceback entry for the template line a Node.render_annotated frame is rendering, or ''.
+
+    Django's template engine is library code, so without this a query run by
+    {{ obj.customer.name }} is blamed on the view's render() call. Every parsed
+    node carries its origin (the template file) and token (with its line).
+    """
+    code = frame.f_code
+    if code.co_name != 'render_annotated' or not code.co_filename.endswith(_TEMPLATE_BASE):
+        return ''
+    node = frame.f_locals.get('self')
+    origin, token = getattr(node, 'origin', None), getattr(node, 'token', None)
+    name, lineno = getattr(origin, 'name', ''), getattr(token, 'lineno', None)
+    if not name or name.startswith('<') or not lineno:
+        return ''
+    source = _TAG.get(token.token_type.name, '%s') % token.contents
+    return '  File "%s", line %d, in template\n    %s\n' % (name, lineno, ' '.join(source.split()))
+
+
+def _safe(entry_for, frame):
+    """entry_for(frame), or '' if it fails: a custom template node must never break the query being recorded."""
+    try:
+        return entry_for(frame)
+    except Exception:
+        return ''
+
+
+def _stack():
+    """The caller's stack formatted like traceback.format_stack(), innermost call first, with template lines."""
+    out = []
+    for frame, lineno in traceback.walk_stack(sys._getframe(1)):
+        out.append(_safe(_template_frame, frame))
+        out.extend(traceback.StackSummary.extract([(frame, lineno)]).format())
+    return ''.join(out)
 
 
 def _should_wrap(sql_query):
@@ -89,7 +130,7 @@ def execute_sql(self, *args, **kwargs):
         # This could log a warning but given this is run in the hot path, logging could be too expensive.
         return self._execute_sql(*args, **kwargs)
     if _should_wrap(sql_query):
-        tb = ''.join(reversed(traceback.format_stack()))
+        tb = _stack()
         query_dict = {
             'query': sql_query,
             'start_time': timezone.now(),

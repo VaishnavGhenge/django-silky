@@ -55,8 +55,11 @@ class SQLDetailView(View):
         tb = [mark_safe(x) for x in str.split('\n')]
         frames = parse_frames(sql_query.traceback)
         top = app_frame(sql_query.traceback)
-        for n, f in enumerate(frames, start=1):
-            f['pos'] = n   # matches the numbering _urlify gives the source links
+        n = 0
+        for f in frames:
+            # _urlify only links .py files, so template frames get no source link and no number.
+            n += f['file'].endswith('.py')
+            f['pos'] = n if f['file'].endswith('.py') else None
             f['is_top'] = top is not None and (f['file'], f['line']) == (top['file'], top['line'])
         context = {
             'frames': frames,

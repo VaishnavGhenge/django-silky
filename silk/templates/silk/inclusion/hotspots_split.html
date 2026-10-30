@@ -46,7 +46,7 @@
                 <a class="d-close" href="{{ hot_url }}" hx-get="{{ hot_url }}" hx-target="#split" hx-swap="outerHTML" hx-push-url="true" aria-label="Close" title="Close">
                     <svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></a>
             </div>
-            {% if d.func %}<div class="d-meta"><span>{{ d.func }}()</span></div>{% endif %}
+            {% if d.func %}<div class="d-meta"><span>{% if d.func == 'template' %}Django template{% else %}{{ d.func }}(){% endif %}</span></div>{% endif %}
             <div class="d-actions">
                 <a class="btn" data-editor-file="{{ d.file }}" data-editor-line="{{ d.line }}" href="vscode://file{{ d.file }}:{{ d.line }}"><svg class="silk-icon silk-icon--sm" aria-hidden="true"><use href="#i-code"></use></svg>Open in editor</a>
             </div>
