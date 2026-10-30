@@ -51,15 +51,23 @@ def _jinja2_frame(frame):
     return '  File "%s", line %d, in template\n    %s\n' % (filename, lineno, linecache.getline(filename, lineno).strip())
 
 
+def _safe(entry_for, frame):
+    """entry_for(frame), or '' if it fails: reading template state must never break the query being recorded."""
+    try:
+        return entry_for(frame)
+    except Exception:
+        return ''
+
+
 def _stack():
     """The caller's stack formatted like traceback.format_stack(), innermost call first, with template lines."""
     out = []
     for frame, lineno in traceback.walk_stack(sys._getframe(1)):
-        jinja2 = _jinja2_frame(frame)
+        jinja2 = _safe(_jinja2_frame, frame)
         if jinja2:
             out.append(jinja2)
             continue
-        out.append(_template_frame(frame))
+        out.append(_safe(_template_frame, frame))
         out.extend(traceback.StackSummary.extract([(frame, lineno)]).format())
     return ''.join(out)
 

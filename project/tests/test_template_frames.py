@@ -1,5 +1,6 @@
 import os
 import tempfile
+from unittest.mock import patch
 
 import jinja2
 from django.shortcuts import reverse
@@ -79,3 +80,29 @@ class TestTemplateFrames(TestCase):
         entries = [ln for ln in seen[0].split('\n') if path in ln]
         self.assertEqual(entries, ['  File "%s", line 3, in template' % path])
         self.assertIn('    <li>{{ o.customer.name }}</li>\n', seen[0])
+
+    def test_a_failing_template_node_does_not_break_the_stack(self):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, 'orders.html'), 'w') as f:
+                f.write('{% for o in orders %}{{ o.customer.name }}{% endfor %}')
+            with patch('silk.sql._template_frame', side_effect=AttributeError('token_type')):
+                stack = self.render_capturing_stack(Engine(dirs=[d]), 'orders.html')
+        self.assertIn('render_annotated', stack)
+        self.assertNotIn('in template\n', stack)
+
+    def test_a_failing_jinja2_lookup_falls_back_to_the_plain_frame(self):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, 'orders.html'), 'w') as f:
+                f.write('{% for o in orders %}{{ o.customer.name }}{% endfor %}')
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(d))
+            seen = []
+
+            class Customer:
+                @property
+                def name(self):
+                    seen.append(_stack())
+                    return 'Ada'
+
+            with patch('silk.sql._jinja2_frame', side_effect=TypeError('lineno')):
+                env.get_template('orders.html').render(orders=[{'customer': Customer()}])
+        self.assertIn(', in root\n', seen[0])
