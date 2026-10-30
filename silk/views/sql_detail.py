@@ -1,6 +1,4 @@
-import os
 import re
-import sys
 
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render
@@ -13,14 +11,6 @@ from silk.models import Profile, Request, SQLQuery
 from silk.utils.insights import app_frame, parse_frames
 from silk.views.code import _code
 from silk.views.sql import _offset_ms
-
-
-def _is_lib_frame(line):
-    s = str(line)
-    if 'site-packages' in s:
-        return True
-    lib_path = os.environ.get('VIRTUAL_ENV') or sys.prefix
-    return bool(lib_path and lib_path in s)
 
 
 class SQLDetailView(View):
@@ -72,7 +62,6 @@ class SQLDetailView(View):
             'frames': frames,
             'app_frames': sum(1 for f in frames if f['app']),
             'sql_query': sql_query,
-            'traceback': [(ln, _is_lib_frame(ln)) for ln in tb],
             'pos': pos,
             'line_num': line_num,
             'file_path': file_path,
