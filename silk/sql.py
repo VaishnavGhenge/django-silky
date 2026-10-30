@@ -1,3 +1,4 @@
+import linecache
 import logging
 import os
 import sys
@@ -35,8 +36,23 @@ def _template_frame(frame):
     return '  File "%s", line %d, in template\n    %s\n' % (name, lineno, ' '.join(source.split()))
 
 
+def _jinja2_frame(frame):
+    """A traceback entry with the template line for a frame of a compiled Jinja2 template, or ''.
+
+    Jinja2 runs templates as generated Python whose frames carry the template's
+    file name but the generated code's line number, so the line and source
+    shown would be wrong without mapping them back.
+    """
+    template = frame.f_globals.get('__jinja_template__')
+    filename = getattr(template, 'filename', None)
+    if not filename:
+        return ''
+    lineno = template.get_corresponding_lineno(frame.f_lineno)
+    return '  File "%s", line %d, in template\n    %s\n' % (filename, lineno, linecache.getline(filename, lineno).strip())
+
+
 def _safe(entry_for, frame):
-    """entry_for(frame), or '' if it fails: a custom template node must never break the query being recorded."""
+    """entry_for(frame), or '' if it fails: reading template state must never break the query being recorded."""
     try:
         return entry_for(frame)
     except Exception:
@@ -47,6 +63,10 @@ def _stack():
     """The caller's stack formatted like traceback.format_stack(), innermost call first, with template lines."""
     out = []
     for frame, lineno in traceback.walk_stack(sys._getframe(1)):
+        jinja2 = _safe(_jinja2_frame, frame)
+        if jinja2:
+            out.append(jinja2)
+            continue
         out.append(_safe(_template_frame, frame))
         out.extend(traceback.StackSummary.extract([(frame, lineno)]).format())
     return ''.join(out)
