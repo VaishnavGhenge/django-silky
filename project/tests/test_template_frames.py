@@ -1,5 +1,6 @@
 import os
 import tempfile
+from unittest.mock import patch
 
 from django.shortcuts import reverse
 from django.template import Context, Engine, Template
@@ -58,4 +59,13 @@ class TestTemplateFrames(TestCase):
 
     def test_template_without_a_file_adds_no_frame(self):
         stack = self.render_capturing_stack(Template('{% for o in orders %}{{ o.customer.name }}{% endfor %}'))
+        self.assertNotIn('in template\n', stack)
+
+    def test_a_failing_template_node_does_not_break_the_stack(self):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, 'orders.html'), 'w') as f:
+                f.write('{% for o in orders %}{{ o.customer.name }}{% endfor %}')
+            with patch('silk.sql._template_frame', side_effect=AttributeError('token_type')):
+                stack = self.render_capturing_stack(Engine(dirs=[d]), 'orders.html')
+        self.assertIn('render_annotated', stack)
         self.assertNotIn('in template\n', stack)

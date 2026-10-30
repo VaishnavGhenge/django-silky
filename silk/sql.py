@@ -35,11 +35,19 @@ def _template_frame(frame):
     return '  File "%s", line %d, in template\n    %s\n' % (name, lineno, ' '.join(source.split()))
 
 
+def _safe(entry_for, frame):
+    """entry_for(frame), or '' if it fails: a custom template node must never break the query being recorded."""
+    try:
+        return entry_for(frame)
+    except Exception:
+        return ''
+
+
 def _stack():
     """The caller's stack formatted like traceback.format_stack(), innermost call first, with template lines."""
     out = []
     for frame, lineno in traceback.walk_stack(sys._getframe(1)):
-        out.append(_template_frame(frame))
+        out.append(_safe(_template_frame, frame))
         out.extend(traceback.StackSummary.extract([(frame, lineno)]).format())
     return ''.join(out)
 
